@@ -975,8 +975,40 @@ tr:hover td{background:#f8fafc}
 <script>
 
 // ════════════════════════════════════════════════════════════
+// MÓDULO 0: CONFIGURACIÓN API — Reemplaza google.script.run
+// ════════════════════════════════════════════════════════════
+
+/**
+ * URL del backend Google Apps Script publicado como Web App.
+ * ⚠️  REEMPLAZA con tu URL real después de publicar el script.
+ * Ejemplo: https://script.google.com/macros/s/AKfy.../exec
+ * Publicar con: "Ejecutar como: Yo" + "Acceso: Cualquier usuario"
+ */
+var API_URL = window.API_URL || 'https://script.google.com/macros/s/AKfycbwGXWkSW-jHavekZCOorYXT07mNoy96vpuNPX265iXFgygV9Az0aJSzJmPPxTlxAijv-g/exec';
+
+/**
+ * Llama al backend REST (reemplaza google.script.run).
+ * @param {string} action - Nombre de la función en el backend
+ * @param {Array}  params - Array de argumentos
+ * @param {Function} onSuccess - Callback de éxito (recibe el resultado)
+ * @param {Function} onError   - Callback de error (recibe el objeto Error)
+ */
+function _gsrCall(action, params, onSuccess, onError) {
+  fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' }, // text/plain evita preflight CORS en GAS
+    body: JSON.stringify({ action: action, params: params || [] })
+  })
+  .then(function(res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  })
+  .then(function(data) { if (onSuccess) onSuccess(data); })
+  .catch(function(err) { if (onError) onError(err); });
+}
+
+// ════════════════════════════════════════════════════════════
 // MÓDULO 1: CONSTANTES Y ESTADO GLOBAL
-// (Todas las variables globales en un único lugar)
 // ════════════════════════════════════════════════════════════
 
 /** Estado de la sesión del usuario activo */
@@ -1418,8 +1450,8 @@ function doLogin() {
   btn.classList.add('loading');
   btn.querySelector('.btn-txt').textContent = 'Verificando';
 
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('login', [email, pw],
+    function(r) {
       if (r.ok) {
         btn.querySelector('.btn-txt').textContent = '✅ Bienvenido';
         setTimeout(function() {
@@ -1440,14 +1472,13 @@ function doLogin() {
         btn.style.animation = 'shake .4s ease';
         setTimeout(function(){ btn.style.animation = ''; }, 500);
       }
-    })
-    .withFailureHandler(function(e) {
+    },
+    function(e) {
       btn.classList.remove('loading');
       btn.querySelector('.btn-txt').textContent = 'Ingresar al sistema';
       errEl.textContent = 'Error: ' + e.message;
       errEl.style.display = 'block';
-    })
-    .login(email, pw);
+    });
 }
 
 // Login al presionar Enter en el campo de contraseña
@@ -1457,7 +1488,7 @@ document.getElementById('l-pass').addEventListener('keydown', function(e) {
 
 /** Cierra la sesión del usuario */
 function doLogout() {
-  google.script.run.logout(S.token);
+  _gsrCall('logout', [S.token], null, null);
   S = { token: null, usuario: null };
   sessionStorage.clear();
   // Ocultar hamburguesa al cerrar sesión
@@ -1508,10 +1539,9 @@ function startApp() {
   }
 
   // Cargar listas para selects y configuración visual
-  google.script.run
-    .withSuccessHandler(function(r) { if (r.ok) { _listas = r.listas; fillSelects(); } })
-    .withFailureHandler(function(){})
-    .obtenerListas(S.token);
+  _gsrCall('obtenerListas', [S.token],
+    function(r) { if (r.ok) { _listas = r.listas; fillSelects(); } },
+    function(){});
   loadCfgVisual();
   nav2('dashboard');
 }
@@ -1582,8 +1612,8 @@ function loadAgenda() {
     userId: S.usuario ? S.usuario.id : '',
     accentColor: 'var(--az)',
     onConfirm: function(slot, btn) {
-      google.script.run
-        .withSuccessHandler(function(r) {
+      _gsrCall('reservarFecha', [S.token, slot.id],
+        function(r) {
           if (!r.ok) {
             toast('⚠️ ' + r.error, 'error');
             CAL_AG.sel = null; CAL_AG.render();
@@ -1606,23 +1636,21 @@ function loadAgenda() {
           document.getElementById('page-ndil').classList.add('active');
           window.scrollTo(0, 0);
           toast('✅ Hora reservada: ' + horaCorta(slot.hora), 'ok');
-        })
-        .withFailureHandler(function(e) {
+        },
+        function(e) {
           toast('Error: ' + e.message, 'error');
           if (btn) { btn.disabled = false; btn.textContent = 'Continuar →'; }
-        })
-        .reservarFecha(S.token, slot.id);
+        });
     }
   });
 
   CAL_AG.mes = new Date();
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('obtenerAgenda', [S.token],
+    function(r) {
       if (r.ok) CAL_AG.setData(r.datos || []);
       else cont.innerHTML = '<div style="text-align:center;padding:30px"><p style="color:var(--red)">' + esc(r.error) + '</p><button class="btn bg sm" style="margin-top:10px" onclick="loadAgenda()">🔄 Reintentar</button></div>';
-    })
-    .withFailureHandler(function(e) { cont.innerHTML = '<div style="text-align:center;padding:30px"><p style="color:var(--red)">' + esc(e.message) + '</p></div>'; })
-    .obtenerAgenda(S.token);
+    },
+    function(e) { cont.innerHTML = '<div style="text-align:center;padding:30px"><p style="color:var(--red)">' + esc(e.message) + '</p></div>'; });
 }
 
 /** Vuelve a la agenda y libera el slot si se había reservado */
@@ -1630,7 +1658,7 @@ function backAgenda() {
   var sel = CAL_AG ? CAL_AG.sel : null;
   if (sel && sel.id) {
     if (!confirm('¿Cancelar? El horario quedará liberado.')) return;
-    google.script.run.liberarFecha(S.token, sel.id);
+    _gsrCall('liberarFecha', [S.token, sel.id], null, null);
     if (CAL_AG) CAL_AG.sel = null;
     window._ofcFile = null;
   }
@@ -1648,12 +1676,12 @@ function _leerTxtAg(f) {
 }
 function uploadAgenda() {
   if (!_agTxt) { toast('Selecciona un .txt', 'error'); return; }
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('procesarTxtAgenda', [S.token, _agTxt],
+    function(r) {
       if (r.ok) { toast('✅ ' + r.insertados + ' insertadas', 'ok'); _agTxt = ''; document.getElementById('ag-fn').textContent = ''; loadAgenda(); }
       else toast(r.error, 'error');
-    })
-    .procesarTxtAgenda(S.token, _agTxt);
+    },
+    null);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1684,10 +1712,9 @@ function uploadB64(file, carpeta, callback) {
   var r = new FileReader();
   r.onload = function(e) {
     var b64 = e.target.result.split(',')[1];
-    google.script.run
-      .withSuccessHandler(function(r) { callback(r.ok ? r.url : ''); if (!r.ok) toast('Error: ' + r.error, 'error'); })
-      .withFailureHandler(function(e) { callback(''); toast('Error: ' + e.message, 'error'); })
-      .subirArchivo(S.token, b64, file.name, file.type, carpeta);
+    _gsrCall('subirArchivo', [S.token, b64, file.name, file.type, carpeta],
+      function(r) { callback(r.ok ? r.url : ''); if (!r.ok) toast('Error: ' + r.error, 'error'); },
+      function(e) { callback(''); toast('Error: ' + e.message, 'error'); });
   };
   r.readAsDataURL(file);
 }
@@ -1725,8 +1752,8 @@ function saveDil() {
       var wm = encodeURIComponent('✅ Diligencia registrada\nCarpeta: ' + g('nd-carp') + '\nFecha: ' + g('nd-f') + ' ' + horaCorta(g('nd-h')) + '\nUML Huaral');
       window._waLink = 'https://wa.me/' + cel + '?text=' + wm;
     }
-    google.script.run
-      .withSuccessHandler(function(r) {
+    _gsrCall('registrarDiligencia', [S.token, datos],
+      function(r) {
         btn.disabled = false; btn.textContent = '💾 Guardar diligencia';
         if (r.ok) {
           toast('✅ Diligencia N° ' + r.n + ' registrada', 'ok');
@@ -1734,7 +1761,7 @@ function saveDil() {
           // ── Enviar email de confirmación si hay correo ingresado ──
           var emailDest = g('nd-email');
           if (emailDest) {
-            google.script.run.enviarEmailConfirmacion(S.token, {
+            _gsrCall('enviarEmailConfirmacion', [S.token, {
               email:               emailDest,
               carpeta_fiscal:      g('nd-carp'),
               expediente:          g('nd-exp'),
@@ -1746,7 +1773,7 @@ function saveDil() {
               fiscal:              g('nd-fisc'),
               condicion_diligencia:g('nd-cond'),
               s_oficio_url:        datos.s_oficio_url || ''
-            });
+            }], null, null);
           }
 
           // ── Ofrecer WhatsApp si hay celular ──
@@ -1764,9 +1791,8 @@ function saveDil() {
           document.getElementById('drop-ofc').classList.remove('tiene-archivo');
           setTimeout(function(){ nav2('dil'); }, 600);
         } else toast(r.error, 'error');
-      })
-      .withFailureHandler(function(e) { btn.disabled = false; btn.textContent = '💾 Guardar diligencia'; toast('Error: ' + e.message, 'error'); })
-      .registrarDiligencia(S.token, datos);
+      },
+      function(e) { btn.disabled = false; btn.textContent = '💾 Guardar diligencia'; toast('Error: ' + e.message, 'error'); });
   }
 
   if (ofc) { uploadB64(ofc, 'oficios', function(url) { if (!url) { btn.disabled = false; btn.textContent = '💾 Guardar diligencia'; return; } guardarConUrl(url, ofc.name); }); }
@@ -1787,13 +1813,12 @@ function loadDil() {
     ? '<button class="btn bs sm" onclick="exportarXLS()">📥 Excel</button><button class="btn bp sm" onclick="nav2(\'agenda\')">➕ Nueva</button>'
     : '<button class="btn bp sm" onclick="nav2(\'agenda\')">➕ Nueva diligencia</button>';
 
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('obtenerDiligencias', [S.token],
+    function(r) {
       if (r.ok) { _dilAll = r.datos; _dilFilt = r.datos; renderDil(r.datos); }
       else tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--red)">' + esc(r.error) + '</td></tr>';
-    })
-    .withFailureHandler(function(e) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--red)">' + esc(e.message) + '</td></tr>'; })
-    .obtenerDiligencias(S.token);
+    },
+    function(e) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--red)">' + esc(e.message) + '</td></tr>'; });
 }
 
 /** Filtra la tabla de diligencias por texto de búsqueda */
@@ -1842,8 +1867,8 @@ function renderDil(items) {
 
 /** Abre el modal de detalle de una diligencia */
 function verDil(n) {
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('obtenerDiligenciaPorN', [S.token, n],
+    function(r) {
       if (!r.ok) { toast(r.error, 'error'); return; }
       _dilActual = r.datos;
       var d = r.datos;
@@ -1880,9 +1905,8 @@ function verDil(n) {
       var be = document.getElementById('btn-editar-dil');
       if (be) be.style.display = S.usuario.rol === 'ADMINISTRADOR' ? 'inline-flex' : 'none';
       document.getElementById('mo-ver').classList.add('open');
-    })
-    .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); })
-    .obtenerDiligenciaPorN(S.token, n);
+    },
+    function(e) { toast('Error: ' + e.message, 'error'); });
 }
 
 /** Abre el modal de edición directamente desde la tabla */
@@ -1952,14 +1976,13 @@ function saveEdit() {
   var aT = iT && iT.files[0] ? iT.files[0] : null;
 
   function fin() {
-    google.script.run
-      .withSuccessHandler(function(r) {
+    _gsrCall('actualizarDiligencia', [S.token, n, campos],
+      function(r) {
         btn.disabled = false; btn.textContent = '💾 Guardar cambios';
         if (r.ok) { toast('✅ Actualizado', 'ok'); closeM('mo-edit'); loadDil(); _dilActual = null; }
         else toast('Error: ' + r.error, 'error');
-      })
-      .withFailureHandler(function(e) { btn.disabled = false; btn.textContent = '💾 Guardar cambios'; toast('Error: ' + e.message, 'error'); })
-      .actualizarDiligencia(S.token, n, campos);
+      },
+      function(e) { btn.disabled = false; btn.textContent = '💾 Guardar cambios'; toast('Error: ' + e.message, 'error'); });
   }
 
   if (aO) { uploadB64(aO, 'oficios', function(u) { if (u) { campos['S_OFICIO'] = aO.name; campos['S_OFICIO_URL'] = u; } if (aT) { uploadB64(aT, 'transcripciones', function(u2) { if (u2) campos['TRANSCRIPCION_URL'] = u2; fin(); }); } else fin(); }); }
@@ -1969,13 +1992,12 @@ function saveEdit() {
 
 function elimDil(n) {
   if (!confirm('¿Eliminar diligencia N°' + n + '?\n\nLos registros se renumerarán automáticamente.')) return;
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('eliminarDiligencia', [S.token, n],
+    function(r) {
       if (r.ok) { toast('✅ Eliminada. Registros renumerados.', 'ok'); loadDil(); }
       else toast(r.error, 'error');
-    })
-    .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); })
-    .eliminarDiligencia(S.token, n);
+    },
+    function(e) { toast('Error: ' + e.message, 'error'); });
 }
 
 /**
@@ -1985,14 +2007,13 @@ function elimDil(n) {
  */
 function exportarXLS() {
   toast('⏳ Preparando Excel...', 'ok');
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('exportarDiligenciasExcel', [S.token],
+    function(r) {
       if (!r.ok) { toast(r.error, 'error'); return; }
       _descargarXLSX(r.cabeceras, r.filas, 'Diligencias_UML', 'DILIGENCIAS');
       toast('✅ Excel descargado', 'ok');
-    })
-    .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); })
-    .exportarDiligenciasExcel(S.token);
+    },
+    function(e) { toast('Error: ' + e.message, 'error'); });
 }
 
 /**
@@ -2000,14 +2021,13 @@ function exportarXLS() {
  */
 function exportarXLSPsico() {
   toast('⏳ Preparando Excel...', 'ok');
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('exportarPsicologiaExcel', [S.token],
+    function(r) {
       if (!r.ok) { toast(r.error, 'error'); return; }
       _descargarXLSX(r.cabeceras, r.filas, 'Psicologia_UML', 'PSICOLOGÍA');
       toast('✅ Excel descargado', 'ok');
-    })
-    .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); })
-    .exportarPsicologiaExcel(S.token);
+    },
+    function(e) { toast('Error: ' + e.message, 'error'); });
 }
 
 /**
@@ -2060,13 +2080,12 @@ function loadCitasPsico() {
   var tb = document.getElementById('tbody-psico');
   if (!tb) return;
   tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:22px;color:var(--mu)">Cargando...</td></tr>';
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('obtenerCitasPsicologia', [S.token],
+    function(r) {
       if (r.ok) { _citasPsico = r.datos || []; _citasPsicoFilt = r.datos || []; renderTablaPsico(r.datos || []); }
       else tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--red)">' + esc(r.error || 'Error') + '</td></tr>';
-    })
-    .withFailureHandler(function(e) { if (tb) tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--red)">' + esc(e.message) + '</td></tr>'; })
-    .obtenerCitasPsicologia(S.token);
+    },
+    function(e) { if (tb) tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--red)">' + esc(e.message) + '</td></tr>'; });
 }
 
 /** Filtra la tabla de psicología por texto */
@@ -2131,8 +2150,8 @@ function buscarPsico() {
   var q = g('q-psico').trim(); if (!q) { toast('Escribe algo para buscar', 'error'); return; }
   var res = document.getElementById('psico-res');
   res.innerHTML = '<p style="font-size:13px;color:var(--mu)">⏳ Buscando...</p>';
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('buscarParaPsicologia', [S.token, q],
+    function(r) {
       if (!r.ok) { res.innerHTML = '<p style="color:var(--red);font-size:13px">' + esc(r.error) + '</p>'; return; }
       if (!r.datos || !r.datos.length) {
         res.innerHTML = '<div style="padding:14px;background:#fefce8;border-radius:9px;border:1px solid #fcd34d;font-size:13px;color:#92400e">⚠️ Sin resultados para "<b>' + esc(q) + '</b>". Continuando sin datos previos...</div>';
@@ -2152,9 +2171,8 @@ function buscarPsico() {
       });
       html += '</div>';
       res.innerHTML = html;
-    })
-    .withFailureHandler(function(e) { res.innerHTML = '<p style="color:var(--red);font-size:13px">' + esc(e.message) + '</p>'; })
-    .buscarParaPsicologia(S.token, q);
+    },
+    function(e) { res.innerHTML = '<p style="color:var(--red);font-size:13px">' + esc(e.message) + '</p>'; });
 }
 
 /** Muestra el calendario de psicología con datos del resultado seleccionado */
@@ -2175,8 +2193,8 @@ function loadAgPsico() {
     userId: S.usuario ? S.usuario.id : '',
     accentColor: 'var(--pur)',
     onConfirm: function(slot, btn) {
-      google.script.run
-        .withSuccessHandler(function(r) {
+      _gsrCall('reservarSlotPsico', [S.token, slot.id],
+        function(r) {
           if (!r.ok) { toast('⚠️ ' + r.error, 'error'); CAL_PSICO.sel = null; CAL_PSICO.render(); if (btn) { btn.disabled = false; btn.textContent = 'Continuar →'; } return; }
           var pp = slot.fecha.split('-');
           var dobj = new Date(parseInt(pp[0]), parseInt(pp[1])-1, parseInt(pp[2]));
@@ -2197,23 +2215,21 @@ function loadAgPsico() {
           }
           toast('✅ Cita reservada: ' + horaCorta(slot.hora), 'ok');
           window.scrollTo(0, 0);
-        })
-        .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); if (btn) { btn.disabled = false; btn.textContent = 'Continuar →'; } })
-        .reservarSlotPsico(S.token, slot.id);
+        },
+        function(e) { toast('Error: ' + e.message, 'error'); if (btn) { btn.disabled = false; btn.textContent = 'Continuar →'; } });
     }
   });
 
   CAL_PSICO.mes = new Date();
-  google.script.run
-    .withSuccessHandler(function(r) { if (r.ok) CAL_PSICO.setData(r.datos || []); else cont.innerHTML = '<p style="color:var(--red);padding:12px">' + esc(r.error) + '</p>'; })
-    .withFailureHandler(function(e) { cont.innerHTML = '<p style="color:var(--red);padding:12px">' + esc(e.message) + '</p>'; })
-    .obtenerAgendaPsico(S.token);
+  _gsrCall('obtenerAgendaPsico', [S.token],
+    function(r) { if (r.ok) CAL_PSICO.setData(r.datos || []); else cont.innerHTML = '<p style="color:var(--red);padding:12px">' + esc(r.error) + '</p>'; },
+    function(e) { cont.innerHTML = '<p style="color:var(--red);padding:12px">' + esc(e.message) + '</p>'; });
 }
 
 /** Cancela el formulario de nueva atención psicológica */
 function cancelPsico() {
   var sel = CAL_PSICO ? CAL_PSICO.sel : null;
-  if (sel && sel.id) { google.script.run.liberarSlotPsico(S.token, sel.id); if (CAL_PSICO) CAL_PSICO.sel = null; }
+  if (sel && sel.id) { _gsrCall('liberarSlotPsico', [S.token, sel.id], null, null); if (CAL_PSICO) CAL_PSICO.sel = null; }
   document.getElementById('psico-form-section').style.display = 'none';
   document.getElementById('psico-tabla-section').style.display = 'block';
   document.getElementById('btn-psico-toggle').textContent = '➕ Nueva atención';
@@ -2232,9 +2248,9 @@ function _leerTxtAgp(f) {
 }
 function uploadAgPsico() {
   if (!_agpTxt) { toast('Selecciona un .txt', 'error'); return; }
-  google.script.run
-    .withSuccessHandler(function(r) { if (r.ok) { toast('✅ ' + r.insertados + ' fechas psicológicas insertadas', 'ok'); _agpTxt = ''; document.getElementById('agp-fn').textContent = ''; loadAgPsico(); } else toast(r.error, 'error'); })
-    .procesarTxtAgendaPsico(S.token, _agpTxt);
+  _gsrCall('procesarTxtAgendaPsico', [S.token, _agpTxt],
+    function(r) { if (r.ok) { toast('✅ ' + r.insertados + ' fechas psicológicas insertadas', 'ok'); _agpTxt = ''; document.getElementById('agp-fn').textContent = ''; loadAgPsico(); } else toast(r.error, 'error'); },
+    null);
 }
 
 /** Guarda una nueva atención psicológica validando campos obligatorios */
@@ -2261,8 +2277,8 @@ function savePsico() {
     imputados: g('ps-imp'), agraviados: g('ps-agr'), delito_generico: g('ps-del'),
     email: g('ps-email')
   };
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('registrarAtencionPsicologica', [S.token, datos],
+    function(r) {
       btn.disabled = false; btn.textContent = '💾 Guardar atención';
       if (r.ok) {
         toast('✅ Atención psicológica registrada', 'ok');
@@ -2276,9 +2292,8 @@ function savePsico() {
         document.getElementById('btn-psico-toggle').textContent = '➕ Nueva atención';
         loadCitasPsico();
       } else toast(r.error, 'error');
-    })
-    .withFailureHandler(function(e) { btn.disabled = false; btn.textContent = '💾 Guardar atención'; toast('Error: ' + e.message, 'error'); })
-    .registrarAtencionPsicologica(S.token, datos);
+    },
+    function(e) { btn.disabled = false; btn.textContent = '💾 Guardar atención'; toast('Error: ' + e.message, 'error'); });
 }
 
 /** Abre el modal de edición de una atención psicológica */
@@ -2317,40 +2332,37 @@ function saveEditPsico() {
     DELITO: g('ep-del'), DESPACHO_FISCAL: g('ep-desp'), NOMBRE_FISCAL: g('ep-fisc'),
     CARPETA_FISCAL: g('ep-carp'), OBSERVACIONES: g('ep-obs')
   };
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('editarCitaPsicologia', [S.token, id, campos],
+    function(r) {
       if (r.ok) { toast('✅ Actualizado', 'ok'); closeM('mo-edit-psico'); loadCitasPsico(); }
       else toast('Error: ' + r.error, 'error');
-    })
-    .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); })
-    .editarCitaPsicologia(S.token, id, campos);
+    },
+    function(e) { toast('Error: ' + e.message, 'error'); });
 }
 
 function elimCitaPsico(id) {
   if (!confirm('¿Eliminar este registro de atención psicológica N°' + id + '?\n\nLos registros se renumerarán automáticamente.')) return;
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('eliminarCitaPsicologia', [S.token, id],
+    function(r) {
       if (r.ok) { toast('✅ Eliminado. Registros renumerados.', 'ok'); loadCitasPsico(); }
       else toast('Error: ' + r.error, 'error');
-    })
-    .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); })
-    .eliminarCitaPsicologia(S.token, id);
+    },
+    function(e) { toast('Error: ' + e.message, 'error'); });
 }
 
 /** Genera y abre el PDF de constancia de atención psicológica */
 function generarPdfPsicologia(id) {
   if (!id) return toast('ID no válido', 'error');
   toast('⏳ Generando PDF...', 'ok');
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('generarPdfPsicologia', [S.token, id],
+    function(r) {
       if (r.ok && r.dataUrl) {
         var win = window.open();
         win.document.write('<iframe src="' + r.dataUrl + '" width="100%" height="100%" style="border:none"></iframe>');
         toast('✅ PDF listo', 'ok');
       } else toast('Error: ' + (r.error || 'No se pudo generar'), 'error');
-    })
-    .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); })
-    .generarPdfPsicologia(S.token, id);
+    },
+    function(e) { toast('Error: ' + e.message, 'error'); });
 }
 
 // ════════════════════════════════════════════════════════════
@@ -2362,10 +2374,9 @@ function loadDocs() {
   if (S.usuario.rol === 'ADMINISTRADOR') cargarListaDocs('transcripciones', 'lista-trans');
 }
 function cargarListaDocs(carpeta, elId) {
-  google.script.run
-    .withSuccessHandler(function(r) { _docsCache[carpeta] = r.ok ? r.datos : []; renderListaDocs(carpeta, elId, ''); })
-    .withFailureHandler(function() { document.getElementById(elId).innerHTML = '<p style="font-size:12px;color:var(--red);text-align:center;padding:12px">Error al cargar</p>'; })
-    .obtenerDocumentos(S.token, carpeta);
+  _gsrCall('obtenerDocumentos', [S.token, carpeta],
+    function(r) { _docsCache[carpeta] = r.ok ? r.datos : []; renderListaDocs(carpeta, elId, ''); },
+    function() { document.getElementById(elId).innerHTML = '<p style="font-size:12px;color:var(--red);text-align:center;padding:12px">Error al cargar</p>'; });
 }
 function filtrarDocs(carpeta, qId, elId) { renderListaDocs(carpeta, elId, g(qId).toUpperCase().trim()); }
 function renderListaDocs(carpeta, elId, q) {
@@ -2395,9 +2406,9 @@ function uploadDoc(carpeta, inputId, nmId) {
 }
 function elimDoc(id, carpeta, elId) {
   if (!confirm('¿Eliminar este documento?')) return;
-  google.script.run
-    .withSuccessHandler(function(r) { if (r.ok) { toast('✅ Eliminado', 'ok'); cargarListaDocs(carpeta, elId); } else toast(r.error, 'error'); })
-    .eliminarDocumento(S.token, id);
+  _gsrCall('eliminarDocumento', [S.token, id],
+    function(r) { if (r.ok) { toast('✅ Eliminado', 'ok'); cargarListaDocs(carpeta, elId); } else toast(r.error, 'error'); },
+    null);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -2405,10 +2416,9 @@ function elimDoc(id, carpeta, elId) {
 // ════════════════════════════════════════════════════════════
 
 function loadNotif() {
-  google.script.run
-    .withSuccessHandler(function(r) { if (r.ok) renderChat(r.datos); })
-    .withFailureHandler(function(){})
-    .obtenerNotificaciones(S.token);
+  _gsrCall('obtenerNotificaciones', [S.token],
+    function(r) { if (r.ok) renderChat(r.datos); },
+    function(){});
   if (S.usuario.rol === 'ADMINISTRADOR') cargarDest();
 }
 
@@ -2432,16 +2442,16 @@ function renderChat(msgs) {
 }
 
 function cargarDest() {
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('obtenerUsuarios', [S.token],
+    function(r) {
       if (!r.ok) return;
       var sel = document.getElementById('notif-dest');
       sel.innerHTML = '<option value="TODOS">Todos los asistentes</option>';
       r.datos.filter(function(u){ return u.rol === 'ASISTENTE'; }).forEach(function(u) {
         sel.innerHTML += '<option value="' + u.id + '">' + esc(u.nombre) + '</option>';
       });
-    })
-    .obtenerUsuarios(S.token);
+    },
+    null);
 }
 
 function sendNotif() {
@@ -2450,14 +2460,14 @@ function sendNotif() {
   var ls = txt.split('\n');
   var asunto  = ls[0].trim() || 'Notificación';
   var mensaje = ls.slice(1).join('\n').trim() || txt;
-  google.script.run
-    .withSuccessHandler(function(r) { if (r.ok) { toast('✅ Enviado', 'ok'); sv('chat-txt', ''); loadNotif(); } else toast(r.error, 'error'); })
-    .enviarNotificacion(S.token, dest, asunto, mensaje);
+  _gsrCall('enviarNotificacion', [S.token, dest, asunto, mensaje],
+    function(r) { if (r.ok) { toast('✅ Enviado', 'ok'); sv('chat-txt', ''); loadNotif(); } else toast(r.error, 'error'); },
+    null);
 }
 
 function leerN(id, el) {
   el.querySelector('.mhora').textContent = el.querySelector('.mhora').textContent.replace(' ✓', ' ✓✓');
-  google.script.run.marcarNotificacionLeida(S.token, id);
+  _gsrCall('marcarNotificacionLeida', [S.token, id], null, null);
   var b = document.getElementById('cbadge');
   var n = parseInt(b.textContent || 0) - 1;
   if (n <= 0) b.style.display = 'none'; else b.textContent = n;
@@ -2469,16 +2479,15 @@ function leerN(id, el) {
 
 function loadUsr() {
   if (S.usuario.rol !== 'ADMINISTRADOR') return;
-  google.script.run
-    .withSuccessHandler(function(r) { if (r.ok) renderUsr(r.datos); })
-    .withFailureHandler(function(){})
-    .obtenerUsuarios(S.token);
+  _gsrCall('obtenerUsuarios', [S.token],
+    function(r) { if (r.ok) renderUsr(r.datos); },
+    function(){});
 }
 
 function loadOnline() {
   var c = document.getElementById('lista-online');
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('obtenerUsuariosEnLinea', [S.token],
+    function(r) {
       if (!r.ok || !r.datos || !r.datos.length) { c.innerHTML = '<p style="font-size:13px;color:var(--mu)">Ningún usuario activo en este momento</p>'; return; }
       c.innerHTML = r.datos.map(function(u) {
         return '<div class="ocard"><div class="oav">' + u.nombre.charAt(0) + '</div>'
@@ -2486,9 +2495,8 @@ function loadOnline() {
           + '<div style="font-size:10px;color:var(--mu)">' + esc(u.rol) + ' · ' + esc(u.email) + '</div></div>'
           + '<span class="b bgr" style="font-size:10px">En línea</span></div>';
       }).join('');
-    })
-    .withFailureHandler(function(){ c.innerHTML = '<p style="font-size:13px;color:var(--mu)">—</p>'; })
-    .obtenerUsuariosEnLinea(S.token);
+    },
+    function(){ c.innerHTML = '<p style="font-size:13px;color:var(--mu)">—</p>'; });
 }
 
 function renderUsr(us) {
@@ -2527,15 +2535,15 @@ function saveUsr() {
   if (!id && !datos.password) { toast('Contraseña obligatoria para nuevo usuario', 'error'); return; }
   var fn = id ? 'actualizarUsuario' : 'crearUsuario';
   var args = id ? [S.token, id, datos] : [S.token, datos];
-  google.script.run
-    .withSuccessHandler(function(r) { if (r.ok) { toast('✅ Guardado', 'ok'); closeM('mo-usr'); loadUsr(); } else toast(r.error, 'error'); })
-    [fn].apply(google.script.run, args);
+  _gsrCall(fn, args,
+    function(r) { if (r.ok) { toast('✅ Guardado', 'ok'); closeM('mo-usr'); loadUsr(); } else toast(r.error, 'error'); },
+    function(e) { toast('Error: ' + e.message, 'error'); });
 }
 function elimUsr(id) {
   if (!confirm('¿Eliminar usuario?')) return;
-  google.script.run
-    .withSuccessHandler(function(r) { if (r.ok) { toast('✅ Eliminado', 'ok'); loadUsr(); } else toast(r.error, 'error'); })
-    .eliminarUsuario(S.token, id);
+  _gsrCall('eliminarUsuario', [S.token, id],
+    function(r) { if (r.ok) { toast('✅ Eliminado', 'ok'); loadUsr(); } else toast(r.error, 'error'); },
+    null);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -2549,38 +2557,35 @@ function loadDash() {
   document.getElementById('dash-tit').textContent = isAdm ? '📊 Panel de control' : '📋 Mis Diligencias';
   document.getElementById('dash-sub').textContent = isAdm ? 'Estadísticas del sistema' : 'Estado de tus registros';
   if (isAdm) {
-    google.script.run
-      .withSuccessHandler(function(r) {
+    _gsrCall('obtenerEstadisticasCompletas', [S.token],
+      function(r) {
         if (r.ok) {
           renderDashAdm(r.datos);
           // Cargar notificaciones DESPUÉS de que el DOM del dashboard esté listo
           _cargarNotifDash();
         } else body.innerHTML = '<p style="color:var(--red);padding:20px">' + esc(r.error) + '</p>';
-      })
-      .withFailureHandler(function(e) { body.innerHTML = '<p style="color:var(--red);padding:20px">' + esc(e.message) + '</p>'; })
-      .obtenerEstadisticasCompletas(S.token);
+      },
+      function(e) { body.innerHTML = '<p style="color:var(--red);padding:20px">' + esc(e.message) + '</p>'; });
   } else {
-    google.script.run
-      .withSuccessHandler(function(r) {
+    _gsrCall('obtenerDiligencias', [S.token],
+      function(r) {
         if (r.ok) {
           renderDashAst(r.datos);
           // Cargar notificaciones DESPUÉS de que el DOM del dashboard esté listo
           _cargarNotifDash();
         } else body.innerHTML = '<p style="color:var(--red);padding:20px">' + esc(r.error) + '</p>';
-      })
-      .withFailureHandler(function(e) { body.innerHTML = '<p style="color:var(--red);padding:20px">' + esc(e.message) + '</p>'; })
-      .obtenerDiligencias(S.token);
+      },
+      function(e) { body.innerHTML = '<p style="color:var(--red);padding:20px">' + esc(e.message) + '</p>'; });
   }
 }
 
 /** Carga las notificaciones del dashboard una vez que el DOM ya tiene #notif-dash */
 function _cargarNotifDash() {
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('obtenerNotificaciones', [S.token],
+    function(r) {
       if (r.ok) renderNotifDash(r.datos.slice(0, 3));
-    })
-    .withFailureHandler(function(){})
-    .obtenerNotificaciones(S.token);
+    },
+    function(){});
 }
 
 /** Dashboard del ASISTENTE: muestra sus propias diligencias */
@@ -2657,21 +2662,20 @@ function renderDashAdm(d) {
   html += '<div style="text-align:center;padding:14px 0 6px;font-size:11px;color:var(--mu);border-top:1px solid var(--bo);margin-top:10px">Desarrollado por: <strong style="color:var(--az)">Jose Palacios</strong></div>';
   body.innerHTML = html;
   // Cargar contador de psicología de forma asíncrona
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('obtenerCitasPsicologia', [S.token],
+    function(r) {
       var cnt = r.ok ? (r.datos ? r.datos.length : 0) : '—';
       var el1 = document.getElementById('psico-stat-num');
       var el2 = document.getElementById('psico-stat-num2');
       if (el1) el1.textContent = cnt;
       if (el2) el2.textContent = cnt;
-    })
-    .withFailureHandler(function() {
+    },
+    function() {
       var el1 = document.getElementById('psico-stat-num');
       var el2 = document.getElementById('psico-stat-num2');
       if (el1) el1.textContent = '—';
       if (el2) el2.textContent = '—';
-    })
-    .obtenerCitasPsicologia(S.token);
+    });
 }
 
 // ── Componentes del dashboard ──
@@ -2722,12 +2726,12 @@ function saveImg(tipo, inpId, nmId) {
   var r = new FileReader();
   r.onload = function(e) {
     var b64 = e.target.result.split(',')[1];
-    google.script.run
-      .withSuccessHandler(function(res) {
+    _gsrCall('guardarConfigImagen', [S.token, tipo, b64, inp.files[0].type, inp.files[0].name],
+      function(res) {
         if (res.ok) { sessionStorage.setItem('cfg_' + tipo, res.dataUrl); toast('✅ ' + tipo + ' guardado', 'ok'); document.getElementById(nmId).textContent = ''; inp.value = ''; }
         else toast(res.error, 'error');
-      })
-      .guardarConfigImagen(S.token, tipo, b64, inp.files[0].type, inp.files[0].name);
+      },
+      null);
   };
   r.readAsDataURL(inp.files[0]);
 }
@@ -2752,28 +2756,26 @@ function apBG(src) {
 function loadCfgVisual() {
   var logo = sessionStorage.getItem('cfg_logo'), bg = sessionStorage.getItem('cfg_bg');
   if (logo) apLogo(logo); if (bg) apBG(bg);
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('obtenerConfigImagenes', [S.token],
+    function(r) {
       if (!r || !r.ok) return;
       if (r.logo) { apLogo(r.logo); sessionStorage.setItem('cfg_logo', r.logo); }
       if (r.bg)   { apBG(r.bg);    sessionStorage.setItem('cfg_bg', r.bg); }
-    })
-    .withFailureHandler(function(){})
-    .obtenerConfigImagenes(S.token);
+    },
+    function(){});
 }
 
 /** Carga la configuración visual en la pantalla de login (sin sesión) */
 function loadCfgLogin() {
   var logo = sessionStorage.getItem('cfg_logo'), bg = sessionStorage.getItem('cfg_bg');
   if (logo) apLogo(logo); if (bg) apBG(bg);
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('obtenerConfigImagenesPublico', [],
+    function(r) {
       if (!r || !r.ok) return;
       if (r.logo) { apLogo(r.logo); sessionStorage.setItem('cfg_logo', r.logo); }
       if (r.bg)   { apBG(r.bg);    sessionStorage.setItem('cfg_bg', r.bg); }
-    })
-    .withFailureHandler(function(){})
-    .obtenerConfigImagenesPublico();
+    },
+    function(){});
 }
 
 // ════════════════════════════════════════════════════════════
@@ -2783,14 +2785,13 @@ function loadCfgLogin() {
 function doDiag() {
   var btn = document.getElementById('btn-diag');
   btn.textContent = '⏳'; btn.disabled = true;
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('testConexion', [S.token],
+    function(r) {
       btn.textContent = '🔍 Diagnóstico'; btn.disabled = false;
       if (r.ok) alert('✅ Conexión OK\nHoja: ' + r.spreadsheet + '\nHojas: ' + r.hojas.join(', ') + '\nSesión: ' + (r.sesionValida ? '✅ ' + r.usuario : '❌'));
       else alert('❌ Error: ' + r.error);
-    })
-    .withFailureHandler(function(e) { btn.textContent = '🔍 Diagnóstico'; btn.disabled = false; alert('❌ ' + e.message); })
-    .testConexion(S.token);
+    },
+    function(e) { btn.textContent = '🔍 Diagnóstico'; btn.disabled = false; alert('❌ ' + e.message); });
 }
 
 function openTxtModal() { document.getElementById('modal-txt-psico').classList.add('open'); }
@@ -2807,17 +2808,16 @@ function readTxtAgpModal(inp) {
 
 function uploadAgPsicoModal() {
   if (!_agpTxtModal) { toast('Selecciona un .txt', 'error'); return; }
-  google.script.run
-    .withSuccessHandler(function(r) {
+  _gsrCall('procesarTxtAgendaPsico', [S.token, _agpTxtModal],
+    function(r) {
       if (r.ok) {
         toast('✅ ' + r.insertados + ' fechas insertadas', 'ok');
         _agpTxtModal = ''; document.getElementById('agp-fn-modal').textContent = '';
         closeM('modal-txt-psico');
         if (CAL_PSICO) loadAgPsico();
       } else toast(r.error, 'error');
-    })
-    .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); })
-    .procesarTxtAgendaPsico(S.token, _agpTxtModal);
+    },
+    function(e) { toast('Error: ' + e.message, 'error'); });
 }
 
 /** Muestra/oculta el botón flotante según si estamos en la página de psicología */
