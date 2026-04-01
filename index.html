@@ -442,7 +442,29 @@ tr:hover td{background:#f8fafc}
   <aside class="sidebar" id="sidebar">
     <div class="sbh">
       <div class="sblogo" id="sblogo">⚖️</div>
-      <div><h1>UML Huaral</h1><p>Sistema Administrativo</p></div>
+      <div style="flex:1"><h1>UML Huaral</h1><p>Sistema Administrativo</p></div>
+      <!-- 🔔 CAMPANITA DE NOTIFICACIONES -->
+      <div id="bell-wrap" style="position:relative;flex-shrink:0">
+        <button id="bell-btn" onclick="toggleBellPanel()" title="Notificaciones"
+          style="background:rgba(255,255,255,.08);border:none;border-radius:10px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:background .2s;position:relative">
+          🔔
+          <span id="bell-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border-radius:50%;min-width:18px;height:18px;font-size:10px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 3px;border:2px solid var(--sb)">0</span>
+        </button>
+        <!-- Panel de notificaciones -->
+        <div id="bell-panel" style="display:none;position:fixed;top:60px;right:12px;width:320px;max-width:94vw;background:#fff;border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.22);z-index:9000;overflow:hidden;border:1px solid var(--bo)">
+          <div style="padding:13px 16px;border-bottom:1px solid var(--bo);display:flex;align-items:center;justify-content:space-between;background:#f8fafc">
+            <span style="font-size:13px;font-weight:800;color:var(--tx)">🔔 Notificaciones</span>
+            <button onclick="toggleBellPanel()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--mu);line-height:1">✕</button>
+          </div>
+          <div id="bell-list" style="max-height:340px;overflow-y:auto;padding:10px 12px">
+            <p style="text-align:center;color:var(--mu);font-size:13px;padding:16px 0">Cargando...</p>
+          </div>
+          <div style="padding:10px 14px;border-top:1px solid var(--bo);background:#f8fafc;display:flex;gap:8px">
+            <button onclick="marcarTodasLeidas()" class="btn bg sm" style="flex:1;font-size:11px">✓ Marcar todas leídas</button>
+            <button onclick="nav2('notif');toggleBellPanel()" class="btn bp sm" style="flex:1;font-size:11px">Ver todas</button>
+          </div>
+        </div>
+      </div>
     </div>
     <nav class="sbnav" id="sbnav"></nav>
     <div class="sbf">
@@ -1489,6 +1511,7 @@ document.getElementById('l-pass').addEventListener('keydown', function(e) {
 /** Cierra la sesión del usuario */
 function doLogout() {
   _gsrCall('logout', [S.token], null, null);
+  stopBellPolling(); // 🔔 Detener campanita
   S = { token: null, usuario: null };
   sessionStorage.clear();
   // Ocultar hamburguesa al cerrar sesión
@@ -1543,6 +1566,7 @@ function startApp() {
     function(r) { if (r.ok) { _listas = r.listas; fillSelects(); } },
     function(){});
   loadCfgVisual();
+  startBellPolling(); // 🔔 Iniciar campanita de notificaciones
   nav2('dashboard');
 }
 
@@ -2357,8 +2381,34 @@ function generarPdfPsicologia(id) {
   _gsrCall('generarPdfPsicologia', [S.token, id],
     function(r) {
       if (r.ok && r.dataUrl) {
-        var win = window.open();
-        win.document.write('<iframe src="' + r.dataUrl + '" width="100%" height="100%" style="border:none"></iframe>');
+        try {
+          // Convertir base64 a Blob para evitar bloqueo de navegadores modernos con data: URLs en iframes
+          var base64 = r.dataUrl.split(',')[1] || r.dataUrl;
+          var mimeType = r.dataUrl.startsWith('data:') ? r.dataUrl.split(';')[0].split(':')[1] : 'application/pdf';
+          var byteChars = atob(base64);
+          var byteNums = new Array(byteChars.length);
+          for (var i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+          var byteArray = new Uint8Array(byteNums);
+          var blob = new Blob([byteArray], { type: mimeType });
+          var blobUrl = URL.createObjectURL(blob);
+          var win = window.open(blobUrl, '_blank');
+          if (!win) {
+            // Fallback: crear link de descarga si el popup fue bloqueado
+            var a = document.createElement('a');
+            a.href = blobUrl; a.download = 'constancia_psicologica_' + id + '.pdf';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          }
+          setTimeout(function(){ URL.revokeObjectURL(blobUrl); }, 30000);
+          toast('✅ PDF listo', 'ok');
+        } catch(ex) {
+          // Último fallback: abrir dataUrl directamente
+          var win2 = window.open();
+          if (win2) win2.location.href = r.dataUrl;
+          toast('✅ PDF generado', 'ok');
+        }
+      } else if (r.ok && r.url) {
+        // Si el backend retorna una URL directa de Drive
+        window.open(r.url, '_blank');
         toast('✅ PDF listo', 'ok');
       } else toast('Error: ' + (r.error || 'No se pudo generar'), 'error');
     },
@@ -2417,7 +2467,13 @@ function elimDoc(id, carpeta, elId) {
 
 function loadNotif() {
   _gsrCall('obtenerNotificaciones', [S.token],
-    function(r) { if (r.ok) renderChat(r.datos); },
+    function(r) {
+      if (r.ok) {
+        renderChat(r.datos);
+        _bellNotifs = r.datos || []; // sincronizar campanita
+        _updateBadge(_bellNotifs);
+      }
+    },
     function(){});
   if (S.usuario.rol === 'ADMINISTRADOR') cargarDest();
 }
@@ -2841,6 +2897,149 @@ document.addEventListener('blur', function(e) {
   if (excluidos.indexOf(tipo) >= 0) return;
   if (el.value) el.value = el.value.toUpperCase();
 }, true);
+
+// ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+// MÓDULO 18: CAMPANITA DE NOTIFICACIONES 🔔
+// Accesible para ADMINISTRADOR y ASISTENTE.
+// Se actualiza automáticamente cada 60 segundos.
+// ════════════════════════════════════════════════════════════
+
+var _bellOpen = false;
+var _bellTimer = null;
+var _bellNotifs = [];
+
+/** Abre o cierra el panel de notificaciones */
+function toggleBellPanel() {
+  _bellOpen = !_bellOpen;
+  var panel = document.getElementById('bell-panel');
+  if (!panel) return;
+  panel.style.display = _bellOpen ? 'block' : 'none';
+  if (_bellOpen) {
+    refreshBell();
+    // Cerrar al hacer clic fuera
+    setTimeout(function() {
+      document.addEventListener('click', closeBellOutside, true);
+    }, 50);
+  } else {
+    document.removeEventListener('click', closeBellOutside, true);
+  }
+}
+
+function closeBellOutside(e) {
+  var wrap = document.getElementById('bell-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    _bellOpen = false;
+    var panel = document.getElementById('bell-panel');
+    if (panel) panel.style.display = 'none';
+    document.removeEventListener('click', closeBellOutside, true);
+  }
+}
+
+/** Recarga las notificaciones y actualiza el badge */
+function refreshBell() {
+  if (!S.token) return;
+  _gsrCall('obtenerNotificaciones', [S.token],
+    function(r) {
+      if (!r.ok) return;
+      _bellNotifs = r.datos || [];
+      _renderBell(_bellNotifs);
+      _updateBadge(_bellNotifs);
+    },
+    function() {});
+}
+
+/** Actualiza el número en el badge de la campanita */
+function _updateBadge(notifs) {
+  var badge = document.getElementById('bell-badge');
+  if (!badge) return;
+  var noLeidas = notifs.filter(function(n) { return !n.leida; }).length;
+  if (noLeidas > 0) {
+    badge.textContent = noLeidas > 99 ? '99+' : noLeidas;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+/** Renderiza la lista de notificaciones en el panel */
+function _renderBell(notifs) {
+  var list = document.getElementById('bell-list');
+  if (!list) return;
+  if (!notifs || !notifs.length) {
+    list.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--mu)"><div style="font-size:28px;margin-bottom:6px">📭</div><p style="font-size:12px">Sin notificaciones</p></div>';
+    return;
+  }
+  var html = notifs.slice(0, 15).map(function(n) {
+    var leida = n.leida;
+    var horaStr = '';
+    if (n.fecha) { try { var d = new Date(n.fecha); horaStr = fF(n.fecha) + ' ' + horaCorta(pad2(d.getHours()) + ':' + pad2(d.getMinutes())); } catch(e) {} }
+    return '<div onclick="bellLeer(\'' + n.id + '\',this)" style="padding:10px 12px;border-radius:10px;margin-bottom:6px;cursor:pointer;transition:background .15s;'
+      + (leida ? 'background:#f8fafc;border:1px solid var(--bo)' : 'background:#eff6ff;border:1px solid #93c5fd;border-left:4px solid var(--az)')
+      + '">'
+      + '<div style="display:flex;align-items:flex-start;gap:8px">'
+      + '<span style="font-size:16px;flex-shrink:0">' + (leida ? '📩' : '🔔') + '</span>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:12px;font-weight:' + (leida ? '600' : '800') + ';color:var(--tx);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(n.asunto || 'Notificación') + '</div>'
+      + '<div style="font-size:11px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(n.mensaje || '') + '</div>'
+      + (horaStr ? '<div style="font-size:10px;color:#94a3b8;margin-top:3px">' + horaStr + '</div>' : '')
+      + '</div>'
+      + (!leida ? '<span style="width:8px;height:8px;border-radius:50%;background:var(--az);flex-shrink:0;margin-top:4px"></span>' : '')
+      + '</div></div>';
+  }).join('');
+  list.innerHTML = html;
+}
+
+/** Marca una notificación como leída desde el panel de campanita */
+function bellLeer(id, el) {
+  if (!id) return;
+  _gsrCall('marcarNotificacionLeida', [S.token, id], null, null);
+  // Actualizar UI localmente (sin recargar)
+  if (el) {
+    el.style.background = '#f8fafc';
+    el.style.border = '1px solid var(--bo)';
+    el.style.borderLeft = '';
+    var ico = el.querySelector('span');
+    if (ico) ico.textContent = '📩';
+    var dot = el.querySelector('span[style*="border-radius:50%"]');
+    if (dot) dot.remove();
+  }
+  _bellNotifs.forEach(function(n) { if (n.id === id) n.leida = true; });
+  _updateBadge(_bellNotifs);
+}
+
+/** Marca todas las notificaciones como leídas */
+function marcarTodasLeidas() {
+  _bellNotifs.filter(function(n){ return !n.leida; }).forEach(function(n) {
+    _gsrCall('marcarNotificacionLeida', [S.token, n.id], null, null);
+    n.leida = true;
+  });
+  _updateBadge(_bellNotifs);
+  _renderBell(_bellNotifs);
+  // Actualizar badge del chat también
+  var cb = document.getElementById('cbadge');
+  if (cb) cb.style.display = 'none';
+}
+
+/** Inicia el polling de notificaciones cada 60 segundos */
+function startBellPolling() {
+  if (_bellTimer) clearInterval(_bellTimer);
+  refreshBell(); // Carga inmediata
+  _bellTimer = setInterval(function() {
+    if (S.token) refreshBell();
+  }, 60000); // Cada 60 segundos
+}
+
+/** Detiene el polling de la campanita al cerrar sesión */
+function stopBellPolling() {
+  if (_bellTimer) { clearInterval(_bellTimer); _bellTimer = null; }
+  _bellOpen = false;
+  _bellNotifs = [];
+  var badge = document.getElementById('bell-badge');
+  if (badge) badge.style.display = 'none';
+  var panel = document.getElementById('bell-panel');
+  if (panel) panel.style.display = 'none';
+}
 
 // ════════════════════════════════════════════════════════════
 // INICIALIZACIÓN DE LA APLICACIÓN
