@@ -1,0 +1,2863 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Plataforma UML – Huaral</title>
+<!-- SheetJS para exportar Excel .xlsx real -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* ════════════════════════════════════════════════
+   TOKENS DE DISEÑO — Variables CSS globales
+   Cambiar aquí afecta todo el sistema visualmente
+   ════════════════════════════════════════════════ */
+:root{
+  --az:#1a73e8; --azd:#1557b0; --azl:#e8f0fe;
+  --sb:#1e293b; --sbh:#334155; --bg:#f1f5f9; --card:#fff;
+  --tx:#1e293b; --mu:#64748b; --bo:#e2e8f0;
+  --red:#ef4444; --grn:#16a34a; --ora:#f59e0b; --pur:#7c3aed;
+  --r:12px; --sbw:230px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--tx)}
+
+/* ── LOGIN ── */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f172a,#1a73e8);position:relative;overflow:hidden}
+#lbg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.2}
+.particle{position:absolute;border-radius:50%;pointer-events:none;animation:floatUp linear infinite;opacity:0}
+@keyframes floatUp{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:.4}90%{opacity:.2}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+.lbox{background:#fff;border-radius:20px;padding:38px 36px;width:100%;max-width:390px;box-shadow:0 24px 64px rgba(0,0,0,.4);position:relative;z-index:1;animation:lboxIn .6s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes lboxIn{from{opacity:0;transform:translateY(30px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.llogo{text-align:center;margin-bottom:26px}
+.lc{width:70px;height:70px;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;font-size:32px;color:#fff;background:var(--az);overflow:hidden;margin-bottom:10px}
+.lc img{width:100%;height:100%;object-fit:cover}
+.llogo h2{font-size:19px;font-weight:800}
+.llogo p{font-size:12px;color:var(--mu);margin-top:3px}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.fg input{width:100%;padding:11px 14px;border:1.5px solid var(--bo);border-radius:10px;font-size:14px;outline:none;transition:border .2s}
+.fg input:focus{border-color:var(--az);box-shadow:0 0 0 3px rgba(26,115,232,.1)}
+
+/* ── BOTÓN LOGIN ── */
+.btn-login{width:100%;padding:13px;background:var(--az);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s,transform .15s,box-shadow .2s;margin-top:4px;position:relative;overflow:hidden}
+.btn-login:hover{background:var(--azd);transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,115,232,.4)}
+.btn-login:active{transform:translateY(0) scale(.98)}
+.btn-login.loading{pointer-events:none;background:var(--azd)}
+.btn-login .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.35);transform:scale(0);animation:rippleAnim .6s linear;pointer-events:none}
+@keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+.btn-login .btn-spinner{display:none;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;position:absolute;right:14px;top:50%;transform:translateY(-50%)}
+@keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
+.btn-login.loading .btn-spinner{display:block}
+.btn-login.loading .btn-txt::after{content:'...'}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.lerr.shake{animation:shake .4s ease}
+.lerr{color:var(--red);font-size:13px;text-align:center;margin-top:10px;display:none;padding:10px;background:#fee2e2;border-radius:8px}
+
+/* ── APP ── */
+#app{display:none}
+.wrap{display:flex;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sbw);background:var(--sb);color:#fff;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:200;transition:transform .3s}
+.sbh{padding:16px 14px;border-bottom:1px solid #334155;display:flex;align-items:center;gap:10px}
+.sblogo{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden;background:var(--az)}
+.sblogo img{width:100%;height:100%;object-fit:cover}
+.sbh h1{font-size:12px;font-weight:700;line-height:1.3}
+.sbh p{font-size:10px;color:#94a3b8}
+.sbnav{flex:1;padding:8px 0;overflow-y:auto}
+.ni{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;font-size:13px;color:#cbd5e1;transition:all .15s;border-left:3px solid transparent}
+.ni:hover{background:var(--sbh);color:#fff}
+.ni.active{background:rgba(26,115,232,.2);color:#fff;border-left-color:var(--az)}
+.ni .ico{width:20px;text-align:center;font-size:16px;flex-shrink:0}
+.sbf{padding:12px;border-top:1px solid #334155}
+.uinfo{display:flex;align-items:center;gap:8px}
+.uav{width:34px;height:34px;background:var(--az);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+.uname{font-size:12px;font-weight:600}
+.urole{font-size:10px;color:#94a3b8}
+.btnlo{margin-top:10px;width:100%;padding:8px;background:transparent;border:1px solid #475569;color:#94a3b8;border-radius:8px;font-size:12px;cursor:pointer;transition:all .2s}
+.btnlo:hover{background:rgba(239,68,68,.15);border-color:var(--red);color:var(--red)}
+/* Hamburguesa: oculta por defecto en todos los tamaños.
+   En mobile (≤768px) el media query la activa con display:flex,
+   pero SOLO cuando tiene la clase 'visible' agregada por JS al hacer login. */
+.sbtog{display:none;position:fixed;top:12px;left:12px;z-index:300;width:40px;height:40px;background:var(--az);border:none;border-radius:10px;color:#fff;font-size:20px;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.sbov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150}
+
+/* ── CONTENIDO ── */
+.main{margin-left:var(--sbw);flex:1;padding:26px;min-height:100vh}
+.page{display:none}.page.active{display:block}
+.ph{margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.phl h2{font-size:20px;font-weight:800}.phl p{color:var(--mu);font-size:12px;margin-top:2px}
+.card{background:var(--card);border-radius:var(--r);border:1px solid var(--bo);padding:18px;margin-bottom:14px}
+.ct{font-size:13px;font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bo);display:flex;align-items:center;gap:8px}
+
+/* ── TABLA ── */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8fafc;padding:9px 11px;text-align:left;font-weight:700;color:var(--mu);border-bottom:2px solid var(--bo);white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:8px 11px;border-bottom:1px solid var(--bo);vertical-align:middle}
+tr:hover td{background:#f8fafc}
+
+/* ── BADGES ── */
+.b{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.baz{background:#dbeafe;color:#1e40af}.bgr{background:#dcfce7;color:#166534}
+.bre{background:#fee2e2;color:#991b1b}.bor{background:#fef3c7;color:#92400e}
+.bgy{background:#f1f5f9;color:#475569}.bpu{background:#ede9fe;color:#5b21b6}
+
+/* ── BOTONES ── */
+.btn{padding:9px 16px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.bp{background:var(--az);color:#fff}.bp:hover{background:var(--azd)}
+.bs{background:var(--grn);color:#fff}.bs:hover{background:#15803d}
+.bd{background:var(--red);color:#fff}.bd:hover{background:#dc2626}
+.bg{background:transparent;color:var(--mu);border:1.5px solid var(--bo)}.bg:hover{background:var(--bg);color:var(--tx)}
+.bpu2{background:var(--pur);color:#fff}.bpu2:hover{background:#6d28d9}
+.sm{padding:5px 10px;font-size:12px}
+
+/* ── FORMULARIOS ── */
+.fg2{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.fi{display:flex;flex-direction:column;gap:4px}
+.fi label{font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.4px}
+.fi input,.fi select,.fi textarea{padding:9px 11px;border:1.5px solid var(--bo);border-radius:9px;font-size:13px;outline:none;transition:border .2s;background:#fff;color:var(--tx);text-transform:uppercase}
+.fi input[type=email],.fi input[type=password],.fi input[type=number],
+.fi input[type=date],.fi input[type=time],.fi input[type=datetime-local],
+.fi input[type=tel]{text-transform:none}
+.fi input:focus,.fi select:focus,.fi textarea:focus{border-color:var(--az);box-shadow:0 0 0 3px rgba(26,115,232,.1)}
+.fi textarea{resize:vertical;min-height:76px;text-transform:none}
+.fs{background:var(--card);border-radius:var(--r);border:1px solid var(--bo);padding:18px;margin-bottom:14px}
+.fst{font-size:11px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--bo)}
+.req{color:var(--red)}
+
+/* ── BUSCADOR ── */
+.sbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.sinp{flex:1;min-width:200px;padding:10px 13px;border:1.5px solid var(--bo);border-radius:9px;font-size:13px;outline:none;transition:border .2s;text-transform:uppercase}
+.sinp:focus{border-color:var(--az);box-shadow:0 0 0 3px rgba(26,115,232,.1)}
+
+/* ── ONLINE ── */
+.odot{width:8px;height:8px;border-radius:50%;background:var(--grn);display:inline-block;margin-right:4px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.ocard{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border-radius:10px;margin-bottom:7px}
+.oav{width:32px;height:32px;border-radius:50%;background:var(--az);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+
+/* ── CALENDARIO ── */
+.calw{display:flex;gap:0;border:1px solid var(--bo);border-radius:var(--r);overflow:hidden;background:var(--card)}
+.calsb{width:210px;border-right:1px solid var(--bo);flex-shrink:0}
+.cmini{padding:12px}
+.cmhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cmhdr span{font-size:13px;font-weight:700}
+.cmnav{background:none;border:none;cursor:pointer;color:var(--mu);font-size:15px;padding:2px 5px;border-radius:6px}
+.cmnav:hover{background:var(--bg)}
+.cmgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;text-align:center}
+.cwd{font-size:9px;font-weight:700;color:var(--mu);padding:3px 0}
+.cday{font-size:11px;padding:4px 2px;border-radius:5px;cursor:pointer;transition:all .12s}
+.cday:hover{background:var(--azl);color:var(--az)}
+.cday.hoy{background:var(--az);color:#fff;font-weight:700}
+.cday.ts{font-weight:700;color:var(--az)}
+.cday.sel{background:var(--azl);color:var(--az);outline:2px solid var(--az)}
+.cday.vac{color:#ccc;cursor:default}
+.clg{padding:10px 12px;border-top:1px solid var(--bo)}
+.cli{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mu);margin-bottom:5px}
+.cld{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.calm{flex:1;min-width:0}
+.camhdr{padding:12px 16px;border-bottom:1px solid var(--bo)}
+.cfs{font-size:14px;font-weight:800}
+.csw{padding:12px 16px}
+.cst{font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px}
+.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+.sbtn{padding:13px 8px;border-radius:10px;border:2px solid var(--bo);background:#fff;font-size:15px;font-weight:800;cursor:pointer;transition:all .15s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--tx)}
+.sbtn:hover{border-color:var(--az);background:var(--azl);color:var(--az);transform:translateY(-2px)}
+.sbtn.sel{background:var(--az);border-color:var(--az);color:#fff}
+.sbtn.ocu{background:#f8fafc;color:#adb5bd;border-color:#e9ecef;cursor:not-allowed;font-size:12px;text-decoration:line-through}
+.sbtn.mio{background:#dcfce7;color:var(--grn);border-color:#86efac;cursor:default;text-decoration:none}
+.sbtn small{font-size:9px;font-weight:400;opacity:.7}
+.cep{padding:30px;text-align:center;color:var(--mu)}
+.csp{padding:12px 16px;border-top:1px solid var(--bo);background:#f8fafc}
+.cspi{background:var(--az);border-radius:12px;padding:14px;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.cspil .cspl{font-size:10px;font-weight:700;text-transform:uppercase;opacity:.7;margin-bottom:3px}
+.cspil .cspf{font-size:13px;font-weight:700}
+.cspil .csph{font-size:26px;font-weight:900;line-height:1}
+.cspb{background:#fff;color:var(--az);border:none;border-radius:9px;padding:10px 18px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.cspb:hover{background:var(--azl)}
+.cspb:disabled{opacity:.4;cursor:not-allowed}
+.fbadge{display:inline-flex;align-items:center;gap:8px;background:var(--az);color:#fff;padding:10px 18px;border-radius:12px;margin-bottom:16px;font-weight:700;font-size:14px}
+
+/* ── FILE DROP ── */
+.fd{border:2px dashed var(--bo);border-radius:10px;padding:18px;text-align:center;cursor:pointer;transition:all .2s;background:#fafafa}
+.fd:hover,.fd.dov{border-color:var(--az);background:var(--azl)}
+.fdi{font-size:28px;margin-bottom:6px}
+.fd p{font-size:12px;color:var(--mu)}
+.fnm{font-size:12px;color:var(--grn);font-weight:700;margin-top:5px}
+.fd.tiene-archivo{border-color:var(--grn);background:#f0fdf4}
+
+/* ── DASHBOARD ── */
+.dg{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px}
+.ds{background:var(--card);border-radius:var(--r);border:1px solid var(--bo);padding:16px 12px;text-align:center;transition:transform .18s}
+.ds:hover{transform:translateY(-2px)}
+.dsn{font-size:32px;font-weight:900;line-height:1;margin-bottom:3px}
+.dsl{font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.4px}
+.dsaz .dsn{color:var(--az)}.dsgr .dsn{color:var(--grn)}.dsor .dsn{color:var(--ora)}.dsre .dsn{color:var(--red)}.dspu .dsn{color:var(--pur)}
+.dcg{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-bottom:18px}
+.dcc{background:var(--card);border:1px solid var(--bo);border-radius:var(--r);padding:16px}
+.dct{font-size:12px;font-weight:700;margin-bottom:12px}
+.brw{display:flex;flex-direction:column;gap:7px}
+.brr{display:flex;align-items:center;gap:7px}
+.brl{font-size:11px;color:var(--mu);width:100px;text-align:right;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brt{flex:1;background:var(--bg);border-radius:20px;height:16px;overflow:hidden}
+.brf{height:100%;border-radius:20px;transition:width .7s;display:flex;align-items:center;justify-content:flex-end;padding-right:5px;min-width:24px}
+.brf span{font-size:9px;font-weight:800;color:#fff}
+.dcard{background:var(--card);border:1px solid var(--bo);border-radius:var(--r);padding:14px;margin-bottom:10px;border-left:4px solid var(--bo)}
+.dcard.r{border-left-color:var(--grn)}.dcard.n{border-left-color:var(--red)}
+.dcard.rp{border-left-color:var(--ora)}.dcard.p{border-left-color:#94a3b8}
+.dcf{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:7px;margin-top:9px}
+.dcfi{background:var(--bg);border-radius:8px;padding:7px 10px}
+.dcfl{font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}
+.dcfv{font-size:12px;font-weight:600}
+.dcfv.pen{color:#94a3b8;font-style:italic;font-weight:400}
+
+/* ── CHAT / MENSAJES ── */
+.chatw{display:flex;flex-direction:column;height:calc(100vh - 250px);min-height:380px;background:var(--card);border-radius:var(--r);border:1px solid var(--bo);overflow:hidden}
+.chath{padding:12px 16px;border-bottom:1px solid var(--bo);display:flex;align-items:center;gap:10px;background:#f8fafc}
+.chatav{width:38px;height:38px;border-radius:50%;background:var(--az);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;flex-shrink:0}
+.chathn{font-weight:700;font-size:13px}
+.chaths{font-size:11px;color:var(--mu)}
+.chatbadge{background:var(--red);color:#fff;border-radius:20px;font-size:11px;font-weight:700;padding:2px 7px;margin-left:auto}
+.chatm{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:9px;background:#e5ddd5}
+.mr{display:flex;flex-direction:column;max-width:75%}
+.mr.recv{align-self:flex-start;align-items:flex-start}
+.mr.sent{align-self:flex-end;align-items:flex-end}
+.mb{padding:9px 12px;border-radius:14px;font-size:13px;line-height:1.5;word-break:break-word}
+.mr.recv .mb{background:#fff;border-top-left-radius:3px;color:var(--tx)}
+.mr.sent .mb{background:#dcf8c6;border-top-right-radius:3px;color:#1a3a1a}
+.mas{font-weight:700;font-size:11px;margin-bottom:3px;color:var(--az)}
+.mr.sent .mas{color:#1a6a1a}
+.mhora{font-size:10px;color:var(--mu);margin-top:2px;padding:0 3px}
+.chati{border-top:1px solid var(--bo);padding:9px 12px;display:flex;gap:8px;align-items:flex-end;background:#f8fafc}
+.chatti{flex:1;border:1.5px solid var(--bo);border-radius:18px;padding:9px 12px;font-size:13px;outline:none;resize:none;min-height:38px;max-height:90px;font-family:inherit;transition:border .2s}
+.chatti:focus{border-color:var(--az)}
+.chats{background:var(--az);color:#fff;border:none;border-radius:50%;width:38px;height:38px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chats:hover{background:var(--azd)}
+.chatdest{padding:0 12px 7px;display:flex;align-items:center;gap:8px;background:#f8fafc;border-top:1px solid var(--bo)}
+.chatdest label{font-size:11px;font-weight:700;color:var(--mu)}
+.chatdest select{border:1.5px solid var(--bo);border-radius:7px;padding:5px 9px;font-size:12px;outline:none;flex:1}
+
+/* ── DOCUMENTOS ── */
+.docg{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.docc{background:var(--card);border:1px solid var(--bo);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:10px}
+.docico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.docico.pdf{background:#fee2e2}.docico.word{background:#dbeafe}
+.docl{display:flex;flex-direction:column;gap:7px;max-height:220px;overflow-y:auto}
+.doci{display:flex;align-items:center;gap:8px;padding:9px 10px;background:var(--bg);border-radius:8px;font-size:12px}
+.doci:hover{background:#e2e8f0}
+.docin{flex:1;min-width:0}
+.docin b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.docin small{font-size:10px;color:var(--mu)}
+.docib{background:none;border:none;cursor:pointer;color:var(--az);font-size:13px;padding:3px;border-radius:5px}
+.docib.del{color:var(--red)}
+.docib:hover{background:var(--bo)}
+
+/* ── PESTAÑAS ── */
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--bo);margin-bottom:16px}
+.tab{padding:9px 14px;border:none;background:none;cursor:pointer;font-size:12px;font-weight:600;color:var(--mu);border-bottom:3px solid transparent;transition:all .15s;margin-bottom:-2px}
+.tab:hover{color:var(--tx);background:var(--bg)}
+.tab.active{color:var(--az);border-bottom-color:var(--az)}
+.tabp{animation:fIn .2s ease}
+@keyframes fIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── PSICOLOGÍA ── */
+.psres{padding:12px 14px;background:var(--azl);border-radius:10px;border:1px solid #93c5fd;margin-bottom:12px;cursor:pointer;transition:all .15s}
+.psres:hover{background:#dbeafe;box-shadow:0 2px 8px rgba(26,115,232,.15)}
+.psrt{font-weight:700;color:var(--azd);margin-bottom:5px;font-size:13px}
+.psg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px;margin-top:6px}
+.psi{background:#fff;border-radius:7px;padding:6px 9px}
+.psil{font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase}
+.psiv{font-size:12px;font-weight:600}
+
+/* ── MODAL ── */
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center}
+.mo.open{display:flex}
+.modal{background:var(--card);border-radius:16px;padding:24px;width:90%;max-width:580px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.mhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--bo)}
+.mtit{font-size:16px;font-weight:800}
+.mcls{background:none;border:none;font-size:22px;cursor:pointer;color:var(--mu)}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:22px;right:22px;background:#1e293b;color:#fff;padding:11px 18px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:320px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.ok{border-left:4px solid var(--grn)}
+#toast.error{border-left:4px solid var(--red)}
+
+/* ── BOTÓN FLOTANTE ── */
+#floating-txt-btn{position:fixed;bottom:24px;right:24px;z-index:400;display:none;width:52px;height:52px;border-radius:50%;background:var(--pur);color:#fff;border:none;font-size:22px;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(124,58,237,.4);transition:transform .2s}
+#floating-txt-btn:hover{transform:scale(1.1)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  /* Hamburguesa: visible en mobile solo cuando JS agrega la clase .visible
+     (se agrega en startApp(), se quita en doLogout()) */
+  .sbtog.visible{display:flex}
+
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sbov.open{display:block}
+  .main{margin-left:0!important;padding:14px;padding-top:58px}
+  .calw{flex-direction:column}
+  .calsb{width:100%;border-right:none;border-bottom:1px solid var(--bo)}
+  .fg2{grid-template-columns:1fr}
+  .ph{flex-direction:column;align-items:flex-start}
+
+  /* ══════════════════════════════════════════
+     TABLAS RESPONSIVE — modo tarjeta en mobile
+     Cada fila se convierte en una tarjeta con
+     etiqueta + valor apilados verticalmente
+     ══════════════════════════════════════════ */
+
+  /* Contenedor con scroll suave */
+  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r)}
+
+  /* Convertir tabla en bloque para poder apilar filas */
+  .tw table,
+  .tw thead,
+  .tw tbody,
+  .tw th,
+  .tw td,
+  .tw tr{display:block;width:100%}
+
+  /* Ocultar cabecera visual (se muestra como label en cada celda) */
+  .tw thead tr{
+    position:absolute;
+    top:-9999px;
+    left:-9999px;
+    visibility:hidden
+  }
+
+  /* Cada fila = tarjeta */
+  .tw tbody tr{
+    background:var(--card);
+    border:1px solid var(--bo);
+    border-radius:10px;
+    margin-bottom:10px;
+    padding:10px 12px;
+    box-shadow:0 1px 4px rgba(0,0,0,.06);
+  }
+  .tw tbody tr:hover{background:#f8fafc}
+
+  /* Cada celda = fila con etiqueta + valor */
+  .tw tbody td{
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+    padding:5px 0;
+    border:none;
+    border-bottom:1px solid var(--bo);
+    font-size:12px;
+    line-height:1.4;
+  }
+  .tw tbody td:last-child{border-bottom:none;padding-bottom:0}
+  .tw tbody td:first-child{padding-top:0}
+
+  /* Etiqueta generada desde data-label (asignado por JS) */
+  .tw tbody td::before{
+    content:attr(data-label);
+    font-size:9px;
+    font-weight:800;
+    color:var(--mu);
+    text-transform:uppercase;
+    letter-spacing:.4px;
+    min-width:90px;
+    flex-shrink:0;
+    padding-top:2px;
+  }
+
+  /* Celdas sin etiqueta (acciones) — centradas */
+  .tw tbody td[data-label="Acciones"],
+  .tw tbody td:last-child{
+    justify-content:flex-end;
+    flex-wrap:wrap;
+    gap:5px;
+    border-bottom:none;
+  }
+  .tw tbody td[data-label="Acciones"]::before,
+  .tw tbody td:last-child::before{display:none}
+
+  /* Ocultar columnas vacías o de ID en mobile */
+  .tw tbody td:empty{display:none}
+
+  /* Botones más compactos */
+  .btn.sm{padding:5px 9px;font-size:11px}
+
+  /* Cards del dashboard en 2 columnas */
+  .dg{grid-template-columns:repeat(2,1fr)}
+  .dcg{grid-template-columns:1fr}
+
+  /* Buscador ocupa todo el ancho */
+  .sinp{min-width:100%}
+
+  /* Documentos en columna única */
+  .docg{grid-template-columns:1fr}
+
+  /* Modal más cómodo en mobile */
+  .modal{padding:16px;max-height:95vh}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     PANTALLA DE LOGIN
+     ════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div id="lbg"></div>
+  <div id="particles-container"></div>
+  <div class="lbox">
+    <div class="llogo">
+      <div class="lc" id="llogo-c">⚖️</div>
+      <h2>Plataforma UML – Huaral</h2>
+      <p>Sistema de Diligencias Psicológicas</p>
+    </div>
+    <div class="fg">
+      <label>Correo electrónico</label>
+      <input type="email" id="l-email" placeholder="usuario@uml.pe" autocomplete="email">
+    </div>
+    <div class="fg">
+      <label>Contraseña</label>
+      <input type="password" id="l-pass" placeholder="••••••••">
+    </div>
+    <button class="btn-login" id="btn-login" onclick="doLogin()">
+      <span class="btn-txt">Ingresar al sistema</span>
+      <div class="btn-spinner"></div>
+    </button>
+    <p class="lerr" id="l-err"></p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     APLICACIÓN PRINCIPAL
+     ════════════════════════════════════════════ -->
+<div id="app">
+<!-- Botón hamburguesa: solo visible en mobile cuando la app está activa -->
+<button class="sbtog" id="sbtog" onclick="togSB()">☰</button>
+<div class="sbov" id="sbov" onclick="closeSB()"></div>
+<div class="wrap">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sbh">
+      <div class="sblogo" id="sblogo">⚖️</div>
+      <div><h1>UML Huaral</h1><p>Sistema Administrativo</p></div>
+    </div>
+    <nav class="sbnav" id="sbnav"></nav>
+    <div class="sbf">
+      <div class="uinfo">
+        <div class="uav" id="uav">?</div>
+        <div>
+          <div class="uname" id="uname">—</div>
+          <div class="urole" id="urole">—</div>
+        </div>
+      </div>
+      <button class="btnlo" onclick="doLogout()">🚪 Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="main" id="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="ph">
+        <div class="phl"><h2 id="dash-tit">📊 Panel de control</h2><p id="dash-sub">Resumen del sistema</p></div>
+        <button class="btn bg sm" onclick="loadDash()">🔄 Actualizar</button>
+      </div>
+      <div id="dash-body"><div style="text-align:center;padding:40px;color:var(--mu)">⏳ Cargando...</div></div>
+    </div>
+
+    <!-- DILIGENCIAS -->
+    <div class="page" id="page-dil">
+      <div class="ph">
+        <div class="phl"><h2>📋 Mis Diligencias</h2><p>Registro y seguimiento</p></div>
+        <div style="display:flex;gap:8px" id="ph-dil-btns"></div>
+      </div>
+      <div class="card">
+        <div class="sbar">
+          <input class="sinp" type="text" id="q-dil" placeholder="🔍 BUSCAR POR CARPETA FISCAL, AGRAVIADOS, DELITO..." oninput="filtrarDil()">
+          <button class="btn bg sm" onclick="loadDil()">🔄</button>
+        </div>
+        <div class="tw">
+          <table><thead><tr id="thead-dil"></tr></thead><tbody id="tbody-dil"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- AGENDA -->
+    <div class="page" id="page-agenda">
+      <div class="ph">
+        <div class="phl"><h2>📅 Agenda</h2><p>Reserva tu fecha y horario</p></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn bg sm" onclick="loadAgenda()">🔄 Actualizar</button>
+          <button class="btn bg sm" id="btn-diag" onclick="doDiag()" style="font-size:11px">🔍 Diagnóstico</button>
+        </div>
+      </div>
+      <!-- Solo visible para ADMINISTRADOR -->
+      <div class="card" id="card-ag-txt" style="display:none">
+        <div class="ct">📂 Cargar fechas (.txt)</div>
+        <div class="fd" id="drop-ag" onclick="document.getElementById('inp-ag').click()"
+             ondragover="event.preventDefault();this.classList.add('dov')"
+             ondragleave="this.classList.remove('dov')"
+             ondrop="dropAg(event)">
+          <div class="fdi">📄</div>
+          <p>Arrastra o haz clic — formato <code>2026-03-20,08:00</code></p>
+          <div class="fnm" id="ag-fn"></div>
+        </div>
+        <input type="file" id="inp-ag" accept=".txt" style="display:none" onchange="readTxtAg(this)">
+        <button class="btn bp" style="margin-top:10px" onclick="uploadAgenda()">📤 Procesar</button>
+      </div>
+      <div id="cal-ag"></div>
+    </div>
+
+    <!-- NUEVA DILIGENCIA -->
+    <div class="page" id="page-ndil">
+      <div class="ph">
+        <div class="phl"><h2>📝 Nueva Diligencia</h2><p>Completa el formulario</p></div>
+        <button class="btn bg" onclick="backAgenda()">← Volver</button>
+      </div>
+      <div class="fs">
+        <div class="fst">📅 Fecha y hora reservada</div>
+        <div class="fbadge">
+          <span>📅</span><span id="nd-fdis">—</span>
+          <span style="opacity:.4">|</span>
+          <span>🕐</span><span id="nd-hdis">—</span>
+        </div>
+        <input type="hidden" id="nd-idag"><input type="hidden" id="nd-f"><input type="hidden" id="nd-h">
+      </div>
+      <div class="fs"><div class="fst">📋 Solicitud</div>
+        <div class="fg2">
+          <div class="fi"><label>MES</label><input type="text" id="nd-mes"></div>
+          <div class="fi"><label>Fecha solicitud</label><input type="date" id="nd-fsol" style="text-transform:none"></div>
+          <div class="fi"><label>Vía solicitud</label><select id="nd-via"><option value="">— Seleccionar —</option></select></div>
+          <div class="fi"><label>CARPETA FISCAL <span class="req">*</span></label><input type="text" id="nd-carp" placeholder="CF-2024-..."></div>
+          <div class="fi"><label>EXPEDIENTE</label><input type="text" id="nd-exp" placeholder="EXP-2024-..."></div>
+          <div class="fi"><label>Despacho Fiscal</label><select id="nd-desp"><option value="">— Seleccionar —</option></select></div>
+          <div class="fi"><label>Sede UML</label><select id="nd-sede"><option value="">— Seleccionar —</option></select></div>
+          <div class="fi"><label>Juzgado</label><select id="nd-juz"><option value="">— Seleccionar —</option></select></div>
+          <div class="fi"><label>Modalidad prueba</label><select id="nd-mod"><option value="">— Seleccionar —</option></select></div>
+        </div>
+      </div>
+      <div class="fs"><div class="fst">👤 Caso</div>
+        <div class="fg2">
+          <div class="fi"><label>Agraviados <span class="req">*</span></label><input type="text" id="nd-agr"></div>
+          <div class="fi"><label>Edad</label><input type="number" id="nd-edad" min="0" max="120" style="text-transform:none"></div>
+          <div class="fi"><label>Sexo</label><select id="nd-sexo"><option value="">—</option><option value="M">Masculino</option><option value="F">Femenino</option></select></div>
+          <div class="fi"><label>Delito genérico</label><select id="nd-dg"><option value="">— Seleccionar —</option></select></div>
+          <div class="fi"><label>Delito específico</label><input type="text" id="nd-de"></div>
+          <div class="fi"><label>Parentesco</label><select id="nd-par"><option value="">— Seleccionar —</option></select></div>
+          <div class="fi"><label>Condición diligencia</label><select id="nd-cond"><option value="">— Seleccionar —</option></select></div>
+          <div class="fi"><label>Cant. reprogramaciones</label><select id="nd-crep"><option value="0">0</option></select></div>
+          <div class="fi"><label>Imputados</label><input type="text" id="nd-imp"></div>
+          <div class="fi"><label>Juez</label><select id="nd-juez"><option value="">— Seleccionar —</option></select></div>
+          <div class="fi"><label>Fiscal</label><select id="nd-fisc"><option value="">— Seleccionar —</option></select></div>
+          <div class="fi"><label>Email</label><input type="email" id="nd-email" style="text-transform:none"></div>
+          <div class="fi"><label>Celular (WhatsApp)</label><input type="tel" id="nd-cel" placeholder="+51 999 999 999" style="text-transform:none"></div>
+        </div>
+      </div>
+      <!-- Solo visible para ADMINISTRADOR -->
+      <div class="fs" id="nd-sec-adm" style="display:none">
+        <div class="fst" style="color:var(--red)">🔴 Campos Administrador</div>
+        <div class="fg2">
+          <div class="fi"><label>Hora inicio</label><input type="time" id="nd-hi" style="text-transform:none"></div>
+          <div class="fi"><label>Hora término</label><input type="time" id="nd-ht" style="text-transform:none"></div>
+          <div class="fi"><label>¿Se realizó?</label><select id="nd-real"><option value="">—</option><option value="SÍ">Sí</option><option value="NO">No</option></select></div>
+          <div class="fi"><label>Motivo no realizado</label><select id="nd-mot"><option value="">—</option></select></div>
+          <div class="fi"><label>Psicólogo</label><select id="nd-psic"><option value="">— Seleccionar —</option></select></div>
+          <div class="fi"><label>Digitador responsable</label><select id="nd-dig"><option value="">— Seleccionar —</option></select></div>
+          <div class="fi"><label>¿Se reprograma?</label><select id="nd-rep"><option value="">—</option><option value="SÍ">Sí</option><option value="NO">No</option></select></div>
+          <div class="fi"><label>Fecha/hora reprogramación</label><input type="datetime-local" id="nd-frp" style="text-transform:none"></div>
+          <div class="fi"><label>Fecha/hora psicológica</label><input type="datetime-local" id="nd-fps" style="text-transform:none"></div>
+        </div>
+        <div class="fi" style="margin-top:10px"><label>Observaciones</label><textarea id="nd-obs"></textarea></div>
+      </div>
+      <div class="fs">
+        <div class="fst">📎 Oficio PDF <span style="color:var(--mu);font-weight:400;font-size:10px">(opcional)</span></div>
+        <div class="fd" id="drop-ofc" onclick="document.getElementById('inp-ofc').click()"
+             ondragover="event.preventDefault();this.classList.add('dov')"
+             ondragleave="this.classList.remove('dov')"
+             ondrop="dropOfc(event)">
+          <div class="fdi">📋</div><p>Arrastra o haz clic — solo <strong>PDF</strong></p>
+          <div class="fnm" id="ofc-fn"></div>
+        </div>
+        <input type="file" id="inp-ofc" accept=".pdf" style="display:none" onchange="setPF(this,'ofc-fn','drop-ofc')">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-bottom:28px">
+        <button class="btn bg" onclick="backAgenda()">Cancelar</button>
+        <button class="btn bs" id="btn-gd" onclick="saveDil()" style="font-size:14px;padding:11px 26px">💾 Guardar diligencia</button>
+      </div>
+    </div>
+
+    <!-- PSICOLOGÍA (solo admin) -->
+    <div class="page" id="page-psico">
+      <div class="ph">
+        <div class="phl"><h2>🧠 Atención Psicológica</h2><p>Solo Administrador</p></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn bs sm" onclick="exportarXLSPsico()">📥 Excel</button>
+          <button class="btn bg sm" onclick="togglePsicoVista()" id="btn-psico-toggle">➕ Nueva atención</button>
+          <button class="btn bg sm" onclick="loadCitasPsico()">🔄 Actualizar</button>
+        </div>
+      </div>
+      <!-- TABLA de registros -->
+      <div id="psico-tabla-section">
+        <div class="card">
+          <div class="ct">📋 Registros de Atención Psicológica</div>
+          <div class="sbar">
+            <input class="sinp" type="text" id="q-psico-tabla" placeholder="🔍 BUSCAR POR CARPETA, PACIENTE, PSICÓLOGO..." oninput="filtrarCitasPsico()">
+          </div>
+          <div class="tw">
+            <table>
+              <thead><tr id="thead-psico">
+                <th>ID</th><th>Fecha</th><th>Hora</th><th>Psicólogo</th>
+                <th>Paciente</th><th>Carpeta Fiscal</th><th>Delito</th>
+                <th>N° Cita</th><th>Asistencia</th><th>Acciones</th>
+              </tr></thead>
+              <tbody id="tbody-psico"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- FORMULARIO nueva / editar -->
+      <div id="psico-form-section" style="display:none">
+        <div class="card" id="psico-p1">
+          <div class="ct">🔍 Buscar caso en Mis Diligencias</div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:12px">Busca por CARPETA_FISCAL, IMPUTADOS, AGRAVIADOS o DELITO_GENERICO</p>
+          <div class="sbar">
+            <input class="sinp" type="text" id="q-psico" placeholder="CF-2024... / JUAN PÉREZ / VIOLACIÓN...">
+            <button class="btn bp sm" onclick="buscarPsico()">🔍 Buscar</button>
+            <button class="btn bg sm" onclick="mostrarCalPsico(null)">➕ Sin buscar</button>
+          </div>
+          <div id="psico-res"></div>
+        </div>
+        <div id="psico-p2" style="display:none">
+          <div class="card"><div class="ct">📅 Selecciona fecha y hora</div><div id="cal-psico"></div></div>
+          <div class="card">
+            <div class="ct">📤 Cargar fechas psicológicas (.txt)</div>
+            <div class="fd" onclick="document.getElementById('inp-ag-psico').click()" style="padding:12px">
+              <div class="fdi">📄</div><p>Formato: <code>2026-03-20,08:00</code></p>
+              <div class="fnm" id="agp-fn"></div>
+            </div>
+            <input type="file" id="inp-ag-psico" accept=".txt" style="display:none" onchange="readTxtAgp(this)">
+            <button class="btn bpu2 sm" style="margin-top:8px" onclick="uploadAgPsico()">📤 Procesar</button>
+          </div>
+        </div>
+        <div id="psico-p3" style="display:none">
+          <div class="fs"><div class="fst">📅 Cita reservada</div>
+            <div class="fbadge" style="background:var(--pur)">
+              <span>📅</span><span id="ps-fdis">—</span>
+              <span style="opacity:.4">|</span>
+              <span>🕐</span><span id="ps-hdis">—</span>
+            </div>
+            <input type="hidden" id="ps-sid"><input type="hidden" id="ps-f"><input type="hidden" id="ps-h">
+          </div>
+          <div id="ps-autodata" style="display:none;margin-bottom:12px"></div>
+          <div class="fs"><div class="fst">📋 Datos de la atención</div>
+            <div class="fg2">
+              <div class="fi"><label>CARPETA FISCAL <span class="req">*</span></label><input type="text" id="ps-carp"></div>
+              <div class="fi"><label>DÍA <span class="req">*</span></label><input type="text" id="ps-dia" readonly style="background:#f8fafc;color:var(--az);font-weight:700"></div>
+              <div class="fi"><label>Psicólogo <span class="req">*</span></label><select id="ps-psic"><option value="">— Seleccionar —</option></select></div>
+              <div class="fi"><label>Paciente / Usuario <span class="req">*</span></label><input type="text" id="ps-pac"></div>
+              <div class="fi"><label>Condición <span class="req">*</span></label><input type="text" id="ps-cond"></div>
+              <div class="fi"><label>Edad <span class="req">*</span></label><input type="number" id="ps-edad" min="0" max="120" style="text-transform:none"></div>
+              <div class="fi"><label>DNI <span class="req">*</span></label><input type="text" id="ps-dni" style="text-transform:none"></div>
+              <div class="fi"><label>Sexo <span class="req">*</span></label><select id="ps-sexo"><option value="">—</option><option value="M">Masculino</option><option value="F">Femenino</option></select></div>
+              <div class="fi"><label>N° Cita <span class="req">*</span></label><input type="text" id="ps-cita" style="text-transform:none"></div>
+              <div class="fi"><label>N° Protocolo <span class="req">*</span></label><input type="text" id="ps-prot" style="text-transform:none"></div>
+              <div class="fi"><label>EU <span class="req">*</span></label><input type="text" id="ps-eu"></div>
+              <div class="fi"><label>Asistencia <span class="req">*</span></label><input type="text" id="ps-asis"></div>
+              <div class="fi"><label>Actividad realizada <span class="req">*</span></label><input type="text" id="ps-act"></div>
+              <div class="fi"><label>Delito <span class="req">*</span></label><input type="text" id="ps-del"></div>
+              <div class="fi"><label>Despacho Fiscal <span class="req">*</span></label><input type="text" id="ps-desp"></div>
+              <div class="fi"><label>Nombre del Fiscal <span class="req">*</span></label><input type="text" id="ps-fisc"></div>
+              <div class="fi"><label>Imputados</label><input type="text" id="ps-imp"></div>
+              <div class="fi"><label>Agraviados</label><input type="text" id="ps-agr"></div>
+              <div class="fi"><label>Email (confirmación)</label><input type="email" id="ps-email" style="text-transform:none"></div>
+            </div>
+            <div class="fi" style="margin-top:10px"><label>Observaciones internas <span class="req">*</span></label><textarea id="ps-obs"></textarea></div>
+          </div>
+          <div style="display:flex;gap:10px;justify-content:flex-end;margin-bottom:28px">
+            <button class="btn bg" onclick="cancelPsico()">Cancelar</button>
+            <button class="btn bpu2" id="btn-save-psico" onclick="savePsico()" style="font-size:14px;padding:11px 26px">💾 Guardar atención</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOCUMENTOS -->
+    <div class="page" id="page-docs">
+      <div class="ph"><div class="phl"><h2>📁 Documentos</h2><p>Gestión de archivos</p></div></div>
+      <div class="docg">
+        <div class="docc">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="docico pdf">📋</div>
+            <div><div style="font-size:14px;font-weight:700">Oficios</div><div style="font-size:11px;color:var(--mu)">Solo PDF</div></div>
+          </div>
+          <div class="sbar"><input class="sinp" type="text" id="q-ofc" placeholder="BUSCAR OFICIO..." oninput="filtrarDocs('oficios','q-ofc','lista-ofc')"></div>
+          <div class="fd" onclick="document.getElementById('inp-ofc-doc').click()" style="padding:12px">
+            <div class="fdi">📤</div><p>Subir oficio PDF</p><div class="fnm" id="ofc-doc-fn"></div>
+          </div>
+          <input type="file" id="inp-ofc-doc" accept=".pdf" style="display:none" onchange="setPF(this,'ofc-doc-fn',null)">
+          <button class="btn bp sm" onclick="uploadDoc('oficios','inp-ofc-doc','ofc-doc-fn')">📤 Subir</button>
+          <div class="docl" id="lista-ofc"></div>
+        </div>
+        <!-- Solo visible para ADMINISTRADOR -->
+        <div class="docc" id="card-trans" style="display:none">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="docico word">📄</div>
+            <div><div style="font-size:14px;font-weight:700">Transcripciones</div><div style="font-size:11px;color:var(--mu)">PDF o Word</div></div>
+          </div>
+          <div class="sbar"><input class="sinp" type="text" id="q-trans" placeholder="BUSCAR TRANSCRIPCIÓN..." oninput="filtrarDocs('transcripciones','q-trans','lista-trans')"></div>
+          <div class="fd" onclick="document.getElementById('inp-trans-doc').click()" style="padding:12px">
+            <div class="fdi">📤</div><p>PDF o Word (.docx)</p><div class="fnm" id="trans-doc-fn"></div>
+          </div>
+          <input type="file" id="inp-trans-doc" accept=".pdf,.docx,.doc" style="display:none" onchange="setPF(this,'trans-doc-fn',null)">
+          <button class="btn bp sm" onclick="uploadDoc('transcripciones','inp-trans-doc','trans-doc-fn')">📤 Subir</button>
+          <div class="docl" id="lista-trans"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MENSAJES -->
+    <div class="page" id="page-notif">
+      <div class="ph"><div class="phl"><h2>💬 Mensajes</h2><p>Centro de comunicaciones</p></div></div>
+      <div class="chatw">
+        <div class="chath">
+          <div class="chatav">🔔</div>
+          <div><div class="chathn">UML Huaral — Mensajes</div><div class="chaths">Sistema de notificaciones</div></div>
+          <div class="chatbadge" id="cbadge" style="display:none">0</div>
+        </div>
+        <div class="chatm" id="chatm"></div>
+        <!-- Solo visible para ADMINISTRADOR -->
+        <div id="chat-comp" style="display:none">
+          <div class="chatdest">
+            <label>Para:</label>
+            <select id="notif-dest"><option value="TODOS">Todos los asistentes</option></select>
+          </div>
+          <div class="chati">
+            <textarea class="chatti" id="chat-txt" placeholder="Primera línea = asunto&#10;Resto = mensaje..." rows="2"></textarea>
+            <button class="chats" onclick="sendNotif()">➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USUARIOS (solo admin) -->
+    <div class="page" id="page-usr">
+      <div class="ph">
+        <div class="phl"><h2>👥 Usuarios</h2><p>Gestión de cuentas</p></div>
+        <button class="btn bp" onclick="openUsr()">➕ Nuevo usuario</button>
+      </div>
+      <div class="card" id="card-online">
+        <div class="ct">🟢 En línea ahora</div>
+        <div id="lista-online"><p style="font-size:13px;color:var(--mu)">Cargando...</p></div>
+      </div>
+      <div class="card">
+        <div class="tw">
+          <table>
+            <thead><tr id="thead-usr"><th>Nombre</th><th>Email</th><th>Celular</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="tbody-usr"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIGURACIÓN VISUAL (solo admin) -->
+    <div class="page" id="page-cfg">
+      <div class="ph"><div class="phl"><h2>⚙️ Configuración</h2><p>Personalización del sistema</p></div></div>
+      <div class="card">
+        <div class="ct">🌄 Fondo del login</div>
+        <div class="fd" onclick="document.getElementById('inp-bg').click()" style="padding:12px">
+          <div class="fdi">🌄</div><p>JPG, PNG o WEBP — máx 2MB</p><div class="fnm" id="bg-fn"></div>
+        </div>
+        <input type="file" id="inp-bg" accept="image/*" style="display:none" onchange="prevImg(this,'bg-fn','bg')">
+        <button class="btn bp sm" style="margin-top:8px" onclick="saveImg('bg','inp-bg','bg-fn')">💾 Guardar fondo</button>
+      </div>
+      <div class="card">
+        <div class="ct">🏷️ Logo del sistema</div>
+        <div class="fd" onclick="document.getElementById('inp-logo').click()" style="padding:12px">
+          <div class="fdi">🏷️</div><p>JPG, PNG o SVG — máx 2MB</p><div class="fnm" id="logo-fn"></div>
+        </div>
+        <input type="file" id="inp-logo" accept="image/*" style="display:none" onchange="prevImg(this,'logo-fn','logo')">
+        <button class="btn bp sm" style="margin-top:8px" onclick="saveImg('logo','inp-logo','logo-fn')">💾 Guardar logo</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODALES
+     ════════════════════════════════════════════ -->
+
+<!-- Modal: Ver diligencia -->
+<div class="mo" id="mo-ver">
+  <div class="modal" style="max-width:700px">
+    <div class="mhdr">
+      <div class="mtit" id="mo-ver-tit">Diligencia</div>
+      <div style="display:flex;gap:7px;align-items:center">
+        <button class="btn bp sm" id="btn-editar-dil" style="display:none" onclick="openEdit()">✏️ Completar</button>
+        <button class="mcls" onclick="closeM('mo-ver')">✕</button>
+      </div>
+    </div>
+    <div id="mo-ver-body"></div>
+  </div>
+</div>
+
+<!-- Modal: Editar diligencia -->
+<div class="mo" id="mo-edit">
+  <div class="modal" style="max-width:720px">
+    <div class="mhdr">
+      <div>
+        <div class="mtit">✏️ Completar diligencia</div>
+        <div style="font-size:11px;color:var(--mu);margin-top:2px" id="me-sub">—</div>
+      </div>
+      <button class="mcls" onclick="closeM('mo-edit')">✕</button>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="meTab(0)">📋 Ejecución</button>
+      <button class="tab" onclick="meTab(1)">🔁 Reprogramación</button>
+      <button class="tab" onclick="meTab(2)">🧠 Psicológico</button>
+      <button class="tab" onclick="meTab(3)">📎 Archivos</button>
+    </div>
+    <div class="tabp" id="me-p0">
+      <div class="fg2">
+        <div class="fi"><label>Expediente</label><input type="text" id="me-exp"></div>
+        <div class="fi"><label>Hora inicio</label><input type="time" id="me-hi" style="text-transform:none"></div>
+        <div class="fi"><label>Hora término</label><input type="time" id="me-ht" style="text-transform:none"></div>
+        <div class="fi"><label>¿Se realizó?</label><select id="me-real"><option value="">—</option><option value="SÍ">✅ Sí</option><option value="NO">❌ No</option></select></div>
+        <div class="fi"><label>Digitador</label><select id="me-dig"><option value="">— Seleccionar —</option></select></div>
+      </div>
+      <div id="me-nreal" style="display:none;margin-top:12px;padding:12px;background:#fff5f5;border-radius:10px;border:1px solid #fecaca">
+        <div style="font-size:11px;font-weight:800;color:var(--red);margin-bottom:10px">⚠️ Motivo</div>
+        <div class="fg2">
+          <div class="fi"><label>Motivo</label><select id="me-mot"><option value="">—</option></select></div>
+          <div class="fi"><label>Detalle</label><input type="text" id="me-det"></div>
+        </div>
+      </div>
+      <div class="fi" style="margin-top:12px"><label>Observaciones</label><textarea id="me-obs" style="text-transform:none"></textarea></div>
+    </div>
+    <div class="tabp" id="me-p1" style="display:none">
+      <div class="fg2">
+        <div class="fi"><label>¿Se reprograma?</label><select id="me-rep"><option value="">—</option><option value="SÍ">Sí</option><option value="NO">No</option></select></div>
+        <div class="fi"><label>Fecha/hora reprogramación</label><input type="datetime-local" id="me-frep" style="text-transform:none"></div>
+        <div class="fi"><label>Cantidad reprogramaciones</label><select id="me-crep"><option value="0">0</option></select></div>
+        <div class="fi"><label>Motivo</label><input type="text" id="me-mrep"></div>
+      </div>
+    </div>
+    <div class="tabp" id="me-p2" style="display:none">
+      <div class="fg2">
+        <div class="fi"><label>Psicólogo</label><select id="me-psic"><option value="">— Seleccionar —</option></select></div>
+        <div class="fi"><label>Fecha/hora evaluación</label><input type="datetime-local" id="me-fps" style="text-transform:none"></div>
+      </div>
+      <div class="fi" style="margin-top:10px"><label>Observaciones psicológicas</label><textarea id="me-obspsic" style="text-transform:none"></textarea></div>
+    </div>
+    <div class="tabp" id="me-p3" style="display:none">
+      <div class="fg2">
+        <div>
+          <p style="font-size:11px;color:var(--mu);margin-bottom:7px">📋 Oficio nuevo (opcional)</p>
+          <div class="fd" onclick="document.getElementById('me-inp-ofc').click()" style="padding:10px">
+            <div class="fdi" style="font-size:20px">📋</div><p>PDF</p><div class="fnm" id="me-ofc-fn"></div>
+          </div>
+          <input type="file" id="me-inp-ofc" accept=".pdf" style="display:none" onchange="setPF(this,'me-ofc-fn',null)">
+        </div>
+        <div>
+          <p style="font-size:11px;color:var(--mu);margin-bottom:7px">📄 Transcripción</p>
+          <div class="fd" onclick="document.getElementById('me-inp-tr').click()" style="padding:10px">
+            <div class="fdi" style="font-size:20px">📄</div><p>PDF / Word</p><div class="fnm" id="me-tr-fn"></div>
+          </div>
+          <input type="file" id="me-inp-tr" accept=".pdf,.docx,.doc" style="display:none" onchange="setPF(this,'me-tr-fn',null)">
+        </div>
+      </div>
+      <div id="me-links" style="margin-top:12px"></div>
+    </div>
+    <input type="hidden" id="me-n">
+    <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end;border-top:1px solid var(--bo);padding-top:14px">
+      <button class="btn bg" onclick="closeM('mo-edit')">Cancelar</button>
+      <button class="btn bs" id="btn-save-edit" onclick="saveEdit()">💾 Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Editar atención psicológica -->
+<div class="mo" id="mo-edit-psico">
+  <div class="modal" style="max-width:700px">
+    <div class="mhdr">
+      <div class="mtit">✏️ Editar atención psicológica</div>
+      <button class="mcls" onclick="closeM('mo-edit-psico')">✕</button>
+    </div>
+    <div class="fg2">
+      <div class="fi"><label>Psicólogo</label><select id="ep-psic"><option value="">— Seleccionar —</option></select></div>
+      <div class="fi"><label>Fecha</label><input type="date" id="ep-fecha" style="text-transform:none"></div>
+      <div class="fi"><label>Hora</label><input type="time" id="ep-hora" style="text-transform:none"></div>
+      <div class="fi"><label>Paciente / Usuario</label><input type="text" id="ep-pac"></div>
+      <div class="fi"><label>Condición</label><input type="text" id="ep-cond"></div>
+      <div class="fi"><label>Edad</label><input type="number" id="ep-edad" style="text-transform:none"></div>
+      <div class="fi"><label>DNI</label><input type="text" id="ep-dni" style="text-transform:none"></div>
+      <div class="fi"><label>Sexo</label><select id="ep-sexo"><option value="">—</option><option value="M">Masculino</option><option value="F">Femenino</option></select></div>
+      <div class="fi"><label>N° Cita</label><input type="text" id="ep-cita" style="text-transform:none"></div>
+      <div class="fi"><label>N° Protocolo</label><input type="text" id="ep-prot" style="text-transform:none"></div>
+      <div class="fi"><label>EU</label><input type="text" id="ep-eu"></div>
+      <div class="fi"><label>Asistencia</label><input type="text" id="ep-asis"></div>
+      <div class="fi"><label>Actividad realizada</label><input type="text" id="ep-act"></div>
+      <div class="fi"><label>Delito</label><input type="text" id="ep-del"></div>
+      <div class="fi"><label>Despacho Fiscal</label><input type="text" id="ep-desp"></div>
+      <div class="fi"><label>Nombre Fiscal</label><input type="text" id="ep-fisc"></div>
+      <div class="fi"><label>Carpeta Fiscal</label><input type="text" id="ep-carp"></div>
+    </div>
+    <div class="fi" style="margin-top:10px"><label>Observaciones</label><textarea id="ep-obs" rows="3"></textarea></div>
+    <input type="hidden" id="ep-id">
+    <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end;border-top:1px solid var(--bo);padding-top:14px">
+      <button class="btn bg" onclick="closeM('mo-edit-psico')">Cancelar</button>
+      <button class="btn bpu2" onclick="saveEditPsico()">💾 Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Crear / editar usuario -->
+<div class="mo" id="mo-usr">
+  <div class="modal">
+    <div class="mhdr">
+      <div class="mtit" id="mo-usr-tit">Usuario</div>
+      <button class="mcls" onclick="closeM('mo-usr')">✕</button>
+    </div>
+    <div class="fg2">
+      <div class="fi"><label>Nombre completo</label><input type="text" id="u-nom"></div>
+      <div class="fi"><label>Email</label><input type="email" id="u-email" style="text-transform:none"></div>
+      <div class="fi"><label>Celular</label><input type="tel" id="u-cel" style="text-transform:none"></div>
+      <div class="fi"><label>Contraseña</label><input type="password" id="u-pass" placeholder="Vacío = no cambiar" style="text-transform:none"></div>
+      <div class="fi"><label>Rol</label>
+        <select id="u-rol">
+          <option value="ASISTENTE">Asistente</option>
+          <option value="ADMINISTRADOR">Administrador</option>
+        </select>
+      </div>
+    </div>
+    <input type="hidden" id="u-id">
+    <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
+      <button class="btn bg" onclick="closeM('mo-usr')">Cancelar</button>
+      <button class="btn bp" onclick="saveUsr()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Importar TXT psicología (botón flotante) -->
+<div class="mo" id="modal-txt-psico">
+  <div class="modal">
+    <div class="mhdr">
+      <div class="mtit">📄 Cargar fechas psicológicas</div>
+      <button class="mcls" onclick="closeM('modal-txt-psico')">✕</button>
+    </div>
+    <div class="fd" onclick="document.getElementById('inp-agp-modal').click()" style="padding:12px">
+      <div class="fdi">📄</div><p>Formato: <code>2026-03-20,08:00</code></p>
+      <div class="fnm" id="agp-fn-modal"></div>
+    </div>
+    <input type="file" id="inp-agp-modal" accept=".txt" style="display:none" onchange="readTxtAgpModal(this)">
+    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+      <button class="btn bg" onclick="closeM('modal-txt-psico')">Cancelar</button>
+      <button class="btn bpu2" onclick="uploadAgPsicoModal()">📤 Procesar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast de notificaciones -->
+<div id="toast"></div>
+
+<!-- Botón flotante (solo en página de psicología) -->
+<button id="floating-txt-btn" onclick="openTxtModal()" title="Cargar TXT psicología">📄</button>
+
+
+<!-- ════════════════════════════════════════════════════════
+     JAVASCRIPT
+     ════════════════════════════════════════════════════════ -->
+<script>
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 1: CONSTANTES Y ESTADO GLOBAL
+// (Todas las variables globales en un único lugar)
+// ════════════════════════════════════════════════════════════
+
+/** Estado de la sesión del usuario activo */
+var S = { token: null, usuario: null };
+
+/** Cache de citas psicológicas para filtrado local */
+var _citasPsico = [];
+var _citasPsicoFilt = [];
+
+/** Cache de listas para selects */
+var _listas = {};
+
+/** Cache y estado de diligencias */
+var _dilAll = [];
+var _dilFilt = [];
+var _dilActual = null; // Diligencia actualmente abierta en modal
+
+/** Cache de documentos */
+var _docsCache = { oficios: [], transcripciones: [] };
+
+/** Estado del formulario de psicología */
+var _psicoBase = null;         // Datos autocompletados desde diligencia
+var _psicoResultados = [];     // Resultados de la búsqueda previa
+
+/** Instancias de los widgets de calendario */
+var CAL_AG = null;
+var CAL_PSICO = null;
+
+/** Contenido de archivos TXT cargados */
+var _agTxt = '';     // TXT agenda diligencias
+var _agpTxt = '';    // TXT agenda psicología (formulario)
+var _agpTxtModal = ''; // TXT agenda psicología (modal flotante)
+
+/** Nombres de meses y días en español (CORREGIDO: versión completa) */
+var MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+var DIAS   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+var DIAS_L = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+
+/** Menús de navegación según rol */
+var MENU_ADM = [
+  { id:'dashboard', ico:'📊', lbl:'Dashboard' },
+  { id:'dil',       ico:'📋', lbl:'Mis Diligencias' },
+  { id:'agenda',    ico:'📅', lbl:'Agenda' },
+  { id:'psico',     ico:'🧠', lbl:'Psicología' },
+  { id:'docs',      ico:'📁', lbl:'Documentos' },
+  { id:'notif',     ico:'💬', lbl:'Mensajes' },
+  { id:'usr',       ico:'👥', lbl:'Usuarios' },
+  { id:'cfg',       ico:'⚙️', lbl:'Configuración' }
+];
+var MENU_AST = [
+  { id:'dashboard', ico:'📊', lbl:'Dashboard' },
+  { id:'dil',       ico:'📋', lbl:'Mis Diligencias' },
+  { id:'agenda',    ico:'📅', lbl:'Agenda' },
+  { id:'docs',      ico:'📁', lbl:'Documentos' },
+  { id:'notif',     ico:'💬', lbl:'Mensajes' }
+];
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 2: UTILIDADES — Formateo y helpers DOM
+// ════════════════════════════════════════════════════════════
+
+/** Convierte hora a formato 12h con AM/PM para mostrar en UI */
+function horaCorta(v) {
+  if (!v || v === '' || v === '—') return '—';
+  var s = String(v).trim();
+  if (/^\d{1,2}:\d{2}\s*(AM|PM)$/i.test(s)) return s;
+  var m = s.match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return s;
+  var h = parseInt(m[1]), min = parseInt(m[2]);
+  var ampm = h >= 12 ? 'PM' : 'AM';
+  var h12 = h % 12; if (h12 === 0) h12 = 12;
+  return h12 + ':' + String(min).padStart(2,'0') + ' ' + ampm;
+}
+
+/** Formatea fecha a DD/MM/YYYY para mostrar.
+ *  Maneja: DD/MM/YYYY, YYYY-MM-DD, ISO, y strings largos como "Sun Mar 01 2026..." */
+function fF(s) {
+  if (!s || s === '' || s === 'undefined' || s === 'null') return '—';
+  var str = String(s).trim();
+  // Ya está en formato correcto
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return str;
+  // Formato ISO YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+    var p = str.split('T')[0].split('-');
+    return p[2] + '/' + p[1] + '/' + p[0];
+  }
+  // Cualquier otro formato (incluyendo "Sun Mar 01 2026 00:00:00 GMT-0500...")
+  try {
+    var d = new Date(str);
+    if (!isNaN(d.getTime()) && d.getFullYear() > 1900) {
+      return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '/' + d.getFullYear();
+    }
+  } catch(e) {}
+  return str;
+}
+
+/** Alias de horaCorta para contexto de tabla */
+function fH(s) { return horaCorta(s); }
+
+/** Normaliza fecha a formato YYYY-MM-DD (para lógica interna y CalWidget) */
+function nF(f) {
+  if (f instanceof Date) return f.getFullYear() + '-' + pad2(f.getMonth()+1) + '-' + pad2(f.getDate());
+  var s = String(f || '').trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  try { var d = new Date(s); if (!isNaN(d.getTime()) && d.getFullYear() > 1900) return d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate()); } catch(e) {}
+  return s;
+}
+
+/** Normaliza hora a formato HH:MM (para lógica interna y CalWidget) */
+function nH(h) {
+  if (h instanceof Date) return pad2(h.getHours()) + ':' + pad2(h.getMinutes());
+  if (typeof h === 'number') { var m = Math.round(h * 24 * 60); return pad2(Math.floor(m/60)) + ':' + pad2(m%60); }
+  var s = String(h || '').trim();
+  return /^\d{1,2}:\d{2}/.test(s) ? s.substring(0, 5) : s;
+}
+
+/**
+ * Convierte hora AM/PM o HH:MM a formato HH:MM para inputs type="time".
+ * Ej: "2:30 PM" → "14:30"
+ */
+function horaAInput(s) {
+  if (!s || s === '—') return '';
+  var m = String(s).trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (m) {
+    var h = parseInt(m[1]), min = parseInt(m[2]), ap = m[3].toUpperCase();
+    if (ap === 'PM' && h !== 12) h += 12;
+    if (ap === 'AM' && h === 12) h = 0;
+    return String(h).padStart(2,'0') + ':' + String(min).padStart(2,'0');
+  }
+  if (/^\d{1,2}:\d{2}$/.test(s.trim())) return s.trim().padStart(5, '0');
+  return '';
+}
+
+/** Rellena con cero a la izquierda */
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+/** Obtiene el valor de un input por ID. Retorna '' si no existe. */
+function g(id) { var el = document.getElementById(id); return el ? (el.value || '') : ''; }
+
+/** Establece el valor de un input por ID. */
+function sv(id, val) { var el = document.getElementById(id); if (el) el.value = val || ''; }
+
+/** Escapa caracteres HTML para prevenir XSS al inyectar en innerHTML */
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/**
+ * Asigna data-label a cada celda de una tabla para el modo responsive tipo tarjeta.
+ * Lee los textos de los <th> y los aplica a las <td> correspondientes.
+ * Debe llamarse después de cada render de tabla.
+ * @param {string} tableSelector - Selector CSS de la tabla (ej: '#tbody-dil')
+ * @param {string} headSelector  - Selector CSS del thead (ej: '#thead-dil')
+ */
+function asignarDataLabels(tableSelector, headSelector) {
+  var ths = document.querySelectorAll(headSelector + ' th');
+  var labels = Array.prototype.map.call(ths, function(th) {
+    return th.textContent.trim();
+  });
+  var rows = document.querySelectorAll(tableSelector + ' tr');
+  rows.forEach(function(row) {
+    var celdas = row.querySelectorAll('td');
+    celdas.forEach(function(td, i) {
+      td.setAttribute('data-label', labels[i] || '');
+    });
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 3: UI HELPERS — Toast, modales, sidebar
+// ════════════════════════════════════════════════════════════
+
+var _toastTimer; // Timer para auto-ocultar el toast
+
+/**
+ * Muestra un mensaje toast en la esquina inferior derecha.
+ * @param {string} msg - Mensaje a mostrar
+ * @param {'ok'|'error'} tipo - Tipo de notificación
+ */
+function toast(msg, tipo) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + (tipo || 'ok');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function(){ el.className = ''; }, 3500);
+}
+
+/** Cierra un modal por su ID */
+function closeM(id) { document.getElementById(id).classList.remove('open'); }
+
+/** Abre/cierra el sidebar en mobile */
+function togSB() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sbov').classList.toggle('open');
+}
+
+/** Cierra el sidebar en mobile */
+function closeSB() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sbov').classList.remove('open');
+}
+
+// Cierra modales al hacer clic fuera
+document.querySelectorAll('.mo').forEach(function(m) {
+  m.addEventListener('click', function(e) { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 4: EFECTOS VISUALES DEL LOGIN
+// ════════════════════════════════════════════════════════════
+
+// Partículas flotantes del fondo
+(function initParticles() {
+  var cont = document.getElementById('particles-container');
+  if (!cont) return;
+  cont.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:0';
+  var colors = ['rgba(26,115,232,.6)', 'rgba(255,255,255,.3)', 'rgba(99,179,237,.5)', 'rgba(147,197,253,.4)'];
+  for (var i = 0; i < 18; i++) {
+    (function(idx) {
+      var p = document.createElement('div');
+      var size = Math.random() * 12 + 4;
+      p.className = 'particle';
+      p.style.cssText = 'width:' + size + 'px;height:' + size + 'px;left:' + (Math.random()*100) + '%;'
+        + 'background:' + colors[idx % colors.length] + ';'
+        + 'animation-duration:' + (Math.random()*8+6) + 's;'
+        + 'animation-delay:' + (Math.random()*8) + 's;'
+        + 'filter:blur(' + (Math.random()*2) + 'px)';
+      cont.appendChild(p);
+    })(i);
+  }
+})();
+
+// Efecto ripple al hacer clic en el botón login
+document.getElementById('btn-login').addEventListener('click', function(e) {
+  var btn = this;
+  var rect = btn.getBoundingClientRect();
+  var ripple = document.createElement('span');
+  var size = Math.max(rect.width, rect.height) * 2;
+  ripple.className = 'ripple';
+  ripple.style.cssText = 'width:' + size + 'px;height:' + size + 'px;'
+    + 'left:' + (e.clientX - rect.left - size/2) + 'px;'
+    + 'top:' + (e.clientY - rect.top - size/2) + 'px';
+  btn.appendChild(ripple);
+  setTimeout(function(){ ripple.remove(); }, 700);
+});
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 5: CALENDAR WIDGET
+// Clase reutilizable para los calendarios de Agenda y Psicología
+// ════════════════════════════════════════════════════════════
+
+/**
+ * Crea un widget de calendario interactivo con selección de slots.
+ * @param {{containerId, userId, accentColor, onConfirm}} cfg
+ */
+function CalWidget(cfg) {
+  this.cid = cfg.containerId;
+  this.userId = cfg.userId || '';
+  this.onConfirm = cfg.onConfirm || function(){};
+  this.accent = cfg.accentColor || 'var(--az)';
+  this.data = [];
+  this.mapa = {};
+  this.sel = null;
+  this._listeners = [];
+  this.mes = new Date();
+}
+
+CalWidget.prototype._addEv = function(el, ev, fn) {
+  el.addEventListener(ev, fn);
+  this._listeners.push({ el:el, ev:ev, fn:fn });
+};
+
+CalWidget.prototype.destroy = function() {
+  this._listeners.forEach(function(l) { try { l.el.removeEventListener(l.ev, l.fn); } catch(e){} });
+  this._listeners = [];
+  var cont = document.getElementById(this.cid);
+  if (cont) cont.innerHTML = '';
+};
+
+CalWidget.prototype.setData = function(slots) {
+  this.data = (slots || []).filter(function(s){ return s && s.fecha && s.hora; });
+  this._buildMapa();
+  this.render();
+};
+
+CalWidget.prototype._buildMapa = function() {
+  var m = {}, self = this;
+  this.data.forEach(function(s) {
+    var f = nF(s.fecha);
+    if (!m[f]) m[f] = [];
+    m[f].push({ id:s.id, fecha:f, hora:nH(s.hora), estado:s.estado, reservadoPor:s.reservadoPor||'' });
+  });
+  this.mapa = m;
+};
+
+CalWidget.prototype.render = function() {
+  var self = this;
+  this.destroy();
+  var cont = document.getElementById(this.cid);
+  if (!cont) return;
+  var hoy = new Date(), a = self.mes.getFullYear(), me = self.mes.getMonth();
+  var pd = new Date(a, me, 1).getDay(), dm = new Date(a, me+1, 0).getDate();
+
+  // Grid del mini-calendario
+  var grid = document.createElement('div'); grid.className = 'cmgrid';
+  DIAS.forEach(function(d) { var c = document.createElement('div'); c.className = 'cwd'; c.textContent = d; grid.appendChild(c); });
+  for (var b = 0; b < pd; b++) grid.appendChild(document.createElement('div'));
+  for (var dd = 1; dd <= dm; dd++) {
+    (function(day) {
+      var fs = a + '-' + pad2(me+1) + '-' + pad2(day);
+      var tieneSlots = self.mapa[fs] && self.mapa[fs].some(function(s){ return s.estado === 'DISPONIBLE'; });
+      var esHoy = day === hoy.getDate() && me === hoy.getMonth() && a === hoy.getFullYear();
+      var esSel = self.sel && self.sel.fecha === fs;
+      var dc = document.createElement('div');
+      dc.className = 'cday' + (tieneSlots ? ' ts' : '') + (esHoy ? ' hoy' : '') + (esSel ? ' sel' : '');
+      dc.textContent = day;
+      self._addEv(dc, 'click', function(){ self._selDia(fs); });
+      grid.appendChild(dc);
+    })(dd);
+  }
+
+  var lgHtml = '<div class="clg">'
+    + '<div class="cli"><div class="cld" style="background:' + self.accent + '"></div><span>Con horarios</span></div>'
+    + '<div class="cli"><div class="cld" style="background:#86efac;border:1px solid var(--grn)"></div><span>Tu reserva</span></div>'
+    + '<div class="cli"><div class="cld" style="background:#f1f5f9;border:1px solid #adb5bd"></div><span>Ocupado</span></div>'
+    + '</div>';
+
+  // Panel de slots del día seleccionado
+  var fd = self.sel ? self.sel.fecha : null;
+  var sh = fd && self.mapa[fd] ? self.mapa[fd].slice() : [];
+  sh.sort(function(a, b){ return a.hora > b.hora ? 1 : -1; });
+  var slotsDiv = document.createElement('div');
+  if (!fd) {
+    slotsDiv.innerHTML = '<div class="cep"><div style="font-size:32px;margin-bottom:8px">👈</div><p>Selecciona un día</p></div>';
+  } else if (!sh.length) {
+    slotsDiv.innerHTML = '<div class="cep"><div style="font-size:32px;margin-bottom:8px">📭</div><p>Sin horarios este día</p></div>';
+  } else {
+    var title = document.createElement('div'); title.className = 'cst'; title.textContent = 'Horarios disponibles'; slotsDiv.appendChild(title);
+    var sg = document.createElement('div'); sg.className = 'sg';
+    sh.forEach(function(s) {
+      var ocu = s.estado !== 'DISPONIBLE';
+      var mio = s.reservadoPor && s.reservadoPor === self.userId;
+      var btn = document.createElement('div');
+      var horaDisplay = horaCorta(s.hora);
+      if (ocu) {
+        btn.className = 'sbtn ' + (mio ? 'mio' : 'ocu');
+        btn.innerHTML = '<span>' + (mio ? '✅' : '🔒') + '</span>' + esc(horaDisplay) + '<small>' + (mio ? 'Tu reserva' : 'Ocupado') + '</small>';
+      } else {
+        var isSel = self.sel && self.sel.slotId === s.id;
+        btn.className = 'sbtn' + (isSel ? ' sel' : '');
+        btn.innerHTML = '<span>🕐</span>' + esc(horaDisplay) + '<small>Disponible</small>';
+        self._addEv(btn, 'click', (function(slot){ return function(){ self._selSlot(slot); }; })(s));
+      }
+      sg.appendChild(btn);
+    });
+    slotsDiv.appendChild(sg);
+  }
+
+  // Panel de confirmación
+  var panelDiv = document.createElement('div');
+  if (self.sel && self.sel.slotId) {
+    var pp = self.sel.fecha.split('-');
+    var dobj = new Date(parseInt(pp[0]), parseInt(pp[1])-1, parseInt(pp[2]));
+    panelDiv.className = 'csp';
+    var inner = document.createElement('div'); inner.className = 'cspi';
+    inner.innerHTML = '<div class="cspil">'
+      + '<div class="cspl">Reservando para</div>'
+      + '<div class="cspf">' + DIAS_L[dobj.getDay()] + ', ' + parseInt(pp[2]) + ' de ' + MESES[parseInt(pp[1])-1] + ' ' + pp[0] + '</div>'
+      + '<div class="csph" style="color:' + self.accent + '">' + horaCorta(self.sel.hora) + '</div>'
+      + '</div>';
+    var confBtn = document.createElement('button'); confBtn.className = 'cspb'; confBtn.id = 'cspb-' + self.cid; confBtn.textContent = 'Continuar →';
+    self._addEv(confBtn, 'click', function(){ confBtn.disabled = true; confBtn.textContent = '⏳ Reservando...'; self.onConfirm(self.sel, confBtn); });
+    inner.appendChild(confBtn); panelDiv.appendChild(inner);
+  }
+
+  // Encabezado con nombre del día seleccionado
+  var dhdr = document.createElement('div');
+  if (fd) {
+    var pp2 = fd.split('-');
+    var dobj2 = new Date(parseInt(pp2[0]), parseInt(pp2[1])-1, parseInt(pp2[2]));
+    dhdr.className = 'cfs';
+    dhdr.textContent = DIAS_L[dobj2.getDay()] + ', ' + parseInt(pp2[2]) + ' de ' + MESES[parseInt(pp2[1])-1] + ' ' + pp2[0];
+  } else {
+    dhdr.style.cssText = 'color:var(--mu);font-size:13px';
+    dhdr.textContent = 'Selecciona un día';
+  }
+
+  // Navegación de meses
+  var prevBtn = document.createElement('button'); prevBtn.className = 'cmnav'; prevBtn.textContent = '‹';
+  var nextBtn = document.createElement('button'); nextBtn.className = 'cmnav'; nextBtn.textContent = '›';
+  var mesSpan = document.createElement('span'); mesSpan.style.cssText = 'font-size:13px;font-weight:700'; mesSpan.textContent = MESES[me] + ' ' + a;
+  self._addEv(prevBtn, 'click', function(){ self.mes = new Date(a, me-1, 1); self._buildMapa(); self.render(); });
+  self._addEv(nextBtn, 'click', function(){ self.mes = new Date(a, me+1, 1); self._buildMapa(); self.render(); });
+
+  // Ensamblado del widget
+  var cmhdr = document.createElement('div'); cmhdr.className = 'cmhdr';
+  cmhdr.appendChild(prevBtn); cmhdr.appendChild(mesSpan); cmhdr.appendChild(nextBtn);
+  var cmini = document.createElement('div'); cmini.className = 'cmini';
+  cmini.appendChild(cmhdr); cmini.appendChild(grid);
+  var lgDiv = document.createElement('div'); lgDiv.innerHTML = lgHtml;
+  var calsb = document.createElement('div'); calsb.className = 'calsb';
+  calsb.appendChild(cmini); calsb.appendChild(lgDiv.firstChild);
+  var csw = document.createElement('div'); csw.className = 'csw'; csw.appendChild(slotsDiv);
+  var camhdr = document.createElement('div'); camhdr.className = 'camhdr'; camhdr.appendChild(dhdr);
+  var calm = document.createElement('div'); calm.className = 'calm';
+  calm.appendChild(camhdr); calm.appendChild(csw); calm.appendChild(panelDiv);
+  var calw = document.createElement('div'); calw.className = 'calw';
+  calw.appendChild(calsb); calw.appendChild(calm);
+  cont.innerHTML = ''; cont.appendChild(calw);
+};
+
+CalWidget.prototype._selDia  = function(fecha) { this.sel = { fecha:fecha, slotId:null, hora:null }; this.render(); };
+CalWidget.prototype._selSlot = function(slot)  { this.sel = { id:slot.id, slotId:slot.id, fecha:slot.fecha, hora:slot.hora }; this.render(); };
+CalWidget.prototype.reset    = function()       { this.sel = null; this.mes = new Date(); this.data = []; this.mapa = {}; this.destroy(); };
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 6: AUTENTICACIÓN
+// ════════════════════════════════════════════════════════════
+
+/** Ejecuta el login validando campos y llamando al backend */
+function doLogin() {
+  var email = g('l-email').trim();
+  var pw    = document.getElementById('l-pass').value;
+  var errEl = document.getElementById('l-err');
+  var btn   = document.getElementById('btn-login');
+
+  errEl.style.display = 'none';
+  errEl.classList.remove('shake');
+
+  if (!email || !pw) {
+    errEl.textContent = 'Completa todos los campos';
+    errEl.style.display = 'block';
+    void errEl.offsetWidth; // Forzar reflow para re-disparar animación
+    errEl.classList.add('shake');
+    return;
+  }
+
+  btn.classList.add('loading');
+  btn.querySelector('.btn-txt').textContent = 'Verificando';
+
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (r.ok) {
+        btn.querySelector('.btn-txt').textContent = '✅ Bienvenido';
+        setTimeout(function() {
+          btn.classList.remove('loading');
+          S.token   = r.token;
+          S.usuario = r.usuario;
+          sessionStorage.setItem('tok', r.token);
+          sessionStorage.setItem('usr', JSON.stringify(r.usuario));
+          startApp();
+        }, 600);
+      } else {
+        btn.classList.remove('loading');
+        btn.querySelector('.btn-txt').textContent = 'Ingresar al sistema';
+        errEl.textContent = r.error;
+        errEl.style.display = 'block';
+        void errEl.offsetWidth;
+        errEl.classList.add('shake');
+        btn.style.animation = 'shake .4s ease';
+        setTimeout(function(){ btn.style.animation = ''; }, 500);
+      }
+    })
+    .withFailureHandler(function(e) {
+      btn.classList.remove('loading');
+      btn.querySelector('.btn-txt').textContent = 'Ingresar al sistema';
+      errEl.textContent = 'Error: ' + e.message;
+      errEl.style.display = 'block';
+    })
+    .login(email, pw);
+}
+
+// Login al presionar Enter en el campo de contraseña
+document.getElementById('l-pass').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+
+/** Cierra la sesión del usuario */
+function doLogout() {
+  google.script.run.logout(S.token);
+  S = { token: null, usuario: null };
+  sessionStorage.clear();
+  // Ocultar hamburguesa al cerrar sesión
+  document.getElementById('sbtog').classList.remove('visible');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 7: INICIALIZACIÓN DE LA APP
+// ════════════════════════════════════════════════════════════
+
+/**
+ * Inicializa la interfaz principal tras un login exitoso.
+ * Construye el menú según el rol y carga el dashboard.
+ */
+function startApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  // Activar hamburguesa en mobile
+  document.getElementById('sbtog').classList.add('visible');
+
+  var u = S.usuario;
+  document.getElementById('uname').textContent = u.nombre;
+  document.getElementById('urole').textContent = u.rol;
+  document.getElementById('uav').textContent   = u.nombre.charAt(0);
+
+  // Construir menú de navegación según el rol
+  var menu = u.rol === 'ADMINISTRADOR' ? MENU_ADM : MENU_AST;
+  var nav  = document.getElementById('sbnav');
+  nav.innerHTML = '';
+  menu.forEach(function(m) {
+    var el = document.createElement('div');
+    el.className   = 'ni';
+    el.dataset.id  = m.id;
+    el.innerHTML   = '<span class="ico">' + m.ico + '</span><span>' + m.lbl + '</span>';
+    el.onclick = function(){ nav2(m.id); closeSB(); };
+    nav.appendChild(el);
+  });
+
+  // Mostrar elementos exclusivos del administrador
+  var esAdmin = u.rol === 'ADMINISTRADOR';
+  if (esAdmin) {
+    document.getElementById('card-ag-txt').style.display = 'block';
+    document.getElementById('chat-comp').style.display   = 'block';
+    document.getElementById('nd-sec-adm').style.display  = 'block';
+    document.getElementById('card-trans').style.display  = 'block';
+  }
+
+  // Cargar listas para selects y configuración visual
+  google.script.run
+    .withSuccessHandler(function(r) { if (r.ok) { _listas = r.listas; fillSelects(); } })
+    .withFailureHandler(function(){})
+    .obtenerListas(S.token);
+  loadCfgVisual();
+  nav2('dashboard');
+}
+
+/** Puebla todos los <select> del sistema con las listas dinámicas del backend */
+function fillSelects() {
+  // Mapa: ID del select → clave en _listas
+  var mapaSelects = {
+    'nd-via':'VIA_SOLICITUD',  'nd-desp':'DESPACHO_FISCAL', 'nd-sede':'SEDE_UML',
+    'nd-mod':'MODALIDAD_PRUEBA', 'nd-juz':'JUZGADO',        'nd-dg':'DELITO_GENERICO',
+    'nd-cond':'CONDICION_DILIGENCIA', 'nd-juez':'JUEZ',     'nd-fisc':'FISCAL',
+    'nd-par':'PARENTESCO',     'nd-mot':'MOTIVO_NO_REALIZADO', 'me-mot':'MOTIVO_NO_REALIZADO',
+    'nd-crep':'CANTIDAD_REPROGRAMACION', 'me-crep':'CANTIDAD_REPROGRAMACION',
+    'nd-psic':'PSICOLOGO',     'me-psic':'PSICOLOGO',       'ps-psic':'PSICOLOGO',  'ep-psic':'PSICOLOGO',
+    'nd-dig':'DIGITADOR_RESPONSABLE',    'me-dig':'DIGITADOR_RESPONSABLE'
+  };
+  Object.keys(mapaSelects).forEach(function(id) {
+    var sel = document.getElementById(id);
+    if (!sel) return;
+    var valores = _listas[mapaSelects[id]] || [];
+    var valorActual = sel.value;
+    while (sel.options.length > 1) sel.remove(1);
+    valores.forEach(function(v) {
+      var o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o);
+    });
+    if (valorActual) sel.value = valorActual;
+  });
+}
+
+/**
+ * Navega a una página de la aplicación y carga sus datos si es necesario.
+ * @param {string} id - ID de la página (sin el prefijo 'page-')
+ */
+function nav2(id) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.ni').forEach(function(n){ n.classList.remove('active'); });
+  var pg = document.getElementById('page-' + id);
+  var ni = document.querySelector('.ni[data-id="' + id + '"]');
+  if (pg) pg.classList.add('active');
+  if (ni) ni.classList.add('active');
+
+  // Disparar carga de datos según la página
+  var cargadores = {
+    agenda:    loadAgenda,
+    dil:       loadDil,
+    notif:     loadNotif,
+    docs:      loadDocs,
+    dashboard: loadDash,
+    psico:     loadCitasPsico
+  };
+  if (id === 'usr') { loadUsr(); loadOnline(); }
+  else if (cargadores[id]) cargadores[id]();
+
+  setTimeout(toggleFloatingBtn, 100);
+}
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 8: AGENDA (Diligencias)
+// ════════════════════════════════════════════════════════════
+
+function loadAgenda() {
+  var cont = document.getElementById('cal-ag');
+  cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--mu)">⏳ Cargando agenda...</div>';
+  if (CAL_AG) CAL_AG.destroy();
+
+  CAL_AG = new CalWidget({
+    containerId: 'cal-ag',
+    userId: S.usuario ? S.usuario.id : '',
+    accentColor: 'var(--az)',
+    onConfirm: function(slot, btn) {
+      google.script.run
+        .withSuccessHandler(function(r) {
+          if (!r.ok) {
+            toast('⚠️ ' + r.error, 'error');
+            CAL_AG.sel = null; CAL_AG.render();
+            if (btn) { btn.disabled = false; btn.textContent = 'Continuar →'; }
+            return;
+          }
+          // Pasar fecha/hora al formulario de nueva diligencia
+          var pp   = slot.fecha.split('-');
+          var dobj = new Date(parseInt(pp[0]), parseInt(pp[1])-1, parseInt(pp[2]));
+          sv('nd-idag', slot.id); sv('nd-f', slot.fecha); sv('nd-h', slot.hora);
+          sv('nd-fdis', DIAS_L[dobj.getDay()] + ', ' + parseInt(pp[2]) + ' de ' + MESES[parseInt(pp[1])-1] + ' ' + pp[0]);
+          sv('nd-hdis', horaCorta(slot.hora));
+          sv('nd-mes',  MESES[parseInt(pp[1])-1] + ' ' + pp[0]);
+          sv('nd-fsol', new Date().toISOString().split('T')[0]);
+          document.getElementById('ofc-fn').textContent = '';
+          document.getElementById('drop-ofc').classList.remove('tiene-archivo');
+          window._ofcFile = null;
+          // Navegar al formulario
+          document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+          document.getElementById('page-ndil').classList.add('active');
+          window.scrollTo(0, 0);
+          toast('✅ Hora reservada: ' + horaCorta(slot.hora), 'ok');
+        })
+        .withFailureHandler(function(e) {
+          toast('Error: ' + e.message, 'error');
+          if (btn) { btn.disabled = false; btn.textContent = 'Continuar →'; }
+        })
+        .reservarFecha(S.token, slot.id);
+    }
+  });
+
+  CAL_AG.mes = new Date();
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (r.ok) CAL_AG.setData(r.datos || []);
+      else cont.innerHTML = '<div style="text-align:center;padding:30px"><p style="color:var(--red)">' + esc(r.error) + '</p><button class="btn bg sm" style="margin-top:10px" onclick="loadAgenda()">🔄 Reintentar</button></div>';
+    })
+    .withFailureHandler(function(e) { cont.innerHTML = '<div style="text-align:center;padding:30px"><p style="color:var(--red)">' + esc(e.message) + '</p></div>'; })
+    .obtenerAgenda(S.token);
+}
+
+/** Vuelve a la agenda y libera el slot si se había reservado */
+function backAgenda() {
+  var sel = CAL_AG ? CAL_AG.sel : null;
+  if (sel && sel.id) {
+    if (!confirm('¿Cancelar? El horario quedará liberado.')) return;
+    google.script.run.liberarFecha(S.token, sel.id);
+    if (CAL_AG) CAL_AG.sel = null;
+    window._ofcFile = null;
+  }
+  nav2('agenda');
+}
+
+// Manejo de drag & drop para TXT de agenda
+function dropAg(e) { e.preventDefault(); document.getElementById('drop-ag').classList.remove('dov'); var f = e.dataTransfer.files[0]; if (f) _leerTxtAg(f); }
+function readTxtAg(inp) { if (inp.files[0]) _leerTxtAg(inp.files[0]); }
+function _leerTxtAg(f) {
+  if (!f.name.endsWith('.txt')) { toast('Solo archivos .txt', 'error'); return; }
+  var r = new FileReader();
+  r.onload = function(e) { _agTxt = e.target.result; document.getElementById('ag-fn').textContent = '✅ ' + f.name; };
+  r.readAsText(f);
+}
+function uploadAgenda() {
+  if (!_agTxt) { toast('Selecciona un .txt', 'error'); return; }
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (r.ok) { toast('✅ ' + r.insertados + ' insertadas', 'ok'); _agTxt = ''; document.getElementById('ag-fn').textContent = ''; loadAgenda(); }
+      else toast(r.error, 'error');
+    })
+    .procesarTxtAgenda(S.token, _agTxt);
+}
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 9: DILIGENCIAS (CRUD + Exportar)
+// ════════════════════════════════════════════════════════════
+
+/** Maneja drop de PDF de oficio */
+function dropOfc(e) {
+  e.preventDefault(); document.getElementById('drop-ofc').classList.remove('dov');
+  var f = e.dataTransfer.files[0];
+  if (f && f.type === 'application/pdf') {
+    window._ofcFile = f;
+    document.getElementById('ofc-fn').textContent = '✅ ' + f.name;
+    document.getElementById('drop-ofc').classList.add('tiene-archivo');
+  } else toast('Solo PDF', 'error');
+}
+
+/** Muestra el nombre de un archivo seleccionado en un file drop */
+function setPF(inp, nmId, dropId) {
+  if (inp.files[0]) {
+    document.getElementById(nmId).textContent = '✅ ' + inp.files[0].name;
+    if (dropId) document.getElementById(dropId).classList.add('tiene-archivo');
+  }
+}
+
+/** Sube un archivo al backend y llama al callback con la URL resultante */
+function uploadB64(file, carpeta, callback) {
+  var r = new FileReader();
+  r.onload = function(e) {
+    var b64 = e.target.result.split(',')[1];
+    google.script.run
+      .withSuccessHandler(function(r) { callback(r.ok ? r.url : ''); if (!r.ok) toast('Error: ' + r.error, 'error'); })
+      .withFailureHandler(function(e) { callback(''); toast('Error: ' + e.message, 'error'); })
+      .subirArchivo(S.token, b64, file.name, file.type, carpeta);
+  };
+  r.readAsDataURL(file);
+}
+
+/** Guarda una nueva diligencia, subiendo el oficio si existe */
+function saveDil() {
+  if (!g('nd-carp')) { toast('La Carpeta Fiscal es obligatoria', 'error'); return; }
+  var ofc = window._ofcFile || document.getElementById('inp-ofc').files[0];
+  var btn = document.getElementById('btn-gd');
+  btn.disabled = true; btn.textContent = '⏳ Guardando...';
+
+  function guardarConUrl(urlOfc, ofcNombre) {
+    var datos = {
+      mes: g('nd-mes'), fecha_programada: g('nd-f'), hora_programada: g('nd-h'),
+      fecha_solicitud: g('nd-fsol'), via_solicitud: g('nd-via'),
+      carpeta_fiscal: g('nd-carp'), expediente: g('nd-exp'), despacho_fiscal: g('nd-desp'),
+      sede_uml: g('nd-sede'), modalidad_prueba: g('nd-mod'), juzgado: g('nd-juz'),
+      agraviados: g('nd-agr'), edad: g('nd-edad'), sexo: g('nd-sexo'),
+      delito_generico: g('nd-dg'), delito_especifico: g('nd-de'),
+      parentesco: g('nd-par'), condicion_diligencia: g('nd-cond'),
+      cantidad_reprogramacion: g('nd-crep') || 0, juez: g('nd-juez'), fiscal: g('nd-fisc'),
+      email: g('nd-email'), imputados: g('nd-imp'), celular: g('nd-cel'),
+      s_oficio: ofcNombre || '', s_oficio_url: urlOfc || ''
+    };
+    if (S.usuario.rol === 'ADMINISTRADOR') {
+      datos.hora_inicio = g('nd-hi'); datos.hora_termino = g('nd-ht');
+      datos.se_realizo = g('nd-real'); datos.motivo_no_realizado = g('nd-mot');
+      datos.psicologo = g('nd-psic'); datos.digitador_responsable = g('nd-dig');
+      datos.se_reprograma = g('nd-rep'); datos.fecha_hora_reprogramacion = g('nd-frp');
+      datos.fecha_hora_psicologica = g('nd-fps'); datos.observaciones = g('nd-obs');
+    }
+    // Preparar link de WhatsApp si hay celular
+    var cel = g('nd-cel').replace(/\D/g, '');
+    if (cel) {
+      var wm = encodeURIComponent('✅ Diligencia registrada\nCarpeta: ' + g('nd-carp') + '\nFecha: ' + g('nd-f') + ' ' + horaCorta(g('nd-h')) + '\nUML Huaral');
+      window._waLink = 'https://wa.me/' + cel + '?text=' + wm;
+    }
+    google.script.run
+      .withSuccessHandler(function(r) {
+        btn.disabled = false; btn.textContent = '💾 Guardar diligencia';
+        if (r.ok) {
+          toast('✅ Diligencia N° ' + r.n + ' registrada', 'ok');
+
+          // ── Enviar email de confirmación si hay correo ingresado ──
+          var emailDest = g('nd-email');
+          if (emailDest) {
+            google.script.run.enviarEmailConfirmacion(S.token, {
+              email:               emailDest,
+              carpeta_fiscal:      g('nd-carp'),
+              expediente:          g('nd-exp'),
+              fecha_programada:    g('nd-f'),
+              hora_programada:     g('nd-h'),
+              agraviados:          g('nd-agr'),
+              sede_uml:            g('nd-sede'),
+              juzgado:             g('nd-juz'),
+              fiscal:              g('nd-fisc'),
+              condicion_diligencia:g('nd-cond'),
+              s_oficio_url:        datos.s_oficio_url || ''
+            });
+          }
+
+          // ── Ofrecer WhatsApp si hay celular ──
+          if (window._waLink) {
+            setTimeout(function(){
+              if (confirm('¿Enviar confirmación por WhatsApp?')) window.open(window._waLink, '_blank');
+              window._waLink = null;
+            }, 800);
+          }
+
+          if (CAL_AG) CAL_AG.sel = null;
+          window._ofcFile = null;
+          document.querySelectorAll('#page-ndil input:not([type=hidden]),#page-ndil select,#page-ndil textarea').forEach(function(el){ el.value = ''; });
+          document.getElementById('ofc-fn').textContent = '';
+          document.getElementById('drop-ofc').classList.remove('tiene-archivo');
+          setTimeout(function(){ nav2('dil'); }, 600);
+        } else toast(r.error, 'error');
+      })
+      .withFailureHandler(function(e) { btn.disabled = false; btn.textContent = '💾 Guardar diligencia'; toast('Error: ' + e.message, 'error'); })
+      .registrarDiligencia(S.token, datos);
+  }
+
+  if (ofc) { uploadB64(ofc, 'oficios', function(url) { if (!url) { btn.disabled = false; btn.textContent = '💾 Guardar diligencia'; return; } guardarConUrl(url, ofc.name); }); }
+  else guardarConUrl('', '');
+}
+
+/** Carga la lista de diligencias y configura la tabla según el rol */
+function loadDil() {
+  var tb = document.getElementById('tbody-dil');
+  tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:22px;color:var(--mu)">Cargando...</td></tr>';
+  var isAdm = S.usuario.rol === 'ADMINISTRADOR';
+
+  document.getElementById('thead-dil').innerHTML = isAdm
+    ? '<th>N°</th><th>Carpeta Fiscal</th><th>Expediente</th><th>Fecha</th><th>Hora</th><th>Agraviados</th><th>Asistente</th><th>Reprogram.</th><th>Realizó</th><th>Oficio</th><th>Acciones</th>'
+    : '<th>N°</th><th>Carpeta Fiscal</th><th>Expediente</th><th>Fecha</th><th>Hora</th><th>Agraviados</th><th>Reprogram.</th><th>Realizó</th><th>Oficio</th><th>Acciones</th>';
+
+  document.getElementById('ph-dil-btns').innerHTML = isAdm
+    ? '<button class="btn bs sm" onclick="exportarXLS()">📥 Excel</button><button class="btn bp sm" onclick="nav2(\'agenda\')">➕ Nueva</button>'
+    : '<button class="btn bp sm" onclick="nav2(\'agenda\')">➕ Nueva diligencia</button>';
+
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (r.ok) { _dilAll = r.datos; _dilFilt = r.datos; renderDil(r.datos); }
+      else tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--red)">' + esc(r.error) + '</td></tr>';
+    })
+    .withFailureHandler(function(e) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--red)">' + esc(e.message) + '</td></tr>'; })
+    .obtenerDiligencias(S.token);
+}
+
+/** Filtra la tabla de diligencias por texto de búsqueda */
+function filtrarDil() {
+  var q = g('q-dil').toUpperCase().trim();
+  if (!q) { _dilFilt = _dilAll; renderDil(_dilAll); return; }
+  _dilFilt = _dilAll.filter(function(d) {
+    return (d.CARPETA_FISCAL||'').toUpperCase().indexOf(q) >= 0
+        || (d.AGRAVIADOS||'').toUpperCase().indexOf(q) >= 0
+        || (d.DELITO_GENERICO||'').toUpperCase().indexOf(q) >= 0
+        || (d.ASISTENTE||'').toUpperCase().indexOf(q) >= 0
+        || (d.IMPUTADOS||'').toUpperCase().indexOf(q) >= 0;
+  });
+  renderDil(_dilFilt);
+}
+
+/** Renderiza la tabla de diligencias */
+function renderDil(items) {
+  var tb = document.getElementById('tbody-dil');
+  if (!items || !items.length) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:26px;color:var(--mu)">No hay registros</td></tr>'; return; }
+  var isAdm = S.usuario.rol === 'ADMINISTRADOR';
+  tb.innerHTML = items.map(function(d) {
+    var real = d.SE_REALIZO || '';
+    var bdg  = real === 'SÍ' ? '<span class="b bgr">✅ Sí</span>' : real === 'NO' ? '<span class="b bre">❌ No</span>' : '<span class="b bgy">⏳</span>';
+    var ofc  = d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎</a>' : '<span class="b bgy" style="font-size:10px">Sin PDF</span>';
+    var crep = d.CANTIDAD_REPROGRAMACION && d.CANTIDAD_REPROGRAMACION !== '0' && d.CANTIDAD_REPROGRAMACION !== '' ? '<span class="b bor">🔁 ' + esc(d.CANTIDAD_REPROGRAMACION) + '</span>' : '<span class="b bgy">0</span>';
+    var acc  = isAdm
+      ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bp sm" onclick="editDilDir(\'' + esc(d.N) + '\')">✏️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
+      : '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️ Ver</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>';
+    return '<tr>'
+      + '<td><b>' + esc(d.N||'—') + '</b></td>'
+      + '<td><b>' + esc(d.CARPETA_FISCAL||'—') + '</b></td>'
+      + '<td>' + esc(d.EXPEDIENTE||'—') + '</td>'
+      + '<td>' + fF(d.FECHA_PROGRAMADA) + '</td>'
+      + '<td>' + fH(d.HORA_PROGRAMADA) + '</td>'
+      + '<td>' + esc(d.AGRAVIADOS||'—') + '</td>'
+      + (isAdm ? '<td>' + esc(d.ASISTENTE||'—') + '</td>' : '')
+      + '<td>' + crep + '</td>'
+      + '<td>' + bdg + '</td>'
+      + '<td>' + ofc + '</td>'
+      + '<td>' + acc + '</td>'
+      + '</tr>';
+  }).join('');
+  asignarDataLabels('#tbody-dil', '#thead-dil');
+}
+
+/** Abre el modal de detalle de una diligencia */
+function verDil(n) {
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (!r.ok) { toast(r.error, 'error'); return; }
+      _dilActual = r.datos;
+      var d = r.datos;
+      var g1 = ['N','CARPETA_FISCAL','EXPEDIENTE','MES','FECHA_PROGRAMADA','HORA_PROGRAMADA','FECHA_SOLICITUD','VIA_SOLICITUD','DESPACHO_FISCAL','SEDE_UML'];
+      var g2 = ['AGRAVIADOS','EDAD','SEXO','DELITO_GENERICO','DELITO_ESPECIFICO','PARENTESCO','CONDICION_DILIGENCIA','CANTIDAD_REPROGRAMACION','MODALIDAD_PRUEBA','IMPUTADOS','JUZGADO','JUEZ','FISCAL','EMAIL','CELULAR','ASISTENTE'];
+      var g3 = ['HORA_INICIO','HORA_TERMINO','SE_REALIZO','MOTIVO_NO_REALIZADO','DETALLE_FRUSTRACION','DIGITADOR_RESPONSABLE','OBSERVACIONES'];
+      var g4 = ['SE_REPROGRAMA','CANTIDAD_REPROGRAMACION','FECHA_HORA_REPROGRAMACION'];
+      var g5 = ['PSICOLOGO','FECHA_HORA_PSICOLOGICA'];
+      var colsHora = ['HORA_PROGRAMADA','HORA_INICIO','HORA_TERMINO'];
+      var colsAdm  = ['HORA_INICIO','HORA_TERMINO','SE_REALIZO','MOTIVO_NO_REALIZADO','DETALLE_FRUSTRACION','SE_REPROGRAMA','FECHA_HORA_REPROGRAMACION','DIGITADOR_RESPONSABLE','OBSERVACIONES','PSICOLOGO','FECHA_HORA_PSICOLOGICA'];
+
+      function renderGrp(titulo, keys) {
+        var f = '';
+        keys.forEach(function(k) {
+          var raw = d[k] || ''; var v = colsHora.indexOf(k) >= 0 ? fH(raw) : raw;
+          var empty = !v || v === '—' || v === ''; var isAdm = colsAdm.indexOf(k) >= 0;
+          f += '<tr style="' + (empty && isAdm ? 'background:#fffbeb' : '') + '">'
+            + '<td style="padding:6px 10px;color:var(--mu);font-size:10px;font-weight:700;text-transform:uppercase;width:180px">' + k.replace(/_/g,' ') + '</td>'
+            + '<td style="padding:6px 10px;font-size:12px">' + (empty && isAdm ? '<span style="color:#f59e0b;font-size:11px">— pendiente —</span>' : esc(v)) + '</td>'
+            + '</tr>';
+        });
+        return '<div style="margin-bottom:12px"><div style="font-size:10px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;padding:5px 10px;background:var(--bg);border-radius:6px;margin-bottom:2px">' + titulo + '</div><table style="width:100%;border-collapse:collapse">' + f + '</table></div>';
+      }
+
+      var html = renderGrp('📋 Solicitud',g1) + renderGrp('👤 Caso',g2) + renderGrp('⚡ Ejecución',g3) + renderGrp('🔁 Reprogramación',g4) + renderGrp('🧠 Psicológico',g5);
+      html += '<div style="display:flex;gap:7px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--bo)">';
+      if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') html += '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bp sm">📎 Oficio</a>';
+      if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') html += '<a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">📄 Transcripción</a>';
+      if (d.CELULAR && d.CELULAR !== '') html += '<a href="https://wa.me/' + d.CELULAR.replace(/\D/g,'') + '" target="_blank" class="btn bs sm">💬 WhatsApp</a>';
+      html += '</div>';
+
+      document.getElementById('mo-ver-tit').textContent = 'Carpeta: ' + esc(d.CARPETA_FISCAL || '—');
+      document.getElementById('mo-ver-body').innerHTML = html;
+      var be = document.getElementById('btn-editar-dil');
+      if (be) be.style.display = S.usuario.rol === 'ADMINISTRADOR' ? 'inline-flex' : 'none';
+      document.getElementById('mo-ver').classList.add('open');
+    })
+    .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); })
+    .obtenerDiligenciaPorN(S.token, n);
+}
+
+/** Abre el modal de edición directamente desde la tabla */
+function editDilDir(n) { verDil(n); setTimeout(function(){ if (_dilActual) openEdit(); }, 1000); }
+
+/** Abre el modal de edición con los datos de la diligencia actual */
+function openEdit() {
+  if (!_dilActual) return;
+  var d = _dilActual;
+  closeM('mo-ver');
+  ['me-n','me-exp','me-hi','me-ht','me-real','me-dig','me-obs','me-det','me-rep','me-frep','me-crep','me-mrep','me-psic','me-fps','me-obspsic'].forEach(function(id){ sv(id,''); });
+  sv('me-n', d.N||''); sv('me-exp', d.EXPEDIENTE||'');
+  sv('me-hi', horaAInput(d.HORA_INICIO||'')); sv('me-ht', horaAInput(d.HORA_TERMINO||''));
+  sv('me-real', d.SE_REALIZO||''); sv('me-dig', d.DIGITADOR_RESPONSABLE||'');
+  sv('me-obs', d.OBSERVACIONES||''); sv('me-det', d.DETALLE_FRUSTRACION||'');
+  sv('me-rep', d.SE_REPROGRAMA||''); sv('me-frep', d.FECHA_HORA_REPROGRAMACION||'');
+  sv('me-crep', d.CANTIDAD_REPROGRAMACION||''); sv('me-mrep', d.MOTIVO_NO_REALIZADO||'');
+  sv('me-psic', d.PSICOLOGO||''); sv('me-fps', d.FECHA_HORA_PSICOLOGICA||'');
+
+  // Repoblar select de motivos
+  var ms = document.getElementById('me-mot');
+  if (ms && _listas['MOTIVO_NO_REALIZADO']) {
+    while (ms.options.length > 1) ms.remove(1);
+    _listas['MOTIVO_NO_REALIZADO'].forEach(function(v){ var o = document.createElement('option'); o.value = v; o.textContent = v; ms.appendChild(o); });
+    ms.value = d.MOTIVO_NO_REALIZADO || '';
+  }
+
+  document.getElementById('me-ofc-fn').textContent = '';
+  document.getElementById('me-tr-fn').textContent = '';
+
+  var lh = '';
+  if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px;margin-bottom:5px"><span>📋</span><span style="flex:1">Oficio actual</span><a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">Ver</a></div>';
+  if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px"><span>📄</span><span style="flex:1">Transcripción actual</span><a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">Ver</a></div>';
+  document.getElementById('me-links').innerHTML = lh || '<p style="font-size:12px;color:var(--mu)">Sin archivos actualmente</p>';
+
+  toggleNR();
+  document.getElementById('me-sub').textContent = 'Carpeta: ' + (d.CARPETA_FISCAL||'—') + ' | ' + fF(d.FECHA_PROGRAMADA) + ' ' + fH(d.HORA_PROGRAMADA);
+  meTab(0);
+  document.getElementById('mo-edit').classList.add('open');
+}
+
+/** Cambia la pestaña activa del modal de edición */
+function meTab(i) {
+  document.querySelectorAll('.tabs .tab').forEach(function(t, j){ t.classList.toggle('active', j === i); });
+  document.querySelectorAll('#mo-edit .tabp').forEach(function(p, j){ p.style.display = j === i ? 'block' : 'none'; });
+}
+
+// Mostrar/ocultar sección de motivo cuando "No se realizó"
+document.addEventListener('change', function(e){ if (e.target && e.target.id === 'me-real') toggleNR(); });
+function toggleNR() { var sec = document.getElementById('me-nreal'); if (sec) sec.style.display = g('me-real') === 'NO' ? 'block' : 'none'; }
+
+/** Guarda los cambios de la diligencia editada */
+function saveEdit() {
+  var n = g('me-n'); if (!n) { toast('Error', 'error'); return; }
+  var btn = document.getElementById('btn-save-edit');
+  btn.disabled = true; btn.textContent = '⏳...';
+  var campos = {
+    EXPEDIENTE: g('me-exp'), HORA_INICIO: g('me-hi'), HORA_TERMINO: g('me-ht'),
+    SE_REALIZO: g('me-real'), MOTIVO_NO_REALIZADO: g('me-mot') || g('me-mrep'),
+    DETALLE_FRUSTRACION: g('me-det'), DIGITADOR_RESPONSABLE: g('me-dig'),
+    OBSERVACIONES: g('me-obs') || g('me-obspsic'), SE_REPROGRAMA: g('me-rep'),
+    FECHA_HORA_REPROGRAMACION: g('me-frep'), CANTIDAD_REPROGRAMACION: g('me-crep'),
+    PSICOLOGO: g('me-psic'), FECHA_HORA_PSICOLOGICA: g('me-fps')
+  };
+  var iO = document.getElementById('me-inp-ofc'), iT = document.getElementById('me-inp-tr');
+  var aO = iO && iO.files[0] ? iO.files[0] : null;
+  var aT = iT && iT.files[0] ? iT.files[0] : null;
+
+  function fin() {
+    google.script.run
+      .withSuccessHandler(function(r) {
+        btn.disabled = false; btn.textContent = '💾 Guardar cambios';
+        if (r.ok) { toast('✅ Actualizado', 'ok'); closeM('mo-edit'); loadDil(); _dilActual = null; }
+        else toast('Error: ' + r.error, 'error');
+      })
+      .withFailureHandler(function(e) { btn.disabled = false; btn.textContent = '💾 Guardar cambios'; toast('Error: ' + e.message, 'error'); })
+      .actualizarDiligencia(S.token, n, campos);
+  }
+
+  if (aO) { uploadB64(aO, 'oficios', function(u) { if (u) { campos['S_OFICIO'] = aO.name; campos['S_OFICIO_URL'] = u; } if (aT) { uploadB64(aT, 'transcripciones', function(u2) { if (u2) campos['TRANSCRIPCION_URL'] = u2; fin(); }); } else fin(); }); }
+  else if (aT) { uploadB64(aT, 'transcripciones', function(u2) { if (u2) campos['TRANSCRIPCION_URL'] = u2; fin(); }); }
+  else fin();
+}
+
+function elimDil(n) {
+  if (!confirm('¿Eliminar diligencia N°' + n + '?\n\nLos registros se renumerarán automáticamente.')) return;
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (r.ok) { toast('✅ Eliminada. Registros renumerados.', 'ok'); loadDil(); }
+      else toast(r.error, 'error');
+    })
+    .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); })
+    .eliminarDiligencia(S.token, n);
+}
+
+/**
+ * Genera y descarga un archivo .xlsx real con todas las diligencias.
+ * Usa SheetJS (XLSX) para crear el archivo en el navegador.
+ * Cabecera en azul, columnas con ancho automático.
+ */
+function exportarXLS() {
+  toast('⏳ Preparando Excel...', 'ok');
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (!r.ok) { toast(r.error, 'error'); return; }
+      _descargarXLSX(r.cabeceras, r.filas, 'Diligencias_UML', 'DILIGENCIAS');
+      toast('✅ Excel descargado', 'ok');
+    })
+    .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); })
+    .exportarDiligenciasExcel(S.token);
+}
+
+/**
+ * Genera y descarga un archivo .xlsx real con todas las atenciones psicológicas.
+ */
+function exportarXLSPsico() {
+  toast('⏳ Preparando Excel...', 'ok');
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (!r.ok) { toast(r.error, 'error'); return; }
+      _descargarXLSX(r.cabeceras, r.filas, 'Psicologia_UML', 'PSICOLOGÍA');
+      toast('✅ Excel descargado', 'ok');
+    })
+    .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); })
+    .exportarPsicologiaExcel(S.token);
+}
+
+/**
+ * Función interna que genera y descarga el archivo .xlsx usando SheetJS.
+ * @param {string[]} cabeceras  - Array de nombres de columna
+ * @param {string[][]} filas    - Array de arrays con los datos
+ * @param {string} nombreArchivo - Nombre base del archivo (sin extensión)
+ * @param {string} nombreHoja    - Nombre de la hoja dentro del Excel
+ */
+function _descargarXLSX(cabeceras, filas, nombreArchivo, nombreHoja) {
+  // 1. Construir array de objetos para SheetJS
+  var datos = filas.map(function(fila) {
+    var obj = {};
+    cabeceras.forEach(function(col, i) {
+      obj[col] = fila[i] !== undefined ? fila[i] : '';
+    });
+    return obj;
+  });
+
+  // 2. Crear hoja a partir de los datos
+  var ws = XLSX.utils.json_to_sheet(datos, { header: cabeceras });
+
+  // 3. Estilo de cabecera — ancho mínimo por columna
+  var anchoCols = cabeceras.map(function(col) {
+    var maxLen = col.length;
+    filas.forEach(function(fila, fi) {
+      var val = String(filas[fi][cabeceras.indexOf(col)] || '');
+      if (val.length > maxLen) maxLen = val.length;
+    });
+    return { wch: Math.min(maxLen + 2, 40) }; // máximo 40 caracteres de ancho
+  });
+  ws['!cols'] = anchoCols;
+
+  // 4. Crear libro y agregar la hoja
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, nombreHoja);
+
+  // 5. Descargar
+  var fecha = new Date().toISOString().split('T')[0];
+  XLSX.writeFile(wb, nombreArchivo + '_' + fecha + '.xlsx');
+}
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 10: PSICOLOGÍA — CRUD completo
+// ════════════════════════════════════════════════════════════
+
+/** Carga la tabla de registros psicológicos */
+function loadCitasPsico() {
+  if (S.usuario.rol !== 'ADMINISTRADOR') return;
+  var tb = document.getElementById('tbody-psico');
+  if (!tb) return;
+  tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:22px;color:var(--mu)">Cargando...</td></tr>';
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (r.ok) { _citasPsico = r.datos || []; _citasPsicoFilt = r.datos || []; renderTablaPsico(r.datos || []); }
+      else tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--red)">' + esc(r.error || 'Error') + '</td></tr>';
+    })
+    .withFailureHandler(function(e) { if (tb) tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--red)">' + esc(e.message) + '</td></tr>'; })
+    .obtenerCitasPsicologia(S.token);
+}
+
+/** Filtra la tabla de psicología por texto */
+function filtrarCitasPsico() {
+  var q = g('q-psico-tabla').toUpperCase().trim();
+  if (!q) { _citasPsicoFilt = _citasPsico; renderTablaPsico(_citasPsico); return; }
+  _citasPsicoFilt = _citasPsico.filter(function(c) {
+    return (c.CARPETA_FISCAL||'').toUpperCase().indexOf(q) >= 0
+        || (c.PACIENTE_USUARIO||'').toUpperCase().indexOf(q) >= 0
+        || (c.PSICOLOGO||'').toUpperCase().indexOf(q) >= 0
+        || (c.DELITO||'').toUpperCase().indexOf(q) >= 0;
+  });
+  renderTablaPsico(_citasPsicoFilt);
+}
+
+/** Renderiza la tabla de atenciones psicológicas */
+function renderTablaPsico(items) {
+  var tb = document.getElementById('tbody-psico');
+  if (!tb) return;
+  if (!items || !items.length) { tb.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:26px;color:var(--mu)">No hay registros de atención psicológica</td></tr>'; return; }
+  tb.innerHTML = items.map(function(c) {
+    return '<tr>'
+      + '<td><span class="b bpu" style="font-size:10px">' + esc(c.ID||'—') + '</span></td>'
+      + '<td>' + fF(c.FECHA) + '</td>'
+      + '<td>' + fH(c.HORA) + '</td>'
+      + '<td><b>' + esc(c.PSICOLOGO||'—') + '</b></td>'
+      + '<td>' + esc(c.PACIENTE_USUARIO||'—') + '</td>'
+      + '<td>' + esc(c.CARPETA_FISCAL||'—') + '</td>'
+      + '<td>' + esc(c.DELITO||c.DELITO_GENERICO||'—') + '</td>'
+      + '<td>' + esc(c.N_CITA||'—') + '</td>'
+      + '<td><span class="b ' + (c.ASISTENCIA && c.ASISTENCIA !== '' ? 'bgr' : 'bgy') + '">' + esc(c.ASISTENCIA||'—') + '</span></td>'
+      + '<td><div style="display:flex;gap:4px;flex-wrap:wrap">'
+        + '<button class="btn bpu2 sm" onclick="openEditPsico(\'' + esc(c.ID) + '\')" title="Editar">✏️</button>'
+        + '<button class="btn bd sm" onclick="elimCitaPsico(\'' + esc(c.ID) + '\')" title="Eliminar">🗑️</button>'
+        + '<button onclick="generarPdfPsicologia(\'' + esc(c.ID) + '\')" style="background:#f59e0b;color:#fff;border:none;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:11px;" title="PDF">📄 PDF</button>'
+      + '</div></td>'
+    + '</tr>';
+  }).join('');
+  asignarDataLabels('#tbody-psico', '#thead-psico');
+}
+
+/** Alterna entre vista tabla y formulario de nueva atención */
+function togglePsicoVista() {
+  var ts  = document.getElementById('psico-tabla-section');
+  var fs  = document.getElementById('psico-form-section');
+  var btn = document.getElementById('btn-psico-toggle');
+  if (fs.style.display === 'none') {
+    fs.style.display = 'block'; ts.style.display = 'none'; btn.textContent = '← Ver registros';
+    document.getElementById('psico-p1').style.display = 'block';
+    document.getElementById('psico-p2').style.display = 'none';
+    document.getElementById('psico-p3').style.display = 'none';
+    document.getElementById('psico-res').innerHTML = '';
+    sv('q-psico', ''); _psicoBase = null;
+  } else {
+    fs.style.display = 'none'; ts.style.display = 'block'; btn.textContent = '➕ Nueva atención';
+    loadCitasPsico();
+  }
+}
+
+/** Busca diligencias para autocompletar el formulario de psicología */
+function buscarPsico() {
+  var q = g('q-psico').trim(); if (!q) { toast('Escribe algo para buscar', 'error'); return; }
+  var res = document.getElementById('psico-res');
+  res.innerHTML = '<p style="font-size:13px;color:var(--mu)">⏳ Buscando...</p>';
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (!r.ok) { res.innerHTML = '<p style="color:var(--red);font-size:13px">' + esc(r.error) + '</p>'; return; }
+      if (!r.datos || !r.datos.length) {
+        res.innerHTML = '<div style="padding:14px;background:#fefce8;border-radius:9px;border:1px solid #fcd34d;font-size:13px;color:#92400e">⚠️ Sin resultados para "<b>' + esc(q) + '</b>". Continuando sin datos previos...</div>';
+        setTimeout(function(){ mostrarCalPsico(null); }, 2000); return;
+      }
+      _psicoResultados = r.datos; // Almacenar en estado global (no en window)
+      var html = '<div style="margin-top:10px"><p style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--grn)">✅ ' + r.datos.length + ' resultado(s) — haz clic para seleccionar:</p>';
+      r.datos.forEach(function(d, i) {
+        html += '<div class="psres" onclick="mostrarCalPsico(' + i + ')">'
+          + '<div class="psrt">📁 ' + esc(d.CARPETA_FISCAL||'—') + ' | 👤 ' + esc(d.AGRAVIADOS||'—') + '</div>'
+          + '<div class="psg">'
+            + '<div class="psi"><div class="psil">Imputados</div><div class="psiv">' + esc(d.IMPUTADOS||'—') + '</div></div>'
+            + '<div class="psi"><div class="psil">Delito</div><div class="psiv">' + esc(d.DELITO_GENERICO||'—') + '</div></div>'
+            + '<div class="psi"><div class="psil">Fiscal</div><div class="psiv">' + esc(d.FISCAL||'—') + '</div></div>'
+            + '<div class="psi"><div class="psil">Despacho</div><div class="psiv">' + esc(d.DESPACHO_FISCAL||'—') + '</div></div>'
+          + '</div></div>';
+      });
+      html += '</div>';
+      res.innerHTML = html;
+    })
+    .withFailureHandler(function(e) { res.innerHTML = '<p style="color:var(--red);font-size:13px">' + esc(e.message) + '</p>'; })
+    .buscarParaPsicologia(S.token, q);
+}
+
+/** Muestra el calendario de psicología con datos del resultado seleccionado */
+function mostrarCalPsico(idx) {
+  document.getElementById('psico-p2').style.display = 'block';
+  _psicoBase = (idx !== null && _psicoResultados && _psicoResultados[idx]) ? _psicoResultados[idx] : null;
+  loadAgPsico();
+}
+
+/** Inicializa el CalWidget de psicología */
+function loadAgPsico() {
+  var cont = document.getElementById('cal-psico');
+  cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--mu)">⏳ Cargando...</div>';
+  if (CAL_PSICO) CAL_PSICO.destroy();
+
+  CAL_PSICO = new CalWidget({
+    containerId: 'cal-psico',
+    userId: S.usuario ? S.usuario.id : '',
+    accentColor: 'var(--pur)',
+    onConfirm: function(slot, btn) {
+      google.script.run
+        .withSuccessHandler(function(r) {
+          if (!r.ok) { toast('⚠️ ' + r.error, 'error'); CAL_PSICO.sel = null; CAL_PSICO.render(); if (btn) { btn.disabled = false; btn.textContent = 'Continuar →'; } return; }
+          var pp = slot.fecha.split('-');
+          var dobj = new Date(parseInt(pp[0]), parseInt(pp[1])-1, parseInt(pp[2]));
+          document.getElementById('psico-p2').style.display = 'none';
+          document.getElementById('psico-p3').style.display = 'block';
+          document.getElementById('ps-fdis').textContent = DIAS_L[dobj.getDay()] + ', ' + parseInt(pp[2]) + ' de ' + MESES[parseInt(pp[1])-1] + ' ' + pp[0];
+          document.getElementById('ps-hdis').textContent = horaCorta(slot.hora);
+          sv('ps-sid', slot.id); sv('ps-f', slot.fecha); sv('ps-h', slot.hora);
+          sv('ps-dia', DIAS_L[dobj.getDay()].toUpperCase());
+          // Autocompletar desde diligencia base si existe
+          var d = _psicoBase;
+          if (d) {
+            sv('ps-carp', d.CARPETA_FISCAL||''); sv('ps-agr', d.AGRAVIADOS||'');
+            sv('ps-imp', d.IMPUTADOS||''); sv('ps-del', d.DELITO_GENERICO||'');
+            sv('ps-desp', d.DESPACHO_FISCAL||''); sv('ps-fisc', d.FISCAL||'');
+            document.getElementById('ps-autodata').style.display = 'block';
+            document.getElementById('ps-autodata').innerHTML = '<div style="padding:10px 13px;background:#ede9fe;border-radius:9px;border:1px solid #c4b5fd;font-size:12px;color:var(--pur)">✅ Datos autocompletados desde Carpeta Fiscal: <b>' + esc(d.CARPETA_FISCAL||'—') + '</b></div>';
+          }
+          toast('✅ Cita reservada: ' + horaCorta(slot.hora), 'ok');
+          window.scrollTo(0, 0);
+        })
+        .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); if (btn) { btn.disabled = false; btn.textContent = 'Continuar →'; } })
+        .reservarSlotPsico(S.token, slot.id);
+    }
+  });
+
+  CAL_PSICO.mes = new Date();
+  google.script.run
+    .withSuccessHandler(function(r) { if (r.ok) CAL_PSICO.setData(r.datos || []); else cont.innerHTML = '<p style="color:var(--red);padding:12px">' + esc(r.error) + '</p>'; })
+    .withFailureHandler(function(e) { cont.innerHTML = '<p style="color:var(--red);padding:12px">' + esc(e.message) + '</p>'; })
+    .obtenerAgendaPsico(S.token);
+}
+
+/** Cancela el formulario de nueva atención psicológica */
+function cancelPsico() {
+  var sel = CAL_PSICO ? CAL_PSICO.sel : null;
+  if (sel && sel.id) { google.script.run.liberarSlotPsico(S.token, sel.id); if (CAL_PSICO) CAL_PSICO.sel = null; }
+  document.getElementById('psico-form-section').style.display = 'none';
+  document.getElementById('psico-tabla-section').style.display = 'block';
+  document.getElementById('btn-psico-toggle').textContent = '➕ Nueva atención';
+  document.getElementById('psico-res').innerHTML = '';
+  sv('q-psico', ''); _psicoBase = null;
+  loadCitasPsico();
+}
+
+// Manejo TXT agenda psicología
+function readTxtAgp(inp) { if (inp.files[0]) _leerTxtAgp(inp.files[0]); }
+function _leerTxtAgp(f) {
+  if (!f.name.endsWith('.txt')) { toast('Solo archivos .txt', 'error'); return; }
+  var r = new FileReader();
+  r.onload = function(e) { _agpTxt = e.target.result; document.getElementById('agp-fn').textContent = '✅ ' + f.name; };
+  r.readAsText(f);
+}
+function uploadAgPsico() {
+  if (!_agpTxt) { toast('Selecciona un .txt', 'error'); return; }
+  google.script.run
+    .withSuccessHandler(function(r) { if (r.ok) { toast('✅ ' + r.insertados + ' fechas psicológicas insertadas', 'ok'); _agpTxt = ''; document.getElementById('agp-fn').textContent = ''; loadAgPsico(); } else toast(r.error, 'error'); })
+    .procesarTxtAgendaPsico(S.token, _agpTxt);
+}
+
+/** Guarda una nueva atención psicológica validando campos obligatorios */
+function savePsico() {
+  var camposObligatorios = {
+    'ps-carp':'Carpeta Fiscal', 'ps-psic':'Psicólogo', 'ps-pac':'Paciente',
+    'ps-cond':'Condición', 'ps-edad':'Edad', 'ps-dni':'DNI', 'ps-sexo':'Sexo',
+    'ps-cita':'N° Cita', 'ps-prot':'N° Protocolo', 'ps-eu':'EU', 'ps-asis':'Asistencia',
+    'ps-act':'Actividad', 'ps-del':'Delito', 'ps-desp':'Despacho Fiscal',
+    'ps-fisc':'Nombre del Fiscal', 'ps-obs':'Observaciones internas'
+  };
+  for (var fid in camposObligatorios) {
+    if (!g(fid)) { toast('Campo obligatorio: ' + camposObligatorios[fid], 'error'); document.getElementById(fid).focus(); return; }
+  }
+  var btn = document.getElementById('btn-save-psico');
+  btn.disabled = true; btn.textContent = '⏳ Guardando...';
+  var datos = {
+    carpeta_fiscal: g('ps-carp'), dia: g('ps-dia'), fecha: g('ps-f'), hora: g('ps-h'),
+    psicologo: g('ps-psic'), observaciones_internas: g('ps-obs'), asistencia: g('ps-asis'),
+    paciente: g('ps-pac'), condicion: g('ps-cond'), edad: g('ps-edad'), dni: g('ps-dni'),
+    sexo: g('ps-sexo'), n_cita: g('ps-cita'), n_cf_oficio: g('ps-carp'),
+    actividad: g('ps-act'), eu: g('ps-eu'), n_protocolo: g('ps-prot'),
+    delito: g('ps-del'), despacho_fiscal: g('ps-desp'), nombre_fiscal: g('ps-fisc'),
+    imputados: g('ps-imp'), agraviados: g('ps-agr'), delito_generico: g('ps-del'),
+    email: g('ps-email')
+  };
+  google.script.run
+    .withSuccessHandler(function(r) {
+      btn.disabled = false; btn.textContent = '💾 Guardar atención';
+      if (r.ok) {
+        toast('✅ Atención psicológica registrada', 'ok');
+        if (CAL_PSICO) CAL_PSICO.sel = null; _psicoBase = null;
+        document.querySelectorAll('#psico-p3 input:not([type=hidden]),#psico-p3 select,#psico-p3 textarea').forEach(function(el){ el.value = ''; });
+        document.getElementById('psico-p3').style.display = 'none';
+        document.getElementById('ps-autodata').style.display = 'none';
+        sv('q-psico', ''); document.getElementById('psico-res').innerHTML = '';
+        document.getElementById('psico-form-section').style.display = 'none';
+        document.getElementById('psico-tabla-section').style.display = 'block';
+        document.getElementById('btn-psico-toggle').textContent = '➕ Nueva atención';
+        loadCitasPsico();
+      } else toast(r.error, 'error');
+    })
+    .withFailureHandler(function(e) { btn.disabled = false; btn.textContent = '💾 Guardar atención'; toast('Error: ' + e.message, 'error'); })
+    .registrarAtencionPsicologica(S.token, datos);
+}
+
+/** Abre el modal de edición de una atención psicológica */
+function openEditPsico(id) {
+  var c = _citasPsico.filter(function(x){ return x.ID === id; })[0];
+  if (!c) { toast('Registro no encontrado', 'error'); return; }
+  sv('ep-id', c.ID||''); sv('ep-pac', c.PACIENTE_USUARIO||''); sv('ep-cond', c.CONDICION||'');
+  sv('ep-edad', c.EDAD||''); sv('ep-dni', c.DNI||''); sv('ep-sexo', c.SEXO||'');
+  sv('ep-cita', c.N_CITA||''); sv('ep-prot', c.N_PROTOCOLO||''); sv('ep-eu', c.EU||'');
+  sv('ep-asis', c.ASISTENCIA||''); sv('ep-act', c.ACTIVIDAD_REALIZADA||'');
+  sv('ep-del', c.DELITO||''); sv('ep-desp', c.DESPACHO_FISCAL||'');
+  sv('ep-fisc', c.NOMBRE_FISCAL||''); sv('ep-carp', c.CARPETA_FISCAL||''); sv('ep-obs', c.OBSERVACIONES||'');
+  if (c.FECHA) {
+    var fp = c.FECHA;
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(fp)) { var pts = fp.split('/'); fp = pts[2] + '-' + pts[1] + '-' + pts[0]; }
+    sv('ep-fecha', fp.substring(0, 10));
+  }
+  if (c.HORA) sv('ep-hora', horaAInput(c.HORA));
+  var sel = document.getElementById('ep-psic');
+  if (sel && _listas['PSICOLOGO']) {
+    while (sel.options.length > 1) sel.remove(1);
+    _listas['PSICOLOGO'].forEach(function(v){ var o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o); });
+    sel.value = c.PSICOLOGO || '';
+  }
+  document.getElementById('mo-edit-psico').classList.add('open');
+}
+
+/** Guarda los cambios de una atención psicológica editada */
+function saveEditPsico() {
+  var id = g('ep-id'); if (!id) { toast('Error: sin ID', 'error'); return; }
+  var campos = {
+    PSICOLOGO: g('ep-psic'), FECHA: g('ep-fecha'), HORA: g('ep-hora'),
+    PACIENTE_USUARIO: g('ep-pac'), CONDICION: g('ep-cond'), EDAD: g('ep-edad'),
+    DNI: g('ep-dni'), SEXO: g('ep-sexo'), N_CITA: g('ep-cita'), N_PROTOCOLO: g('ep-prot'),
+    EU: g('ep-eu'), ASISTENCIA: g('ep-asis'), ACTIVIDAD_REALIZADA: g('ep-act'),
+    DELITO: g('ep-del'), DESPACHO_FISCAL: g('ep-desp'), NOMBRE_FISCAL: g('ep-fisc'),
+    CARPETA_FISCAL: g('ep-carp'), OBSERVACIONES: g('ep-obs')
+  };
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (r.ok) { toast('✅ Actualizado', 'ok'); closeM('mo-edit-psico'); loadCitasPsico(); }
+      else toast('Error: ' + r.error, 'error');
+    })
+    .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); })
+    .editarCitaPsicologia(S.token, id, campos);
+}
+
+function elimCitaPsico(id) {
+  if (!confirm('¿Eliminar este registro de atención psicológica N°' + id + '?\n\nLos registros se renumerarán automáticamente.')) return;
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (r.ok) { toast('✅ Eliminado. Registros renumerados.', 'ok'); loadCitasPsico(); }
+      else toast('Error: ' + r.error, 'error');
+    })
+    .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); })
+    .eliminarCitaPsicologia(S.token, id);
+}
+
+/** Genera y abre el PDF de constancia de atención psicológica */
+function generarPdfPsicologia(id) {
+  if (!id) return toast('ID no válido', 'error');
+  toast('⏳ Generando PDF...', 'ok');
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (r.ok && r.dataUrl) {
+        var win = window.open();
+        win.document.write('<iframe src="' + r.dataUrl + '" width="100%" height="100%" style="border:none"></iframe>');
+        toast('✅ PDF listo', 'ok');
+      } else toast('Error: ' + (r.error || 'No se pudo generar'), 'error');
+    })
+    .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); })
+    .generarPdfPsicologia(S.token, id);
+}
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 11: DOCUMENTOS
+// ════════════════════════════════════════════════════════════
+
+function loadDocs() {
+  cargarListaDocs('oficios', 'lista-ofc');
+  if (S.usuario.rol === 'ADMINISTRADOR') cargarListaDocs('transcripciones', 'lista-trans');
+}
+function cargarListaDocs(carpeta, elId) {
+  google.script.run
+    .withSuccessHandler(function(r) { _docsCache[carpeta] = r.ok ? r.datos : []; renderListaDocs(carpeta, elId, ''); })
+    .withFailureHandler(function() { document.getElementById(elId).innerHTML = '<p style="font-size:12px;color:var(--red);text-align:center;padding:12px">Error al cargar</p>'; })
+    .obtenerDocumentos(S.token, carpeta);
+}
+function filtrarDocs(carpeta, qId, elId) { renderListaDocs(carpeta, elId, g(qId).toUpperCase().trim()); }
+function renderListaDocs(carpeta, elId, q) {
+  var c = document.getElementById(elId);
+  var items = (_docsCache[carpeta] || []).filter(function(d){ return !q || d.nombre.toUpperCase().indexOf(q) >= 0; });
+  if (!items.length) { c.innerHTML = '<p style="font-size:12px;color:var(--mu);text-align:center;padding:12px">Sin documentos</p>'; return; }
+  var isAdm = S.usuario.rol === 'ADMINISTRADOR';
+  c.innerHTML = items.map(function(d) {
+    var ico = d.tipo === 'application/pdf' ? '📋' : '📄';
+    var esMio = String(d.subidoPor) === String(S.usuario.id);
+    var puedeElim = isAdm || esMio;
+    return '<div class="doci">'
+      + '<span style="font-size:16px">' + ico + '</span>'
+      + '<div class="docin"><b>' + esc(d.nombre) + '</b><small>' + esc(d.fecha||'') + (isAdm ? ' · ' + esc(d.subidoPor||'') : '') + '</small></div>'
+      + '<a href="' + esc(d.url) + '" target="_blank" class="docib" title="Abrir">↗️</a>'
+      + (puedeElim ? '<button class="docib del" onclick="elimDoc(\'' + d.id + '\',\'' + carpeta + '\',\'' + elId + '\')" title="Eliminar">🗑️</button>' : '')
+      + '</div>';
+  }).join('');
+}
+function uploadDoc(carpeta, inputId, nmId) {
+  var inp = document.getElementById(inputId);
+  if (!inp.files[0]) { toast('Selecciona un archivo', 'error'); return; }
+  toast('Subiendo...', 'ok');
+  uploadB64(inp.files[0], carpeta, function(url) {
+    if (url) { toast('✅ Subido', 'ok'); document.getElementById(nmId).textContent = ''; inp.value = ''; cargarListaDocs(carpeta, carpeta === 'oficios' ? 'lista-ofc' : 'lista-trans'); }
+  });
+}
+function elimDoc(id, carpeta, elId) {
+  if (!confirm('¿Eliminar este documento?')) return;
+  google.script.run
+    .withSuccessHandler(function(r) { if (r.ok) { toast('✅ Eliminado', 'ok'); cargarListaDocs(carpeta, elId); } else toast(r.error, 'error'); })
+    .eliminarDocumento(S.token, id);
+}
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 12: MENSAJES / NOTIFICACIONES
+// ════════════════════════════════════════════════════════════
+
+function loadNotif() {
+  google.script.run
+    .withSuccessHandler(function(r) { if (r.ok) renderChat(r.datos); })
+    .withFailureHandler(function(){})
+    .obtenerNotificaciones(S.token);
+  if (S.usuario.rol === 'ADMINISTRADOR') cargarDest();
+}
+
+function renderChat(msgs) {
+  var c = document.getElementById('chatm'), noLeidos = 0;
+  if (!msgs || !msgs.length) { c.innerHTML = '<div style="text-align:center;padding:28px;color:#888;font-size:13px">Sin mensajes</div>'; return; }
+  var html = '';
+  msgs.forEach(function(m) {
+    var sent = S.usuario.rol === 'ADMINISTRADOR' && m.remitente === S.usuario.id;
+    if (!m.leida && !sent) noLeidos++;
+    var horaMsg = '';
+    if (m.fecha) { try { var d = new Date(m.fecha); horaMsg = horaCorta(pad2(d.getHours()) + ':' + pad2(d.getMinutes())); } catch(e) {} }
+    html += '<div class="mr ' + (sent ? 'sent' : 'recv') + '" onclick="leerN(\'' + m.id + '\',this)">'
+      + '<div class="mb"><div class="mas">' + esc(m.asunto) + '</div>' + esc(m.mensaje) + '</div>'
+      + '<div class="mhora">' + horaMsg + (m.leida ? ' ✓✓' : ' ✓') + '</div>'
+      + '</div>';
+  });
+  c.innerHTML = html; c.scrollTop = c.scrollHeight;
+  var badge = document.getElementById('cbadge');
+  if (noLeidos > 0) { badge.textContent = noLeidos; badge.style.display = 'block'; } else badge.style.display = 'none';
+}
+
+function cargarDest() {
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (!r.ok) return;
+      var sel = document.getElementById('notif-dest');
+      sel.innerHTML = '<option value="TODOS">Todos los asistentes</option>';
+      r.datos.filter(function(u){ return u.rol === 'ASISTENTE'; }).forEach(function(u) {
+        sel.innerHTML += '<option value="' + u.id + '">' + esc(u.nombre) + '</option>';
+      });
+    })
+    .obtenerUsuarios(S.token);
+}
+
+function sendNotif() {
+  var dest = document.getElementById('notif-dest').value;
+  var txt = g('chat-txt').trim(); if (!txt) { toast('Escribe un mensaje', 'error'); return; }
+  var ls = txt.split('\n');
+  var asunto  = ls[0].trim() || 'Notificación';
+  var mensaje = ls.slice(1).join('\n').trim() || txt;
+  google.script.run
+    .withSuccessHandler(function(r) { if (r.ok) { toast('✅ Enviado', 'ok'); sv('chat-txt', ''); loadNotif(); } else toast(r.error, 'error'); })
+    .enviarNotificacion(S.token, dest, asunto, mensaje);
+}
+
+function leerN(id, el) {
+  el.querySelector('.mhora').textContent = el.querySelector('.mhora').textContent.replace(' ✓', ' ✓✓');
+  google.script.run.marcarNotificacionLeida(S.token, id);
+  var b = document.getElementById('cbadge');
+  var n = parseInt(b.textContent || 0) - 1;
+  if (n <= 0) b.style.display = 'none'; else b.textContent = n;
+}
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 13: USUARIOS (solo admin)
+// ════════════════════════════════════════════════════════════
+
+function loadUsr() {
+  if (S.usuario.rol !== 'ADMINISTRADOR') return;
+  google.script.run
+    .withSuccessHandler(function(r) { if (r.ok) renderUsr(r.datos); })
+    .withFailureHandler(function(){})
+    .obtenerUsuarios(S.token);
+}
+
+function loadOnline() {
+  var c = document.getElementById('lista-online');
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (!r.ok || !r.datos || !r.datos.length) { c.innerHTML = '<p style="font-size:13px;color:var(--mu)">Ningún usuario activo en este momento</p>'; return; }
+      c.innerHTML = r.datos.map(function(u) {
+        return '<div class="ocard"><div class="oav">' + u.nombre.charAt(0) + '</div>'
+          + '<div style="flex:1"><div style="font-size:12px;font-weight:700"><span class="odot"></span>' + esc(u.nombre) + '</div>'
+          + '<div style="font-size:10px;color:var(--mu)">' + esc(u.rol) + ' · ' + esc(u.email) + '</div></div>'
+          + '<span class="b bgr" style="font-size:10px">En línea</span></div>';
+      }).join('');
+    })
+    .withFailureHandler(function(){ c.innerHTML = '<p style="font-size:13px;color:var(--mu)">—</p>'; })
+    .obtenerUsuariosEnLinea(S.token);
+}
+
+function renderUsr(us) {
+  var tb = document.getElementById('tbody-usr');
+  if (!us || !us.length) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:22px;color:var(--mu)">Sin usuarios</td></tr>'; return; }
+  tb.innerHTML = us.map(function(u) {
+    return '<tr>'
+      + '<td><b>' + esc(u.nombre) + '</b></td>'
+      + '<td>' + esc(u.email) + '</td>'
+      + '<td>' + esc(u.celular||'—') + '</td>'
+      + '<td><span class="b ' + (u.rol === 'ADMINISTRADOR' ? 'bre' : 'baz') + '">' + u.rol + '</span></td>'
+      + '<td><span class="b ' + (u.estado === 'ACTIVO' ? 'bgr' : 'bgy') + '">' + u.estado + '</span></td>'
+      + '<td>'
+        + '<button class="btn bg sm" onclick="editUsr(\'' + u.id + '\',\'' + esc(u.nombre) + '\',\'' + esc(u.email) + '\',\'' + esc(u.celular||'') + '\',\'' + u.rol + '\')">✏️ Editar</button>'
+        + ' <button class="btn bd sm" onclick="elimUsr(\'' + u.id + '\')">🗑️</button>'
+      + '</td></tr>';
+  }).join('');
+  asignarDataLabels('#tbody-usr', '#thead-usr');
+}
+
+function openUsr() {
+  ['u-id','u-nom','u-email','u-cel','u-pass'].forEach(function(i){ sv(i,''); });
+  document.getElementById('mo-usr-tit').textContent = 'Nuevo usuario';
+  document.getElementById('mo-usr').classList.add('open');
+}
+function editUsr(id, nom, email, cel, rol) {
+  sv('u-id', id); sv('u-nom', nom); sv('u-email', email); sv('u-cel', cel); sv('u-pass', '');
+  document.getElementById('u-rol').value = rol;
+  document.getElementById('mo-usr-tit').textContent = 'Editar usuario';
+  document.getElementById('mo-usr').classList.add('open');
+}
+function saveUsr() {
+  var id = g('u-id');
+  var datos = { nombre: g('u-nom'), email: g('u-email'), celular: g('u-cel'), password: g('u-pass'), rol: document.getElementById('u-rol').value };
+  if (!datos.nombre || !datos.email) { toast('Nombre y email obligatorios', 'error'); return; }
+  if (!id && !datos.password) { toast('Contraseña obligatoria para nuevo usuario', 'error'); return; }
+  var fn = id ? 'actualizarUsuario' : 'crearUsuario';
+  var args = id ? [S.token, id, datos] : [S.token, datos];
+  google.script.run
+    .withSuccessHandler(function(r) { if (r.ok) { toast('✅ Guardado', 'ok'); closeM('mo-usr'); loadUsr(); } else toast(r.error, 'error'); })
+    [fn].apply(google.script.run, args);
+}
+function elimUsr(id) {
+  if (!confirm('¿Eliminar usuario?')) return;
+  google.script.run
+    .withSuccessHandler(function(r) { if (r.ok) { toast('✅ Eliminado', 'ok'); loadUsr(); } else toast(r.error, 'error'); })
+    .eliminarUsuario(S.token, id);
+}
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 14: DASHBOARD
+// ════════════════════════════════════════════════════════════
+
+function loadDash() {
+  var body = document.getElementById('dash-body');
+  body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--mu)">⏳ Cargando...</div>';
+  var isAdm = S.usuario.rol === 'ADMINISTRADOR';
+  document.getElementById('dash-tit').textContent = isAdm ? '📊 Panel de control' : '📋 Mis Diligencias';
+  document.getElementById('dash-sub').textContent = isAdm ? 'Estadísticas del sistema' : 'Estado de tus registros';
+  if (isAdm) {
+    google.script.run
+      .withSuccessHandler(function(r) {
+        if (r.ok) {
+          renderDashAdm(r.datos);
+          // Cargar notificaciones DESPUÉS de que el DOM del dashboard esté listo
+          _cargarNotifDash();
+        } else body.innerHTML = '<p style="color:var(--red);padding:20px">' + esc(r.error) + '</p>';
+      })
+      .withFailureHandler(function(e) { body.innerHTML = '<p style="color:var(--red);padding:20px">' + esc(e.message) + '</p>'; })
+      .obtenerEstadisticasCompletas(S.token);
+  } else {
+    google.script.run
+      .withSuccessHandler(function(r) {
+        if (r.ok) {
+          renderDashAst(r.datos);
+          // Cargar notificaciones DESPUÉS de que el DOM del dashboard esté listo
+          _cargarNotifDash();
+        } else body.innerHTML = '<p style="color:var(--red);padding:20px">' + esc(r.error) + '</p>';
+      })
+      .withFailureHandler(function(e) { body.innerHTML = '<p style="color:var(--red);padding:20px">' + esc(e.message) + '</p>'; })
+      .obtenerDiligencias(S.token);
+  }
+}
+
+/** Carga las notificaciones del dashboard una vez que el DOM ya tiene #notif-dash */
+function _cargarNotifDash() {
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (r.ok) renderNotifDash(r.datos.slice(0, 3));
+    })
+    .withFailureHandler(function(){})
+    .obtenerNotificaciones(S.token);
+}
+
+/** Dashboard del ASISTENTE: muestra sus propias diligencias */
+function renderDashAst(dils) {
+  var body = document.getElementById('dash-body');
+  if (!dils || !dils.length) {
+    body.innerHTML = '<div style="text-align:center;padding:48px;color:var(--mu)"><div style="font-size:48px;margin-bottom:10px">📭</div><p style="font-size:15px;font-weight:700">Sin diligencias registradas</p><button class="btn bp" style="margin-top:14px" onclick="nav2(\'agenda\')">📅 Ir a la agenda</button></div>';
+    return;
+  }
+  var tot = dils.length;
+  var rea = dils.filter(function(d){ return d.SE_REALIZO === 'SÍ'; }).length;
+  var noR = dils.filter(function(d){ return d.SE_REALIZO === 'NO'; }).length;
+  var rep = dils.filter(function(d){ return d.SE_REPROGRAMA === 'SÍ'; }).length;
+  var pen = dils.filter(function(d){ return !d.SE_REALIZO || d.SE_REALIZO === ''; }).length;
+  var html = '<div style="background:linear-gradient(135deg,var(--az),var(--azd));border-radius:var(--r);padding:18px 20px;color:#fff;margin-bottom:16px;display:flex;align-items:center;gap:14px">'
+    + '<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">👤</div>'
+    + '<div><div style="font-size:16px;font-weight:800">' + esc(S.usuario.nombre) + '</div>'
+    + '<div style="font-size:11px;opacity:.8;margin-top:2px">Asistente · ' + tot + ' diligencia' + (tot===1?'':'s') + ' registrada' + (tot===1?'':'s') + '</div></div></div>';
+  html += '<div class="dg">' + sc(tot,'Total','📋','dsaz','Mis registros') + sc(rea,'Realizadas','✅','dsgr','') + sc(pen,'Pendientes','⏳','dsor','') + sc(noR,'No realizadas','❌','dsre','') + sc(rep,'Reprogramadas','🔁','dspu','') + '</div>';
+  html += '<div class="card" style="margin-bottom:14px"><div class="ct">🔔 Mis notificaciones</div><div id="notif-dash"></div></div>';
+  html += '<div style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between"><b style="font-size:13px">📋 Detalle de mis diligencias</b><span style="font-size:11px;color:var(--mu)">' + tot + ' registros</span></div>';
+
+  dils.forEach(function(d) {
+    var realizo = d.SE_REALIZO || '';
+    var cls = realizo === 'SÍ' ? 'r' : realizo === 'NO' ? 'n' : (d.SE_REPROGRAMA === 'SÍ' ? 'rp' : 'p');
+    var bdg = realizo === 'SÍ' ? '<span class="b bgr">✅ Realizada</span>' : realizo === 'NO' ? '<span class="b bre">❌ No realizada</span>' : (d.SE_REPROGRAMA === 'SÍ' ? '<span class="b bor">🔁 Reprogramada</span>' : '<span class="b bgy">⏳ Pendiente</span>');
+    html += '<div class="dcard ' + cls + '">'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">'
+        + '<div><div style="font-size:14px;font-weight:800">📁 ' + esc(d.CARPETA_FISCAL||'—') + '</div><div style="font-size:12px;color:var(--mu);margin-top:2px">📅 ' + fF(d.FECHA_PROGRAMADA) + ' 🕐 ' + fH(d.HORA_PROGRAMADA) + '</div></div>' + bdg
+      + '</div>'
+      + '<div class="dcf">' + cf('¿Se realizó?',d.SE_REALIZO) + cf('Motivo no realizado',d.MOTIVO_NO_REALIZADO) + cf('Detalle frustración',d.DETALLE_FRUSTRACION) + cf('¿Se reprograma?',d.SE_REPROGRAMA) + cf('Fecha reprogramación',d.FECHA_HORA_REPROGRAMACION) + '</div>'
+      + (d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<div style="margin-top:9px"><a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎 Oficio</a></div>' : '')
+      + '</div>';
+  });
+  html += '<div style="text-align:center;padding:14px 0 6px;font-size:11px;color:var(--mu);border-top:1px solid var(--bo);margin-top:10px">Desarrollado por: <strong style="color:var(--az)">Jose Palacios</strong></div>';
+  body.innerHTML = html;
+}
+
+/** Dashboard del ADMINISTRADOR: estadísticas del sistema */
+function renderDashAdm(d) {
+  var body = document.getElementById('dash-body');
+  // Fila superior de stats (incluyendo Psicología con valor asíncrono)
+  var html = '<div class="dg">'
+    + sc(d.totalDiligencias,'Diligencias','📋','dsaz','')
+    + sc(d.realizadas,'Realizadas','✅','dsgr','')
+    + sc(d.noRealizadas,'Frustradas','❌','dsre','')
+    + sc(d.reprogramadas,'Reprogramadas','🔁','dsor','')
+    + sc(d.agendaDisponible,'Agenda libre','📅','dspu','')
+    + sc(d.totalUsuarios,'Usuarios','👥','dsaz','')
+    + '<div class="ds dspu" style="cursor:pointer;border:2px solid #c4b5fd" onclick="nav2(\'psico\')">'
+      + '<div class="dsn" id="psico-stat-num" style="font-size:28px">⏳</div>'
+      + '<div class="dsl">🧠 Psicología</div>'
+      + '<div style="font-size:10px;color:var(--pur);margin-top:2px;font-weight:600">Atenciones</div>'
+    + '</div>'
+    + '</div>';
+  // Card destacada de Psicología
+  html += '<div style="background:linear-gradient(135deg,#7c3aed,#6d28d9);border-radius:var(--r);padding:18px 22px;margin-bottom:18px;display:flex;align-items:center;gap:16px;box-shadow:0 4px 18px rgba(124,58,237,.25)">'
+    + '<div style="width:54px;height:54px;border-radius:14px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">🧠</div>'
+    + '<div style="flex:1;color:#fff">'
+      + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.8;margin-bottom:4px">Módulo de Psicología</div>'
+      + '<div style="font-size:22px;font-weight:900;line-height:1.1">Atenciones registradas: <span id="psico-stat-num2" style="background:rgba(255,255,255,.2);padding:2px 12px;border-radius:20px">⏳</span></div>'
+      + '<div style="font-size:11px;opacity:.75;margin-top:4px">Gestión de citas psicológicas forenses · Solo administrador</div>'
+    + '</div>'
+    + '<button class="btn sm" style="background:#fff;color:#7c3aed;font-weight:800;white-space:nowrap;flex-shrink:0" onclick="nav2(\'psico\')">Ver registros →</button>'
+    + '</div>';
+  html += '<div class="dcg">';
+  html += '<div class="dcc"><div class="dct">📊 Estado de diligencias</div><div class="brw">' + br('Realizadas',d.realizadas,d.totalDiligencias,'#16a34a') + br('No realizadas',d.noRealizadas,d.totalDiligencias,'#ef4444') + br('Reprogramadas',d.reprogramadas,d.totalDiligencias,'#f59e0b') + br('Pendientes',d.pendientes,d.totalDiligencias,'#94a3b8') + '</div></div>';
+  html += donut([{lbl:'Masculino',val:d.sexoM||0,c:'#1a73e8'},{lbl:'Femenino',val:d.sexoF||0,c:'#ec4899'},{lbl:'N/E',val:d.sexoN||0,c:'#94a3b8'}], '👤 Por sexo');
+  if (d.delitos && d.delitos.length) { html += '<div class="dcc"><div class="dct">⚖️ Delitos frecuentes</div><div class="brw">'; var mx = d.delitos[0].cnt; d.delitos.forEach(function(x){ html += br(x.nombre, x.cnt, mx, '#7c3aed'); }); html += '</div></div>'; }
+  if (d.porMes && d.porMes.length) { html += '<div class="dcc"><div class="dct">📅 Por mes</div><div class="brw">'; var mx2 = Math.max.apply(null, d.porMes.map(function(m){ return m.cnt; })); d.porMes.forEach(function(m){ html += br(m.mes, m.cnt, mx2, '#1a73e8'); }); html += '</div></div>'; }
+  if (d.porAsistente && d.porAsistente.length) { html += '<div class="dcc"><div class="dct">👤 Por asistente</div><div class="brw">'; var mx3 = d.porAsistente[0].cnt; d.porAsistente.forEach(function(a){ html += br(a.nombre, a.cnt, mx3, '#0f6e56'); }); html += '</div></div>'; }
+  html += '</div><div class="card"><div class="ct">🔔 Últimas notificaciones</div><div id="notif-dash"></div></div>';
+  // Footer de créditos
+  html += '<div style="text-align:center;padding:14px 0 6px;font-size:11px;color:var(--mu);border-top:1px solid var(--bo);margin-top:10px">Desarrollado por: <strong style="color:var(--az)">Jose Palacios</strong></div>';
+  body.innerHTML = html;
+  // Cargar contador de psicología de forma asíncrona
+  google.script.run
+    .withSuccessHandler(function(r) {
+      var cnt = r.ok ? (r.datos ? r.datos.length : 0) : '—';
+      var el1 = document.getElementById('psico-stat-num');
+      var el2 = document.getElementById('psico-stat-num2');
+      if (el1) el1.textContent = cnt;
+      if (el2) el2.textContent = cnt;
+    })
+    .withFailureHandler(function() {
+      var el1 = document.getElementById('psico-stat-num');
+      var el2 = document.getElementById('psico-stat-num2');
+      if (el1) el1.textContent = '—';
+      if (el2) el2.textContent = '—';
+    })
+    .obtenerCitasPsicologia(S.token);
+}
+
+// ── Componentes del dashboard ──
+function cf(lbl, val) { var v = !val || val === ''; return '<div class="dcfi"><div class="dcfl">' + lbl + '</div><div class="dcfv' + (v ? ' pen' : '') + '">' + esc(v ? 'Pendiente' : val) + '</div></div>'; }
+function sc(n, lbl, ico, cls, sub) { return '<div class="ds ' + cls + '"><div class="dsn">' + ico + '<br>' + n + '</div><div class="dsl">' + lbl + '</div>' + (sub ? '<div style="font-size:10px;color:var(--mu);margin-top:2px">' + sub + '</div>' : '') + '</div>'; }
+function br(lbl, val, tot, color) { var pct = tot > 0 ? Math.round((val/tot)*100) : 0; return '<div class="brr"><div class="brl" title="' + esc(lbl) + '">' + esc(lbl.length > 13 ? lbl.substring(0,13) + '…' : lbl) + '</div><div class="brt"><div class="brf" style="width:' + pct + '%;background:' + color + '"><span>' + val + '</span></div></div></div>'; }
+function donut(segs, titulo) {
+  var tot = segs.reduce(function(s, i){ return s + i.val; }, 0);
+  if (tot === 0) return '<div class="dcc"><div class="dct">' + titulo + '</div><p style="font-size:12px;color:var(--mu);text-align:center;padding:16px">Sin datos</p></div>';
+  var r = 50, cx = 65, cy = 65, st = 20, circ = 2*Math.PI*r, off = 0, paths = '';
+  segs.forEach(function(s) {
+    if (s.val === 0) return;
+    var pct = s.val/tot, dash = pct*circ, gap = circ - dash;
+    paths += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + s.c + '" stroke-width="' + st + '" stroke-dasharray="' + dash.toFixed(2) + ' ' + gap.toFixed(2) + '" stroke-dashoffset="' + (-(off*circ)).toFixed(2) + '" transform="rotate(-90 ' + cx + ' ' + cy + ')" style="transition:stroke-dasharray .7s"/>';
+    off += pct;
+  });
+  var leg = segs.map(function(s){ var p = tot > 0 ? Math.round((s.val/tot)*100) : 0; return '<div style="display:flex;align-items:center;gap:5px;font-size:11px"><div style="width:9px;height:9px;border-radius:50%;background:' + s.c + ';flex-shrink:0"></div><span>' + esc(s.lbl) + ' — <b>' + s.val + '</b> (' + p + '%)</span></div>'; }).join('');
+  return '<div class="dcc"><div class="dct">' + titulo + '</div><div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><svg width="130" height="130" viewBox="0 0 130 130"><circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="var(--bo)" stroke-width="' + st + '"/>' + paths + '<text x="' + cx + '" y="' + (cy+5) + '" text-anchor="middle" font-size="16" font-weight="800" fill="var(--tx)">' + tot + '</text><text x="' + cx + '" y="' + (cy+18) + '" text-anchor="middle" font-size="9" fill="var(--mu)">total</text></svg><div style="display:flex;flex-direction:column;gap:5px">' + leg + '</div></div></div>';
+}
+
+function renderNotifDash(ns) {
+  var c = document.getElementById('notif-dash'); if (!c) return;
+  if (!ns || !ns.length) { c.innerHTML = '<p style="font-size:13px;color:var(--mu)">Sin notificaciones recientes</p>'; return; }
+  c.innerHTML = ns.map(function(n) {
+    return '<div style="padding:9px 12px;border:1px solid var(--bo);border-radius:9px;margin-bottom:7px;' + (n.leida ? '' : 'border-left:4px solid var(--az);background:#eff6ff') + '"><b style="font-size:12px">' + esc(n.asunto) + '</b><p style="font-size:11px;color:var(--mu);margin-top:2px">' + esc(n.mensaje) + '</p></div>';
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 15: CONFIGURACIÓN VISUAL (logo y fondo)
+// ════════════════════════════════════════════════════════════
+
+/** Previsualiza una imagen seleccionada antes de guardar */
+function prevImg(inp, nmId, tipo) {
+  if (!inp.files[0]) return;
+  document.getElementById(nmId).textContent = '✅ ' + inp.files[0].name;
+  var r = new FileReader();
+  r.onload = function(e) { if (tipo === 'logo') apLogo(e.target.result); if (tipo === 'bg') apBG(e.target.result); };
+  r.readAsDataURL(inp.files[0]);
+}
+
+/** Guarda una imagen al backend (validando tamaño máx 2MB) */
+function saveImg(tipo, inpId, nmId) {
+  var inp = document.getElementById(inpId);
+  if (!inp.files[0]) { toast('Selecciona una imagen', 'error'); return; }
+  if (inp.files[0].size > 2 * 1024 * 1024) { toast('Imagen muy grande — máx 2MB', 'error'); return; }
+  toast('Guardando...', 'ok');
+  var r = new FileReader();
+  r.onload = function(e) {
+    var b64 = e.target.result.split(',')[1];
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (res.ok) { sessionStorage.setItem('cfg_' + tipo, res.dataUrl); toast('✅ ' + tipo + ' guardado', 'ok'); document.getElementById(nmId).textContent = ''; inp.value = ''; }
+        else toast(res.error, 'error');
+      })
+      .guardarConfigImagen(S.token, tipo, b64, inp.files[0].type, inp.files[0].name);
+  };
+  r.readAsDataURL(inp.files[0]);
+}
+
+/** Aplica el logo a todos los elementos de la UI */
+function apLogo(src) {
+  if (!src || src === 'null') return;
+  var lc = document.getElementById('llogo-c');
+  if (lc) lc.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;object-fit:contain;border-radius:12px">';
+  var sb = document.getElementById('sblogo');
+  if (sb) sb.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;object-fit:contain;border-radius:8px">';
+}
+
+/** Aplica la imagen de fondo al login */
+function apBG(src) {
+  if (!src || src === 'null') return;
+  var bg = document.getElementById('lbg');
+  if (bg) { bg.style.backgroundImage = 'url("' + src + '")'; bg.style.backgroundSize = 'cover'; bg.style.backgroundPosition = 'center'; bg.style.opacity = '0.25'; }
+}
+
+/** Carga la configuración visual después del login */
+function loadCfgVisual() {
+  var logo = sessionStorage.getItem('cfg_logo'), bg = sessionStorage.getItem('cfg_bg');
+  if (logo) apLogo(logo); if (bg) apBG(bg);
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (!r || !r.ok) return;
+      if (r.logo) { apLogo(r.logo); sessionStorage.setItem('cfg_logo', r.logo); }
+      if (r.bg)   { apBG(r.bg);    sessionStorage.setItem('cfg_bg', r.bg); }
+    })
+    .withFailureHandler(function(){})
+    .obtenerConfigImagenes(S.token);
+}
+
+/** Carga la configuración visual en la pantalla de login (sin sesión) */
+function loadCfgLogin() {
+  var logo = sessionStorage.getItem('cfg_logo'), bg = sessionStorage.getItem('cfg_bg');
+  if (logo) apLogo(logo); if (bg) apBG(bg);
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (!r || !r.ok) return;
+      if (r.logo) { apLogo(r.logo); sessionStorage.setItem('cfg_logo', r.logo); }
+      if (r.bg)   { apBG(r.bg);    sessionStorage.setItem('cfg_bg', r.bg); }
+    })
+    .withFailureHandler(function(){})
+    .obtenerConfigImagenesPublico();
+}
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 16: DIAGNÓSTICO Y MODAL TXT (botón flotante)
+// ════════════════════════════════════════════════════════════
+
+function doDiag() {
+  var btn = document.getElementById('btn-diag');
+  btn.textContent = '⏳'; btn.disabled = true;
+  google.script.run
+    .withSuccessHandler(function(r) {
+      btn.textContent = '🔍 Diagnóstico'; btn.disabled = false;
+      if (r.ok) alert('✅ Conexión OK\nHoja: ' + r.spreadsheet + '\nHojas: ' + r.hojas.join(', ') + '\nSesión: ' + (r.sesionValida ? '✅ ' + r.usuario : '❌'));
+      else alert('❌ Error: ' + r.error);
+    })
+    .withFailureHandler(function(e) { btn.textContent = '🔍 Diagnóstico'; btn.disabled = false; alert('❌ ' + e.message); })
+    .testConexion(S.token);
+}
+
+function openTxtModal() { document.getElementById('modal-txt-psico').classList.add('open'); }
+
+function readTxtAgpModal(inp) {
+  if (inp.files[0]) {
+    var f = inp.files[0];
+    if (!f.name.endsWith('.txt')) { toast('Solo archivos .txt', 'error'); return; }
+    var r = new FileReader();
+    r.onload = function(e) { _agpTxtModal = e.target.result; document.getElementById('agp-fn-modal').textContent = '✅ ' + f.name; };
+    r.readAsText(f);
+  }
+}
+
+function uploadAgPsicoModal() {
+  if (!_agpTxtModal) { toast('Selecciona un .txt', 'error'); return; }
+  google.script.run
+    .withSuccessHandler(function(r) {
+      if (r.ok) {
+        toast('✅ ' + r.insertados + ' fechas insertadas', 'ok');
+        _agpTxtModal = ''; document.getElementById('agp-fn-modal').textContent = '';
+        closeM('modal-txt-psico');
+        if (CAL_PSICO) loadAgPsico();
+      } else toast(r.error, 'error');
+    })
+    .withFailureHandler(function(e) { toast('Error: ' + e.message, 'error'); })
+    .procesarTxtAgendaPsico(S.token, _agpTxtModal);
+}
+
+/** Muestra/oculta el botón flotante según si estamos en la página de psicología */
+function toggleFloatingBtn() {
+  var btn = document.getElementById('floating-txt-btn');
+  if (btn) btn.style.display = document.getElementById('page-psico').classList.contains('active') ? 'flex' : 'none';
+}
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 17: AUTO-MAYÚSCULAS
+// Convierte a mayúsculas inputs de texto al salir del campo
+// ════════════════════════════════════════════════════════════
+
+document.addEventListener('blur', function(e) {
+  var el = e.target;
+  if (!el.tagName) return;
+  var tag = el.tagName.toLowerCase();
+  if (tag !== 'input' && tag !== 'textarea') return;
+  var tipo = el.type || 'text';
+  var excluidos = ['email','password','number','date','time','datetime-local','tel','hidden','file'];
+  if (excluidos.indexOf(tipo) >= 0) return;
+  if (el.value) el.value = el.value.toUpperCase();
+}, true);
+
+// ════════════════════════════════════════════════════════════
+// INICIALIZACIÓN DE LA APLICACIÓN
+// Recupera sesión del sessionStorage si existe
+// ════════════════════════════════════════════════════════════
+
+(function init() {
+  loadCfgLogin(); // Cargar logo/fondo antes del login
+  var t = sessionStorage.getItem('tok');
+  var u = sessionStorage.getItem('usr');
+  if (t && u) {
+    S.token   = t;
+    S.usuario = JSON.parse(u);
+    startApp(); // Restaurar sesión automáticamente
+  }
+})();
+
+</script>
+</body>
+</html>
