@@ -875,35 +875,14 @@ tr:hover td{background:#f8fafc}
       </div>
       <div class="fi" style="margin-top:10px"><label>Observaciones psicológicas</label><textarea id="me-obspsic" style="text-transform:none"></textarea></div>
     </div>
-    <!-- ══ 📁 DOCUMENTOS (opcional) ══ -->
-    <div style="margin-top:18px;padding:14px;background:var(--bg);border-radius:var(--r);border:1px solid var(--bo)">
-      <div style="font-size:11px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">📁 Documentos (opcional)</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <!-- Oficio -->
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-            <div class="docico pdf" style="width:32px;height:32px;font-size:15px">📋</div>
-            <div style="flex:1"><div style="font-size:12px;font-weight:700">Oficio</div><div style="font-size:10px;color:var(--mu)">Solo PDF</div></div>
-            <button class="btn bp sm" onclick="document.getElementById('me-inp-ofc').click()">➕</button>
-            <input type="file" id="me-inp-ofc" accept=".pdf" style="display:none" onchange="meSubirArchivo(this,'oficios','me-lista-ofc','S_OFICIO_URL','S_OFICIO')">
-          </div>
-          <div class="docl" id="me-lista-ofc" style="max-height:120px">
-            <p style="font-size:11px;color:var(--mu);text-align:center;padding:8px">Sin oficio adjunto</p>
-          </div>
-        </div>
-        <!-- Transcripción -->
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-            <div class="docico word" style="width:32px;height:32px;font-size:15px">📄</div>
-            <div style="flex:1"><div style="font-size:12px;font-weight:700">Transcripción</div><div style="font-size:10px;color:var(--mu)">PDF o Word</div></div>
-            <button class="btn bp sm" onclick="document.getElementById('me-inp-tr').click()">➕</button>
-            <input type="file" id="me-inp-tr" accept=".pdf,.docx,.doc" style="display:none" onchange="meSubirArchivo(this,'transcripciones','me-lista-tr','TRANSCRIPCION_URL',null)">
-          </div>
-          <div class="docl" id="me-lista-tr" style="max-height:120px">
-            <p style="font-size:11px;color:var(--mu);text-align:center;padding:8px">Sin transcripción adjunta</p>
-          </div>
-        </div>
+    <!-- ══ BOTÓN IR A DOCUMENTOS ══ -->
+    <div style="margin-top:14px;padding:12px 14px;background:var(--azl);border-radius:10px;border:1px solid #93c5fd;display:flex;align-items:center;gap:12px">
+      <span style="font-size:22px">📁</span>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:700;color:var(--azd)">Ver Oficios y Transcripciones</div>
+        <div style="font-size:11px;color:var(--mu)" id="me-docs-hint">Los documentos de esta diligencia están en la sección Documentos</div>
       </div>
+      <button class="btn bp sm" onclick="irADocumentos()">📁 Ir a Documentos</button>
     </div>
     <input type="hidden" id="me-n">
     <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;border-top:1px solid var(--bo);padding-top:14px">
@@ -1885,8 +1864,8 @@ function renderDil(items) {
       : '<span class="b bgy" style="font-size:10px">Sin docs</span>';
     var crep = d.CANTIDAD_REPROGRAMACION && d.CANTIDAD_REPROGRAMACION !== '0' && d.CANTIDAD_REPROGRAMACION !== '' ? '<span class="b bor">🔁 ' + esc(d.CANTIDAD_REPROGRAMACION) + '</span>' : '<span class="b bgy">0</span>';
     var acc  = isAdm
-      ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bp sm" onclick="editDilDir(\'' + esc(d.N) + '\')">✏️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
-      : '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️ Ver</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>';
+      ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bp sm" onclick="editDilDir(\'' + esc(d.N) + '\')">✏️</button><button class="btn bs sm" onclick="irADocsPorCarpeta(\'' + esc(d.CARPETA_FISCAL) + '\')" title="Ver documentos">📁</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
+      : '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️ Ver</button><button class="btn bs sm" onclick="irADocsPorCarpeta(\'' + esc(d.CARPETA_FISCAL) + '\')" title="Ver documentos">📁</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>';
     return '<tr>'
       + '<td><b>' + esc(d.N||'—') + '</b></td>'
       + '<td><b>' + esc(d.CARPETA_FISCAL||'—') + '</b></td>'
@@ -1973,9 +1952,9 @@ function openEdit() {
     ms.value = d.MOTIVO_NO_REALIZADO || '';
   }
 
-  // Renderizar documentos adjuntos estilo Documentos
-  _renderMeArchivo('me-lista-ofc', d.S_OFICIO_URL, d.S_OFICIO, 'S_OFICIO_URL', 'Sin oficio adjunto');
-  _renderMeArchivo('me-lista-tr',  d.TRANSCRIPCION_URL, d.TRANSCRIPCION, 'TRANSCRIPCION_URL', 'Sin transcripción adjunta');
+  // Mostrar carpeta fiscal en el hint del botón 📁 Documentos
+  var hint = document.getElementById('me-docs-hint');
+  if (hint) hint.textContent = 'Filtrar por Carpeta Fiscal: ' + (d.CARPETA_FISCAL || '—');
 
   toggleNR();
   document.getElementById('me-sub').textContent = 'Carpeta: ' + (d.CARPETA_FISCAL||'—') + ' | ' + fF(d.FECHA_PROGRAMADA) + ' ' + fH(d.HORA_PROGRAMADA);
@@ -2908,111 +2887,32 @@ document.addEventListener('blur', function(e) {
 
 // ════════════════════════════════════════════════════════════
 // ════════════════════════════════════════════════════════════
-// MÓDULO 18: ARCHIVOS EN MODAL EDITAR — estilo Documentos
+// MÓDULO 18: IR A DOCUMENTOS DESDE MODAL EDITAR
 // ════════════════════════════════════════════════════════════
 
 /**
- * Renderiza un archivo en la pestaña Archivos del modal Editar,
- * con el mismo estilo que la sección Documentos.
- * @param {string} listaId   - ID del contenedor docl
- * @param {string} url       - URL del archivo
- * @param {string} nombre    - Nombre del archivo
- * @param {string} campoUrl  - Clave del campo en _dilActual (para eliminar)
- * @param {string} vacio     - Texto cuando no hay archivo
+ * Navega a 📁 Documentos y filtra por una Carpeta Fiscal específica.
+ * Llamado desde el botón 📁 de la tabla Mis Diligencias.
  */
-function _renderMeArchivo(listaId, url, nombre, campoUrl, vacio) {
-  var c = document.getElementById(listaId);
-  if (!c) return;
-  if (!url || url === '') {
-    c.innerHTML = '<p style="font-size:12px;color:var(--mu);text-align:center;padding:10px">' + vacio + '</p>';
-    return;
-  }
-  var ico = (url.indexOf('.pdf') >= 0 || campoUrl === 'S_OFICIO_URL') ? '📋' : '📄';
-  var nom = nombre || url.split('/').pop() || 'Archivo';
-  c.innerHTML = '<div class="doci">'
-    + '<span style="font-size:16px">' + ico + '</span>'
-    + '<div class="docin"><b>' + esc(nom) + '</b><small>Adjunto en diligencia</small></div>'
-    + '<a href="' + esc(url) + '" target="_blank" class="docib" title="Abrir">↗️</a>'
-    + '<button class="docib del" onclick="meEliminarArchivo(\'' + campoUrl + '\',\'' + listaId + '\')" title="Eliminar">🗑️</button>'
-    + '</div>';
+function irADocsPorCarpeta(carpetaFiscal) {
+  nav2('docs');
+  setTimeout(function() {
+    var qOfc   = document.getElementById('q-ofc');
+    var qTrans = document.getElementById('q-trans');
+    if (qOfc)   { qOfc.value   = carpetaFiscal; filtrarDocs('oficios',         'q-ofc',   'lista-ofc'); }
+    if (qTrans) { qTrans.value = carpetaFiscal; filtrarDocs('transcripciones', 'q-trans', 'lista-trans'); }
+    if (carpetaFiscal) toast('🔍 Documentos de: ' + carpetaFiscal, 'ok');
+  }, 600);
 }
 
 /**
- * Sube un archivo inmediatamente al seleccionarlo (igual que Documentos)
- * y actualiza la diligencia en el backend con la nueva URL.
+ * Cierra el modal de edición, navega a 📁 Documentos
+ * y filtra automáticamente por la Carpeta Fiscal de la diligencia activa.
  */
-function meSubirArchivo(inp, carpeta, listaId, campoUrl, campoNombre) {
-  if (!inp.files[0]) return;
-  var file = inp.files[0];
-  var n = g('me-n');
-  if (!n) { toast('Error: sin diligencia activa', 'error'); return; }
-
-  // Mostrar indicador de carga en la lista
-  var c = document.getElementById(listaId);
-  if (c) c.innerHTML = '<div style="text-align:center;padding:12px;color:var(--mu);font-size:12px">⏳ Subiendo ' + esc(file.name) + '...</div>';
-
-  uploadB64(file, carpeta, function(url) {
-    if (!url) {
-      // uploadB64 ya mostró el toast de error — restaurar estado anterior
-      if (_dilActual) {
-        _renderMeArchivo(listaId,
-          campoUrl === 'S_OFICIO_URL' ? _dilActual.S_OFICIO_URL : _dilActual.TRANSCRIPCION_URL,
-          campoUrl === 'S_OFICIO_URL' ? _dilActual.S_OFICIO    : _dilActual.TRANSCRIPCION,
-          campoUrl, c ? c.dataset.vacio || '' : '');
-      }
-      inp.value = '';
-      return;
-    }
-    // Actualizar en el backend
-    var campos = {};
-    campos[campoUrl] = url;
-    if (campoNombre) campos[campoNombre] = file.name;
-
-    _gsrCall('actualizarDiligencia', [S.token, n, campos],
-      function(r) {
-        if (r.ok) {
-          // Actualizar estado local
-          if (_dilActual) {
-            _dilActual[campoUrl] = url;
-            if (campoNombre) _dilActual[campoNombre] = file.name;
-          }
-          _renderMeArchivo(listaId, url, file.name, campoUrl, '');
-          toast('✅ ' + file.name + ' subido correctamente', 'ok');
-        } else {
-          toast('Error al guardar: ' + r.error, 'error');
-          _renderMeArchivo(listaId, '', '', campoUrl, 'Error al guardar');
-        }
-        inp.value = '';
-      },
-      function(e) {
-        toast('Error: ' + e.message, 'error');
-        inp.value = '';
-      });
-  });
-}
-
-/**
- * Elimina el archivo de una diligencia (borra la URL del campo en el backend).
- * El archivo en Drive se mantiene (igual que Documentos).
- */
-function meEliminarArchivo(campoUrl, listaId) {
-  if (!confirm('¿Quitar este archivo de la diligencia?')) return;
-  var n = g('me-n');
-  if (!n) return;
-  var campos = {};
-  campos[campoUrl] = '';
-  if (campoUrl === 'S_OFICIO_URL') campos['S_OFICIO'] = '';
-
-  _gsrCall('actualizarDiligencia', [S.token, n, campos],
-    function(r) {
-      if (r.ok) {
-        if (_dilActual) { _dilActual[campoUrl] = ''; if (campoUrl === 'S_OFICIO_URL') _dilActual.S_OFICIO = ''; }
-        var vacio = campoUrl === 'S_OFICIO_URL' ? 'Sin oficio adjunto' : 'Sin transcripción adjunta';
-        _renderMeArchivo(listaId, '', '', campoUrl, vacio);
-        toast('✅ Archivo quitado', 'ok');
-      } else toast('Error: ' + r.error, 'error');
-    },
-    function(e) { toast('Error: ' + e.message, 'error'); });
+function irADocumentos() {
+  var carpeta = _dilActual ? (_dilActual.CARPETA_FISCAL || '') : '';
+  closeM('mo-edit');
+  irADocsPorCarpeta(carpeta);
 }
 
 // ════════════════════════════════════════════════════════════
