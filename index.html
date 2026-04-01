@@ -877,23 +877,36 @@ tr:hover td{background:#f8fafc}
       <div class="fi" style="margin-top:10px"><label>Observaciones psicológicas</label><textarea id="me-obspsic" style="text-transform:none"></textarea></div>
     </div>
     <div class="tabp" id="me-p3" style="display:none">
-      <div class="fg2">
-        <div>
-          <p style="font-size:11px;color:var(--mu);margin-bottom:7px">📋 Oficio nuevo (opcional)</p>
-          <div class="fd" onclick="document.getElementById('me-inp-ofc').click()" style="padding:10px">
-            <div class="fdi" style="font-size:20px">📋</div><p>PDF</p><div class="fnm" id="me-ofc-fn"></div>
+      <!-- ══ SECCIÓN OFICIO ══ -->
+      <div style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div class="docico pdf">📋</div>
+          <div>
+            <div style="font-size:13px;font-weight:700">Oficio</div>
+            <div style="font-size:11px;color:var(--mu)">Solo PDF</div>
           </div>
-          <input type="file" id="me-inp-ofc" accept=".pdf" style="display:none" onchange="setPF(this,'me-ofc-fn',null)">
+          <button class="btn bp sm" style="margin-left:auto" onclick="document.getElementById('me-inp-ofc').click()">➕ Subir oficio</button>
+          <input type="file" id="me-inp-ofc" accept=".pdf" style="display:none" onchange="meSubirArchivo(this,'oficios','me-lista-ofc','S_OFICIO_URL','S_OFICIO')">
         </div>
-        <div>
-          <p style="font-size:11px;color:var(--mu);margin-bottom:7px">📄 Transcripción</p>
-          <div class="fd" onclick="document.getElementById('me-inp-tr').click()" style="padding:10px">
-            <div class="fdi" style="font-size:20px">📄</div><p>PDF / Word</p><div class="fnm" id="me-tr-fn"></div>
-          </div>
-          <input type="file" id="me-inp-tr" accept=".pdf,.docx,.doc" style="display:none" onchange="setPF(this,'me-tr-fn',null)">
+        <div class="docl" id="me-lista-ofc">
+          <p style="font-size:12px;color:var(--mu);text-align:center;padding:10px">Sin oficio adjunto</p>
         </div>
       </div>
-      <div id="me-links" style="margin-top:12px"></div>
+      <!-- ══ SECCIÓN TRANSCRIPCIÓN ══ -->
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div class="docico word">📄</div>
+          <div>
+            <div style="font-size:13px;font-weight:700">Transcripción</div>
+            <div style="font-size:11px;color:var(--mu)">PDF o Word</div>
+          </div>
+          <button class="btn bp sm" style="margin-left:auto" onclick="document.getElementById('me-inp-tr').click()">➕ Subir transcripción</button>
+          <input type="file" id="me-inp-tr" accept=".pdf,.docx,.doc" style="display:none" onchange="meSubirArchivo(this,'transcripciones','me-lista-tr','TRANSCRIPCION_URL',null)">
+        </div>
+        <div class="docl" id="me-lista-tr">
+          <p style="font-size:12px;color:var(--mu);text-align:center;padding:10px">Sin transcripción adjunta</p>
+        </div>
+      </div>
     </div>
     <input type="hidden" id="me-n">
     <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end;border-top:1px solid var(--bo);padding-top:14px">
@@ -1958,13 +1971,12 @@ function openEdit() {
     ms.value = d.MOTIVO_NO_REALIZADO || '';
   }
 
-  document.getElementById('me-ofc-fn').textContent = '';
-  document.getElementById('me-tr-fn').textContent = '';
+  document.getElementById('me-ofc-fn') && (document.getElementById('me-ofc-fn').textContent = '');
+  document.getElementById('me-tr-fn')  && (document.getElementById('me-tr-fn').textContent  = '');
 
-  var lh = '';
-  if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px;margin-bottom:5px"><span>📋</span><span style="flex:1">Oficio actual</span><a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">Ver</a></div>';
-  if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px"><span>📄</span><span style="flex:1">Transcripción actual</span><a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">Ver</a></div>';
-  document.getElementById('me-links').innerHTML = lh || '<p style="font-size:12px;color:var(--mu)">Sin archivos actualmente</p>';
+  // Renderizar archivos estilo Documentos
+  _renderMeArchivo('me-lista-ofc', d.S_OFICIO_URL, d.S_OFICIO, 'S_OFICIO_URL', 'Sin oficio adjunto');
+  _renderMeArchivo('me-lista-tr',  d.TRANSCRIPCION_URL, d.TRANSCRIPCION, 'TRANSCRIPCION_URL', 'Sin transcripción adjunta');
 
   toggleNR();
   document.getElementById('me-sub').textContent = 'Carpeta: ' + (d.CARPETA_FISCAL||'—') + ' | ' + fF(d.FECHA_PROGRAMADA) + ' ' + fH(d.HORA_PROGRAMADA);
@@ -1999,6 +2011,8 @@ function saveEdit() {
   var aO = iO && iO.files[0] ? iO.files[0] : null;
   var aT = iT && iT.files[0] ? iT.files[0] : null;
 
+  // Los archivos ya se subieron inmediatamente al seleccionarlos (meSubirArchivo),
+  // así que solo guardamos los campos de texto/select
   function fin() {
     _gsrCall('actualizarDiligencia', [S.token, n, campos],
       function(r) {
@@ -2008,10 +2022,7 @@ function saveEdit() {
       },
       function(e) { btn.disabled = false; btn.textContent = '💾 Guardar cambios'; toast('Error: ' + e.message, 'error'); });
   }
-
-  if (aO) { uploadB64(aO, 'oficios', function(u) { if (u) { campos['S_OFICIO'] = aO.name; campos['S_OFICIO_URL'] = u; } if (aT) { uploadB64(aT, 'transcripciones', function(u2) { if (u2) campos['TRANSCRIPCION_URL'] = u2; fin(); }); } else fin(); }); }
-  else if (aT) { uploadB64(aT, 'transcripciones', function(u2) { if (u2) campos['TRANSCRIPCION_URL'] = u2; fin(); }); }
-  else fin();
+  fin();
 }
 
 function elimDil(n) {
@@ -2900,7 +2911,115 @@ document.addEventListener('blur', function(e) {
 
 // ════════════════════════════════════════════════════════════
 // ════════════════════════════════════════════════════════════
-// MÓDULO 18: CAMPANITA DE NOTIFICACIONES 🔔
+// MÓDULO 18: ARCHIVOS EN MODAL EDITAR — estilo Documentos
+// ════════════════════════════════════════════════════════════
+
+/**
+ * Renderiza un archivo en la pestaña Archivos del modal Editar,
+ * con el mismo estilo que la sección Documentos.
+ * @param {string} listaId   - ID del contenedor docl
+ * @param {string} url       - URL del archivo
+ * @param {string} nombre    - Nombre del archivo
+ * @param {string} campoUrl  - Clave del campo en _dilActual (para eliminar)
+ * @param {string} vacio     - Texto cuando no hay archivo
+ */
+function _renderMeArchivo(listaId, url, nombre, campoUrl, vacio) {
+  var c = document.getElementById(listaId);
+  if (!c) return;
+  if (!url || url === '') {
+    c.innerHTML = '<p style="font-size:12px;color:var(--mu);text-align:center;padding:10px">' + vacio + '</p>';
+    return;
+  }
+  var ico = (url.indexOf('.pdf') >= 0 || campoUrl === 'S_OFICIO_URL') ? '📋' : '📄';
+  var nom = nombre || url.split('/').pop() || 'Archivo';
+  c.innerHTML = '<div class="doci">'
+    + '<span style="font-size:16px">' + ico + '</span>'
+    + '<div class="docin"><b>' + esc(nom) + '</b><small>Adjunto en diligencia</small></div>'
+    + '<a href="' + esc(url) + '" target="_blank" class="docib" title="Abrir">↗️</a>'
+    + '<button class="docib del" onclick="meEliminarArchivo(\'' + campoUrl + '\',\'' + listaId + '\')" title="Eliminar">🗑️</button>'
+    + '</div>';
+}
+
+/**
+ * Sube un archivo inmediatamente al seleccionarlo (igual que Documentos)
+ * y actualiza la diligencia en el backend con la nueva URL.
+ */
+function meSubirArchivo(inp, carpeta, listaId, campoUrl, campoNombre) {
+  if (!inp.files[0]) return;
+  var file = inp.files[0];
+  var n = g('me-n');
+  if (!n) { toast('Error: sin diligencia activa', 'error'); return; }
+
+  // Mostrar indicador de carga en la lista
+  var c = document.getElementById(listaId);
+  if (c) c.innerHTML = '<div style="text-align:center;padding:12px;color:var(--mu);font-size:12px">⏳ Subiendo ' + esc(file.name) + '...</div>';
+
+  uploadB64(file, carpeta, function(url) {
+    if (!url) {
+      // uploadB64 ya mostró el toast de error — restaurar estado anterior
+      if (_dilActual) {
+        _renderMeArchivo(listaId,
+          campoUrl === 'S_OFICIO_URL' ? _dilActual.S_OFICIO_URL : _dilActual.TRANSCRIPCION_URL,
+          campoUrl === 'S_OFICIO_URL' ? _dilActual.S_OFICIO    : _dilActual.TRANSCRIPCION,
+          campoUrl, c ? c.dataset.vacio || '' : '');
+      }
+      inp.value = '';
+      return;
+    }
+    // Actualizar en el backend
+    var campos = {};
+    campos[campoUrl] = url;
+    if (campoNombre) campos[campoNombre] = file.name;
+
+    _gsrCall('actualizarDiligencia', [S.token, n, campos],
+      function(r) {
+        if (r.ok) {
+          // Actualizar estado local
+          if (_dilActual) {
+            _dilActual[campoUrl] = url;
+            if (campoNombre) _dilActual[campoNombre] = file.name;
+          }
+          _renderMeArchivo(listaId, url, file.name, campoUrl, '');
+          toast('✅ ' + file.name + ' subido correctamente', 'ok');
+        } else {
+          toast('Error al guardar: ' + r.error, 'error');
+          _renderMeArchivo(listaId, '', '', campoUrl, 'Error al guardar');
+        }
+        inp.value = '';
+      },
+      function(e) {
+        toast('Error: ' + e.message, 'error');
+        inp.value = '';
+      });
+  });
+}
+
+/**
+ * Elimina el archivo de una diligencia (borra la URL del campo en el backend).
+ * El archivo en Drive se mantiene (igual que Documentos).
+ */
+function meEliminarArchivo(campoUrl, listaId) {
+  if (!confirm('¿Quitar este archivo de la diligencia?')) return;
+  var n = g('me-n');
+  if (!n) return;
+  var campos = {};
+  campos[campoUrl] = '';
+  if (campoUrl === 'S_OFICIO_URL') campos['S_OFICIO'] = '';
+
+  _gsrCall('actualizarDiligencia', [S.token, n, campos],
+    function(r) {
+      if (r.ok) {
+        if (_dilActual) { _dilActual[campoUrl] = ''; if (campoUrl === 'S_OFICIO_URL') _dilActual.S_OFICIO = ''; }
+        var vacio = campoUrl === 'S_OFICIO_URL' ? 'Sin oficio adjunto' : 'Sin transcripción adjunta';
+        _renderMeArchivo(listaId, '', '', campoUrl, vacio);
+        toast('✅ Archivo quitado', 'ok');
+      } else toast('Error: ' + r.error, 'error');
+    },
+    function(e) { toast('Error: ' + e.message, 'error'); });
+}
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 19: CAMPANITA DE NOTIFICACIONES 🔔
 // Accesible para ADMINISTRADOR y ASISTENTE.
 // Se actualiza automáticamente cada 60 segundos.
 // ════════════════════════════════════════════════════════════
