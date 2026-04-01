@@ -842,7 +842,6 @@ tr:hover td{background:#f8fafc}
       <button class="tab active" onclick="meTab(0)">📋 Ejecución</button>
       <button class="tab" onclick="meTab(1)">🔁 Reprogramación</button>
       <button class="tab" onclick="meTab(2)">🧠 Psicológico</button>
-      <button class="tab" onclick="meTab(3)">📎 Archivos</button>
     </div>
     <div class="tabp" id="me-p0">
       <div class="fg2">
@@ -876,40 +875,38 @@ tr:hover td{background:#f8fafc}
       </div>
       <div class="fi" style="margin-top:10px"><label>Observaciones psicológicas</label><textarea id="me-obspsic" style="text-transform:none"></textarea></div>
     </div>
-    <div class="tabp" id="me-p3" style="display:none">
-      <!-- ══ SECCIÓN OFICIO ══ -->
-      <div style="margin-bottom:16px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div class="docico pdf">📋</div>
-          <div>
-            <div style="font-size:13px;font-weight:700">Oficio</div>
-            <div style="font-size:11px;color:var(--mu)">Solo PDF</div>
+    <!-- ══ 📁 DOCUMENTOS (opcional) ══ -->
+    <div style="margin-top:18px;padding:14px;background:var(--bg);border-radius:var(--r);border:1px solid var(--bo)">
+      <div style="font-size:11px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">📁 Documentos (opcional)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <!-- Oficio -->
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <div class="docico pdf" style="width:32px;height:32px;font-size:15px">📋</div>
+            <div style="flex:1"><div style="font-size:12px;font-weight:700">Oficio</div><div style="font-size:10px;color:var(--mu)">Solo PDF</div></div>
+            <button class="btn bp sm" onclick="document.getElementById('me-inp-ofc').click()">➕</button>
+            <input type="file" id="me-inp-ofc" accept=".pdf" style="display:none" onchange="meSubirArchivo(this,'oficios','me-lista-ofc','S_OFICIO_URL','S_OFICIO')">
           </div>
-          <button class="btn bp sm" style="margin-left:auto" onclick="document.getElementById('me-inp-ofc').click()">➕ Subir oficio</button>
-          <input type="file" id="me-inp-ofc" accept=".pdf" style="display:none" onchange="meSubirArchivo(this,'oficios','me-lista-ofc','S_OFICIO_URL','S_OFICIO')">
-        </div>
-        <div class="docl" id="me-lista-ofc">
-          <p style="font-size:12px;color:var(--mu);text-align:center;padding:10px">Sin oficio adjunto</p>
-        </div>
-      </div>
-      <!-- ══ SECCIÓN TRANSCRIPCIÓN ══ -->
-      <div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div class="docico word">📄</div>
-          <div>
-            <div style="font-size:13px;font-weight:700">Transcripción</div>
-            <div style="font-size:11px;color:var(--mu)">PDF o Word</div>
+          <div class="docl" id="me-lista-ofc" style="max-height:120px">
+            <p style="font-size:11px;color:var(--mu);text-align:center;padding:8px">Sin oficio adjunto</p>
           </div>
-          <button class="btn bp sm" style="margin-left:auto" onclick="document.getElementById('me-inp-tr').click()">➕ Subir transcripción</button>
-          <input type="file" id="me-inp-tr" accept=".pdf,.docx,.doc" style="display:none" onchange="meSubirArchivo(this,'transcripciones','me-lista-tr','TRANSCRIPCION_URL',null)">
         </div>
-        <div class="docl" id="me-lista-tr">
-          <p style="font-size:12px;color:var(--mu);text-align:center;padding:10px">Sin transcripción adjunta</p>
+        <!-- Transcripción -->
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <div class="docico word" style="width:32px;height:32px;font-size:15px">📄</div>
+            <div style="flex:1"><div style="font-size:12px;font-weight:700">Transcripción</div><div style="font-size:10px;color:var(--mu)">PDF o Word</div></div>
+            <button class="btn bp sm" onclick="document.getElementById('me-inp-tr').click()">➕</button>
+            <input type="file" id="me-inp-tr" accept=".pdf,.docx,.doc" style="display:none" onchange="meSubirArchivo(this,'transcripciones','me-lista-tr','TRANSCRIPCION_URL',null)">
+          </div>
+          <div class="docl" id="me-lista-tr" style="max-height:120px">
+            <p style="font-size:11px;color:var(--mu);text-align:center;padding:8px">Sin transcripción adjunta</p>
+          </div>
         </div>
       </div>
     </div>
     <input type="hidden" id="me-n">
-    <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end;border-top:1px solid var(--bo);padding-top:14px">
+    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;border-top:1px solid var(--bo);padding-top:14px">
       <button class="btn bg" onclick="closeM('mo-edit')">Cancelar</button>
       <button class="btn bs" id="btn-save-edit" onclick="saveEdit()">💾 Guardar cambios</button>
     </div>
@@ -1843,8 +1840,8 @@ function loadDil() {
   var isAdm = S.usuario.rol === 'ADMINISTRADOR';
 
   document.getElementById('thead-dil').innerHTML = isAdm
-    ? '<th>N°</th><th>Carpeta Fiscal</th><th>Expediente</th><th>Fecha</th><th>Hora</th><th>Agraviados</th><th>Asistente</th><th>Reprogram.</th><th>Realizó</th><th>Oficio</th><th>Acciones</th>'
-    : '<th>N°</th><th>Carpeta Fiscal</th><th>Expediente</th><th>Fecha</th><th>Hora</th><th>Agraviados</th><th>Reprogram.</th><th>Realizó</th><th>Oficio</th><th>Acciones</th>';
+    ? '<th>N°</th><th>Carpeta Fiscal</th><th>Expediente</th><th>Fecha</th><th>Hora</th><th>Agraviados</th><th>Asistente</th><th>Reprogram.</th><th>Realizó</th><th>📁 Documentos</th><th>Acciones</th>'
+    : '<th>N°</th><th>Carpeta Fiscal</th><th>Expediente</th><th>Fecha</th><th>Hora</th><th>Agraviados</th><th>Reprogram.</th><th>Realizó</th><th>📁 Documentos</th><th>Acciones</th>';
 
   document.getElementById('ph-dil-btns').innerHTML = isAdm
     ? '<button class="btn bs sm" onclick="exportarXLS()">📥 Excel</button><button class="btn bp sm" onclick="nav2(\'agenda\')">➕ Nueva</button>'
@@ -1880,7 +1877,12 @@ function renderDil(items) {
   tb.innerHTML = items.map(function(d) {
     var real = d.SE_REALIZO || '';
     var bdg  = real === 'SÍ' ? '<span class="b bgr">✅ Sí</span>' : real === 'NO' ? '<span class="b bre">❌ No</span>' : '<span class="b bgy">⏳</span>';
-    var ofc  = d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎</a>' : '<span class="b bgy" style="font-size:10px">Sin PDF</span>';
+    var ofc  = (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') || (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '')
+      ? '<div style="display:flex;gap:4px;flex-wrap:wrap">'
+          + (d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm" title="Oficio">📋</a>' : '')
+          + (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '' ? '<a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm" title="Transcripción">📄</a>' : '')
+          + '</div>'
+      : '<span class="b bgy" style="font-size:10px">Sin docs</span>';
     var crep = d.CANTIDAD_REPROGRAMACION && d.CANTIDAD_REPROGRAMACION !== '0' && d.CANTIDAD_REPROGRAMACION !== '' ? '<span class="b bor">🔁 ' + esc(d.CANTIDAD_REPROGRAMACION) + '</span>' : '<span class="b bgy">0</span>';
     var acc  = isAdm
       ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bp sm" onclick="editDilDir(\'' + esc(d.N) + '\')">✏️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
@@ -1932,7 +1934,7 @@ function verDil(n) {
 
       var html = renderGrp('📋 Solicitud',g1) + renderGrp('👤 Caso',g2) + renderGrp('⚡ Ejecución',g3) + renderGrp('🔁 Reprogramación',g4) + renderGrp('🧠 Psicológico',g5);
       html += '<div style="display:flex;gap:7px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--bo)">';
-      if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') html += '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bp sm">📎 Oficio</a>';
+      if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') html += '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bp sm">📋 Oficio</a>';
       if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') html += '<a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">📄 Transcripción</a>';
       if (d.CELULAR && d.CELULAR !== '') html += '<a href="https://wa.me/' + d.CELULAR.replace(/\D/g,'') + '" target="_blank" class="btn bs sm">💬 WhatsApp</a>';
       html += '</div>';
@@ -1971,10 +1973,7 @@ function openEdit() {
     ms.value = d.MOTIVO_NO_REALIZADO || '';
   }
 
-  document.getElementById('me-ofc-fn') && (document.getElementById('me-ofc-fn').textContent = '');
-  document.getElementById('me-tr-fn')  && (document.getElementById('me-tr-fn').textContent  = '');
-
-  // Renderizar archivos estilo Documentos
+  // Renderizar documentos adjuntos estilo Documentos
   _renderMeArchivo('me-lista-ofc', d.S_OFICIO_URL, d.S_OFICIO, 'S_OFICIO_URL', 'Sin oficio adjunto');
   _renderMeArchivo('me-lista-tr',  d.TRANSCRIPCION_URL, d.TRANSCRIPCION, 'TRANSCRIPCION_URL', 'Sin transcripción adjunta');
 
@@ -2007,12 +2006,7 @@ function saveEdit() {
     FECHA_HORA_REPROGRAMACION: g('me-frep'), CANTIDAD_REPROGRAMACION: g('me-crep'),
     PSICOLOGO: g('me-psic'), FECHA_HORA_PSICOLOGICA: g('me-fps')
   };
-  var iO = document.getElementById('me-inp-ofc'), iT = document.getElementById('me-inp-tr');
-  var aO = iO && iO.files[0] ? iO.files[0] : null;
-  var aT = iT && iT.files[0] ? iT.files[0] : null;
-
-  // Los archivos ya se subieron inmediatamente al seleccionarlos (meSubirArchivo),
-  // así que solo guardamos los campos de texto/select
+  // Archivos se suben inmediatamente desde la sección 📁 Documentos — solo guardar campos
   function fin() {
     _gsrCall('actualizarDiligencia', [S.token, n, campos],
       function(r) {
@@ -2684,7 +2678,10 @@ function renderDashAst(dils) {
         + '<div><div style="font-size:14px;font-weight:800">📁 ' + esc(d.CARPETA_FISCAL||'—') + '</div><div style="font-size:12px;color:var(--mu);margin-top:2px">📅 ' + fF(d.FECHA_PROGRAMADA) + ' 🕐 ' + fH(d.HORA_PROGRAMADA) + '</div></div>' + bdg
       + '</div>'
       + '<div class="dcf">' + cf('¿Se realizó?',d.SE_REALIZO) + cf('Motivo no realizado',d.MOTIVO_NO_REALIZADO) + cf('Detalle frustración',d.DETALLE_FRUSTRACION) + cf('¿Se reprograma?',d.SE_REPROGRAMA) + cf('Fecha reprogramación',d.FECHA_HORA_REPROGRAMACION) + '</div>'
-      + (d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<div style="margin-top:9px"><a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎 Oficio</a></div>' : '')
+      + (d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<div style="margin-top:9px;display:flex;gap:6px">'
+          + '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📋 Oficio</a>'
+          + (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '' ? '<a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">📄 Transcripción</a>' : '')
+          + '</div>' : '')
       + '</div>';
   });
   html += '<div style="text-align:center;padding:14px 0 6px;font-size:11px;color:var(--mu);border-top:1px solid var(--bo);margin-top:10px">Desarrollado por: <strong style="color:var(--az)">Jose Palacios</strong></div>';
