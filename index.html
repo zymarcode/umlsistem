@@ -86,11 +86,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .sbtog{display:none;position:fixed;top:12px;left:12px;z-index:300;width:40px;height:40px;background:var(--az);border:none;border-radius:10px;color:#fff;font-size:20px;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.25)}
 .sbov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150}
 /* ── CAMPANA DE NOTIFICACIONES (esquina superior derecha) ── */
-#notif-bell{display:none;position:fixed;top:12px;right:14px;z-index:400;width:42px;height:42px;background:var(--az);border:none;border-radius:12px;color:#fff;font-size:21px;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(26,115,232,.4);transition:transform .15s,box-shadow .15s}
-#notif-bell:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(26,115,232,.55)}
-#notif-bell.visible{display:flex}
-#notif-bell-badge{display:none;position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;border-radius:20px;font-size:10px;font-weight:800;padding:1px 5px;min-width:16px;text-align:center;border:2px solid var(--bg2);animation:badgePulse 2s infinite}
-#notif-bell-badge.show{display:block}
+
 
 /* ── CONTENIDO ── */
 .main{margin-left:var(--sbw);flex:1;padding:26px;min-height:100vh}
@@ -101,9 +97,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .ct{font-size:13px;font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bo);display:flex;align-items:center;gap:8px}
 
 /* ── TABLA ── */
-.tw{overflow-x:auto}
+.tw{overflow-x:auto;overflow-y:auto;max-height:65vh}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{background:#f8fafc;padding:9px 11px;text-align:left;font-weight:700;color:var(--mu);border-bottom:2px solid var(--bo);white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+th{background:#f8fafc;padding:9px 11px;text-align:left;font-weight:700;color:var(--mu);border-bottom:2px solid var(--bo);white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0;z-index:1}
 td{padding:8px 11px;border-bottom:1px solid var(--bo);vertical-align:middle}
 tr:hover td{background:#f8fafc}
 
@@ -446,11 +442,6 @@ tr:hover td{background:#f8fafc}
 <!-- Botón hamburguesa: solo visible en mobile cuando la app está activa -->
 <button class="sbtog" id="sbtog" onclick="togSB()">☰</button>
 
-<!-- Campana de notificaciones: visible para Admin y Asistente -->
-<button id="notif-bell" title="Notificaciones" onclick="nav2('notif')">
-  🔔
-  <span id="notif-bell-badge"></span>
-</button>
 
 <div class="sbov" id="sbov" onclick="closeSB()"></div>
 <div class="wrap">
@@ -1520,7 +1511,6 @@ function doLogout() {
   sessionStorage.clear();
   // Ocultar hamburguesa y campana al cerrar sesión
   document.getElementById('sbtog').classList.remove('visible');
-  document.getElementById('notif-bell').classList.remove('visible');
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
 }
@@ -1536,9 +1526,8 @@ function doLogout() {
 function startApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  // Activar hamburguesa y campana en mobile/desktop
+  // Activar hamburguesa en mobile
   document.getElementById('sbtog').classList.add('visible');
-  document.getElementById('notif-bell').classList.add('visible');
 
   var u = S.usuario;
   document.getElementById('uname').textContent = u.nombre;
@@ -2522,12 +2511,6 @@ function _renderBadgeNotif(count) {
   if (badge) {
     if (count > 0) { badge.textContent = count > 99 ? '99+' : count; badge.classList.add('show'); }
     else badge.classList.remove('show');
-  }
-  // Badge en la campana superior derecha
-  var bell = document.getElementById('notif-bell-badge');
-  if (bell) {
-    if (count > 0) { bell.textContent = count > 99 ? '99+' : count; bell.classList.add('show'); }
-    else bell.classList.remove('show');
   }
   // Badge dentro del chat (cbadge)
   var cbadge = document.getElementById('cbadge');
