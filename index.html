@@ -853,9 +853,6 @@ tr:hover td{background:#f8fafc}
         <div class="fi"><label>Fecha/hora evaluación</label><input type="datetime-local" id="me-fps" style="text-transform:none"></div>
       </div>
       <div class="fi" style="margin-top:10px"><label>Observaciones psicológicas</label><textarea id="me-obspsic" style="text-transform:none"></textarea></div>
-      <div style="display:flex;justify-content:flex-end;margin-top:14px">
-        <button class="btn bp sm" onclick="irAArchivosConCarpeta()">Siguiente → 📁 Archivos</button>
-      </div>
     </div>
     <div class="tabp" id="me-p3" style="display:none">
       <div class="fg2">
@@ -1809,8 +1806,8 @@ function loadDil() {
   var isAdm = S.usuario.rol === 'ADMINISTRADOR';
 
   document.getElementById('thead-dil').innerHTML = isAdm
-    ? '<th>N°</th><th>Carpeta Fiscal</th><th>Expediente</th><th>Fecha</th><th>Hora</th><th>Agraviados</th><th>Asistente</th><th>Reprogram.</th><th>Realizó</th><th>Acciones</th>'
-    : '<th>N°</th><th>Carpeta Fiscal</th><th>Expediente</th><th>Fecha</th><th>Hora</th><th>Agraviados</th><th>Reprogram.</th><th>Realizó</th><th>Acciones</th>';
+    ? '<th>N°</th><th>Carpeta Fiscal</th><th>Expediente</th><th>Fecha</th><th>Hora</th><th>Agraviados</th><th>Asistente</th><th>Reprogram.</th><th>Realizó</th><th>Oficio</th><th>Acciones</th>'
+    : '<th>N°</th><th>Carpeta Fiscal</th><th>Expediente</th><th>Fecha</th><th>Hora</th><th>Agraviados</th><th>Reprogram.</th><th>Realizó</th><th>Oficio</th><th>Acciones</th>';
 
   document.getElementById('ph-dil-btns').innerHTML = isAdm
     ? '<button class="btn bs sm" onclick="exportarXLS()">📥 Excel</button><button class="btn bp sm" onclick="nav2(\'agenda\')">➕ Nueva</button>'
@@ -1849,7 +1846,7 @@ function renderDil(items) {
     var ofc  = d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎</a>' : '<span class="b bgy" style="font-size:10px">Sin PDF</span>';
     var crep = d.CANTIDAD_REPROGRAMACION && d.CANTIDAD_REPROGRAMACION !== '0' && d.CANTIDAD_REPROGRAMACION !== '' ? '<span class="b bor">🔁 ' + esc(d.CANTIDAD_REPROGRAMACION) + '</span>' : '<span class="b bgy">0</span>';
     var acc  = isAdm
-      ? '<div style="display:flex;gap:3px"><button class="btn bp sm" onclick="editDilDir(\'' + esc(d.N) + '\')">✏️ Completar</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
+      ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bp sm" onclick="editDilDir(\'' + esc(d.N) + '\')">✏️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
       : '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️ Ver</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>';
     return '<tr>'
       + '<td><b>' + esc(d.N||'—') + '</b></td>'
@@ -1861,6 +1858,7 @@ function renderDil(items) {
       + (isAdm ? '<td>' + esc(d.ASISTENTE||'—') + '</td>' : '')
       + '<td>' + crep + '</td>'
       + '<td>' + bdg + '</td>'
+      + '<td>' + ofc + '</td>'
       + '<td>' + acc + '</td>'
       + '</tr>';
   }).join('');
@@ -1954,24 +1952,6 @@ function openEdit() {
 function meTab(i) {
   document.querySelectorAll('.tabs .tab').forEach(function(t, j){ t.classList.toggle('active', j === i); });
   document.querySelectorAll('#mo-edit .tabp').forEach(function(p, j){ p.style.display = j === i ? 'block' : 'none'; });
-}
-
-/** Desde tab Psicológico → ir a tab Archivos y mostrar info de carpeta fiscal */
-function irAArchivosConCarpeta() {
-  meTab(3);
-  // Mostrar banner con carpeta fiscal vinculada
-  var d = _dilActual;
-  if (!d) return;
-  var lh = '';
-  var cf = d.CARPETA_FISCAL || '—';
-  lh += '<div style="padding:10px 13px;background:#ede9fe;border-radius:9px;border:1px solid #c4b5fd;font-size:12px;color:var(--pur);margin-bottom:10px">';
-  lh += '📁 Carpeta Fiscal vinculada: <b>' + esc(cf) + '</b>';
-  if (d.EXPEDIENTE && d.EXPEDIENTE !== '') lh += ' &nbsp;|&nbsp; Expediente: <b>' + esc(d.EXPEDIENTE) + '</b>';
-  lh += '</div>';
-  if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px;margin-bottom:5px"><span>📋</span><span style="flex:1">Oficio actual</span><a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">Ver</a></div>';
-  if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px"><span>📄</span><span style="flex:1">Transcripción actual</span><a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">Ver</a></div>';
-  if (!d.S_OFICIO_URL && !d.TRANSCRIPCION_URL) lh += '<p style="font-size:12px;color:var(--mu)">Sin archivos actualmente. Puedes subir nuevos abajo.</p>';
-  document.getElementById('me-links').innerHTML = lh;
 }
 
 // Mostrar/ocultar sección de motivo cuando "No se realizó"
