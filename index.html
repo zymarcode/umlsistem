@@ -39,9 +39,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .fg input:focus{border-color:var(--az);box-shadow:0 0 0 3px rgba(26,115,232,.1)}
 
 /* ── BOTÓN LOGIN ── */
-.btn-login{width:100%;padding:13px;background:var(--az);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s,transform .15s,box-shadow .2s;margin-top:4px;position:relative;overflow:hidden}
+.btn-login{width:100%;padding:13px;background:var(--az);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:background .1s,transform .1s,box-shadow .1s;margin-top:4px;position:relative;overflow:hidden;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .btn-login:hover{background:var(--azd);transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,115,232,.4)}
-.btn-login:active{transform:translateY(0) scale(.98)}
+.btn-login:active{transform:scale(.97);transition:transform .05s}
 .btn-login.loading{pointer-events:none;background:var(--azd)}
 .btn-login .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.35);transform:scale(0);animation:rippleAnim .6s linear;pointer-events:none}
 @keyframes rippleAnim{to{transform:scale(4);opacity:0}}
@@ -55,7 +55,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 
 /* ── APP ── */
 #app{display:none}
-.wrap{display:flex;min-height:100vh}
+.wrap{display:flex;min-height:100vh;overflow:hidden}
 
 /* ── SIDEBAR ── */
 .sidebar{width:var(--sbw);background:var(--sb);color:#fff;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:200;transition:transform .3s}
@@ -65,7 +65,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .sbh h1{font-size:12px;font-weight:700;line-height:1.3}
 .sbh p{font-size:10px;color:#94a3b8}
 .sbnav{flex:1;padding:8px 0;overflow-y:auto}
-.ni{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;font-size:13px;color:#cbd5e1;transition:all .15s;border-left:3px solid transparent}
+.ni{display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;font-size:13px;color:#cbd5e1;transition:background .1s,color .1s;border-left:3px solid transparent;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .ni:hover{background:var(--sbh);color:#fff}
 .ni.active{background:rgba(26,115,232,.2);color:#fff;border-left-color:var(--az)}
 .ni .ico{width:20px;text-align:center;font-size:16px;flex-shrink:0}
@@ -83,7 +83,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 /* Hamburguesa: oculta por defecto en todos los tamaños.
    En mobile (≤768px) el media query la activa con display:flex,
    pero SOLO cuando tiene la clase 'visible' agregada por JS al hacer login. */
-.sbtog{display:none;position:fixed;top:12px;left:12px;z-index:300;width:40px;height:40px;background:var(--az);border:none;border-radius:10px;color:#fff;font-size:20px;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.sbtog{display:none;position:fixed;top:10px;left:10px;z-index:300;width:42px;height:42px;background:var(--az);border:none;border-radius:10px;color:#fff;font-size:20px;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.3);user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.sbtog:active{transform:scale(.93)}
 .sbov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150}
 /* ── CAMPANA DE NOTIFICACIONES (esquina superior derecha) ── */
 
@@ -91,7 +92,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 /* ── CONTENIDO ── */
 .main{margin-left:var(--sbw);flex:1;padding:26px;min-height:100vh}
 .page{display:none}.page.active{display:block}
-.ph{margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.ph{margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .phl h2{font-size:20px;font-weight:800}.phl p{color:var(--mu);font-size:12px;margin-top:2px}
 .card{background:var(--card);border-radius:var(--r);border:1px solid var(--bo);padding:18px;margin-bottom:14px}
 .ct{font-size:13px;font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bo);display:flex;align-items:center;gap:8px}
@@ -110,14 +111,19 @@ tr:hover td{background:#f8fafc}
 .bgy{background:#f1f5f9;color:#475569}.bpu{background:#ede9fe;color:#5b21b6}
 
 /* ── BOTONES ── */
-.btn{padding:9px 16px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.bp{background:var(--az);color:#fff}.bp:hover{background:var(--azd)}
-.bs{background:var(--grn);color:#fff}.bs:hover{background:#15803d}
-.bd{background:var(--red);color:#fff}.bd:hover{background:#dc2626}
-.bg{background:transparent;color:var(--mu);border:1.5px solid var(--bo)}.bg:hover{background:var(--bg);color:var(--tx)}
-.bpu2{background:var(--pur);color:#fff}.bpu2:hover{background:#6d28d9}
+.btn{padding:9px 16px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:background .1s,transform .1s,box-shadow .1s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;will-change:transform}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+.btn:active{transform:scale(.96)!important;transition:transform .05s}
+.bp{background:var(--az);color:#fff}.bp:hover:not(:disabled){background:var(--azd);transform:translateY(-1px)}
+.bs{background:var(--grn);color:#fff}.bs:hover:not(:disabled){background:#15803d;transform:translateY(-1px)}
+.bd{background:var(--red);color:#fff}.bd:hover:not(:disabled){background:#dc2626;transform:translateY(-1px)}
+.bg{background:transparent;color:var(--mu);border:1.5px solid var(--bo)}.bg:hover:not(:disabled){background:var(--bg);color:var(--tx)}
+.bpu2{background:var(--pur);color:#fff}.bpu2:hover:not(:disabled){background:#6d28d9;transform:translateY(-1px)}
+.bora{background:var(--ora);color:#fff;border:none;border-radius:9px;cursor:pointer;font-weight:700;transition:background .1s,transform .1s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;user-select:none;touch-action:manipulation}.bora:hover:not(:disabled){background:#d97706;transform:translateY(-1px)}
+.bora:active{transform:scale(.96)!important}
 .sm{padding:5px 10px;font-size:12px}
+/* ── ACCIONES EN TABLA ── */
+.acc-btns{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
 
 /* ── FORMULARIOS ── */
 .fg2{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
@@ -134,15 +140,27 @@ tr:hover td{background:#f8fafc}
 .req{color:var(--red)}
 
 /* ── BUSCADOR ── */
-.sbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-.sinp{flex:1;min-width:200px;padding:10px 13px;border:1.5px solid var(--bo);border-radius:9px;font-size:13px;outline:none;transition:border .2s;text-transform:uppercase}
+.sbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.sinp{flex:1;min-width:180px;padding:10px 13px;border:1.5px solid var(--bo);border-radius:9px;font-size:13px;outline:none;transition:border .2s;text-transform:uppercase;-webkit-appearance:none}
 .sinp:focus{border-color:var(--az);box-shadow:0 0 0 3px rgba(26,115,232,.1)}
 
 /* ── ONLINE ── */
-.odot{width:8px;height:8px;border-radius:50%;background:var(--grn);display:inline-block;margin-right:4px;animation:pulse 2s infinite}
+.odot{width:9px;height:9px;border-radius:50%;background:var(--grn);display:inline-block;margin-right:5px;flex-shrink:0}
+.odot.online{animation:pulseGrn 2s infinite;background:var(--grn)}
+.odot.offline{background:#cbd5e1;animation:none}
+@keyframes pulseGrn{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,.5)}70%{box-shadow:0 0 0 5px rgba(22,163,74,0)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.ocard{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border-radius:10px;margin-bottom:7px}
-.oav{width:32px;height:32px;border-radius:50%;background:var(--az);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+.ocard{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--bg);border-radius:12px;margin-bottom:8px;border:1px solid var(--bo);transition:box-shadow .15s}
+.ocard:hover{box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.ocard.offline{opacity:.65}
+.oav{width:36px;height:36px;border-radius:50%;background:var(--az);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;text-transform:uppercase}
+.oav.offline{background:#94a3b8}
+/* Grid de usuarios online */
+.online-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+/* Stats barra online */
+.online-stats{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.online-stat{background:var(--card);border:1px solid var(--bo);border-radius:9px;padding:8px 14px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px}
+.online-stat span{font-size:18px;font-weight:900}
 
 /* ── CALENDARIO ── */
 .calw{display:flex;gap:0;border:1px solid var(--bo);border-radius:var(--r);overflow:hidden;background:var(--card)}
@@ -297,111 +315,59 @@ tr:hover td{background:#f8fafc}
 
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
-  /* Hamburguesa: visible en mobile solo cuando JS agrega la clase .visible
-     (se agrega en startApp(), se quita en doLogout()) */
   .sbtog.visible{display:flex}
-
   .sidebar{transform:translateX(-100%)}
   .sidebar.open{transform:translateX(0)}
   .sbov.open{display:block}
-  .main{margin-left:0!important;padding:14px;padding-top:58px}
+  .main{margin-left:0!important;padding:10px;padding-top:60px;min-height:100vh;width:100%;max-width:100vw;overflow-x:hidden}
   .calw{flex-direction:column}
   .calsb{width:100%;border-right:none;border-bottom:1px solid var(--bo)}
-  .fg2{grid-template-columns:1fr}
-  .ph{flex-direction:column;align-items:flex-start}
+  .fg2{grid-template-columns:1fr!important}
+  .ph{flex-direction:column;align-items:flex-start;gap:8px}
+  .ph > div:last-child{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+  .ph > div:last-child .btn{flex:1;justify-content:center;min-width:0}
+  .phl h2{font-size:17px}
 
-  /* ══════════════════════════════════════════
-     TABLAS RESPONSIVE — modo tarjeta en mobile
-     Cada fila se convierte en una tarjeta con
-     etiqueta + valor apilados verticalmente
-     ══════════════════════════════════════════ */
+  /* ─ TABLAS: scroll horizontal en mobile (más confiable) ─ */
+  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);max-height:none}
 
-  /* Contenedor con scroll suave */
-  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r)}
+  /* Botones compactos */
+  .btn.sm{padding:5px 8px;font-size:11px}
+  .btn{font-size:12px;padding:8px 12px}
+  .acc-btns{flex-wrap:wrap;gap:4px}
 
-  /* Convertir tabla en bloque para poder apilar filas */
-  .tw table,
-  .tw thead,
-  .tw tbody,
-  .tw th,
-  .tw td,
-  .tw tr{display:block;width:100%}
-
-  /* Ocultar cabecera visual (se muestra como label en cada celda) */
-  .tw thead tr{
-    position:absolute;
-    top:-9999px;
-    left:-9999px;
-    visibility:hidden
-  }
-
-  /* Cada fila = tarjeta */
-  .tw tbody tr{
-    background:var(--card);
-    border:1px solid var(--bo);
-    border-radius:10px;
-    margin-bottom:10px;
-    padding:10px 12px;
-    box-shadow:0 1px 4px rgba(0,0,0,.06);
-  }
-  .tw tbody tr:hover{background:#f8fafc}
-
-  /* Cada celda = fila con etiqueta + valor */
-  .tw tbody td{
-    display:flex;
-    align-items:flex-start;
-    gap:8px;
-    padding:5px 0;
-    border:none;
-    border-bottom:1px solid var(--bo);
-    font-size:12px;
-    line-height:1.4;
-  }
-  .tw tbody td:last-child{border-bottom:none;padding-bottom:0}
-  .tw tbody td:first-child{padding-top:0}
-
-  /* Etiqueta generada desde data-label (asignado por JS) */
-  .tw tbody td::before{
-    content:attr(data-label);
-    font-size:9px;
-    font-weight:800;
-    color:var(--mu);
-    text-transform:uppercase;
-    letter-spacing:.4px;
-    min-width:90px;
-    flex-shrink:0;
-    padding-top:2px;
-  }
-
-  /* Celdas sin etiqueta (acciones) — centradas */
-  .tw tbody td[data-label="Acciones"],
-  .tw tbody td:last-child{
-    justify-content:flex-end;
-    flex-wrap:wrap;
-    gap:5px;
-    border-bottom:none;
-  }
-  .tw tbody td[data-label="Acciones"]::before,
-  .tw tbody td:last-child::before{display:none}
-
-  /* Ocultar columnas vacías o de ID en mobile */
-  .tw tbody td:empty{display:none}
-
-  /* Botones más compactos */
-  .btn.sm{padding:5px 9px;font-size:11px}
-
-  /* Cards del dashboard en 2 columnas */
+  /* Dashboard */
   .dg{grid-template-columns:repeat(2,1fr)}
   .dcg{grid-template-columns:1fr}
-
-  /* Buscador ocupa todo el ancho */
-  .sinp{min-width:100%}
-
-  /* Documentos en columna única */
+  .sinp{min-width:0;width:100%}
+  .sbar{flex-direction:column}
   .docg{grid-template-columns:1fr}
 
-  /* Modal más cómodo en mobile */
-  .modal{padding:16px;max-height:95vh}
+  /* Card de stats en dashboard */
+  .ds{padding:12px 8px}
+  .dsn{font-size:24px!important}
+
+  /* Modal */
+  .modal{padding:14px;max-height:95vh;width:95%}
+  .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tab{white-space:nowrap;min-width:max-content}
+
+  /* Calendario */
+  .sg{grid-template-columns:repeat(3,1fr)}
+  .sbtn{padding:10px 6px;font-size:13px}
+
+  /* Fix card online en mobile */
+  .online-grid{grid-template-columns:1fr!important}
+  .online-stats{flex-direction:column;gap:6px}
+
+  /* Fix chat mobile */
+  .chatw{height:calc(100vh - 180px);min-height:280px}
+
+  /* Fix page psico header */
+  #page-psico .ph > div:last-child{flex-wrap:wrap}
+
+  /* Evitar overflow horizontal global */
+  html,body{overflow-x:hidden;max-width:100vw}
 }
 </style>
 </head>
@@ -762,8 +728,18 @@ tr:hover td{background:#f8fafc}
         <button class="btn bp" onclick="openUsr()">➕ Nuevo usuario</button>
       </div>
       <div class="card" id="card-online">
-        <div class="ct">🟢 En línea ahora</div>
-        <div id="lista-online"><p style="font-size:13px;color:var(--mu)">Cargando...</p></div>
+        <div class="ct" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <span>🟢 Estado de asistentes</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span id="online-timestamp" style="font-size:10px;color:var(--mu)"></span>
+            <button class="btn bg sm" onclick="loadOnline()" style="padding:4px 10px;font-size:11px">🔄</button>
+          </div>
+        </div>
+        <div id="online-stats-bar" class="online-stats" style="display:none">
+          <div class="online-stat" style="border-left:3px solid var(--grn)"><div class="odot online"></div><span id="cnt-online">0</span> en línea</div>
+          <div class="online-stat" style="border-left:3px solid #94a3b8"><div class="odot offline"></div><span id="cnt-offline">0</span> desconectados</div>
+        </div>
+        <div id="lista-online"><p style="font-size:13px;color:var(--mu)">⏳ Cargando...</p></div>
       </div>
       <div class="card">
         <div class="tw">
@@ -1006,17 +982,28 @@ var API_URL = window.API_URL || 'https://script.google.com/macros/s/AKfycbwGXWkS
  * @param {Function} onError   - Callback de error (recibe el objeto Error)
  */
 function _gsrCall(action, params, onSuccess, onError) {
+  var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 55000) : null;
   fetch(API_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'text/plain' }, // text/plain evita preflight CORS en GAS
-    body: JSON.stringify({ action: action, params: params || [] })
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: action, params: params || [] }),
+    signal: ctrl ? ctrl.signal : undefined
   })
   .then(function(res) {
+    if (timer) clearTimeout(timer);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     return res.json();
   })
   .then(function(data) { if (onSuccess) onSuccess(data); })
-  .catch(function(err) { if (onError) onError(err); });
+  .catch(function(err) {
+    if (timer) clearTimeout(timer);
+    if (err && err.name === 'AbortError') {
+      if (onError) onError(new Error('Tiempo de espera agotado. Intenta de nuevo.'));
+    } else {
+      if (onError) onError(err);
+    }
+  });
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1081,6 +1068,9 @@ var MENU_AST = [
 /** Estado del polling de notificaciones */
 var _notifPollTimer = null;
 var _notifNoLeidas = 0;
+
+/** Timer de auto-refresh del panel online */
+var _onlineTimer = null;
 
 // ════════════════════════════════════════════════════════════
 // MÓDULO 2: UTILIDADES — Formateo y helpers DOM
@@ -1504,8 +1494,9 @@ document.getElementById('l-pass').addEventListener('keydown', function(e) {
 
 /** Cierra la sesión del usuario */
 function doLogout() {
-  // Detener polling de notificaciones
+  // Detener polling de notificaciones y online refresh
   if (_notifPollTimer) { clearInterval(_notifPollTimer); _notifPollTimer = null; }
+  if (_onlineTimer) { clearTimeout(_onlineTimer); _onlineTimer = null; }
   _gsrCall('logout', [S.token], null, null);
   S = { token: null, usuario: null };
   sessionStorage.clear();
@@ -1615,7 +1606,11 @@ function nav2(id) {
     psico:     loadCitasPsico
   };
   if (id === 'usr') { loadUsr(); loadOnline(); }
-  else if (cargadores[id]) cargadores[id]();
+  else {
+    /* Al salir de usuarios, cancelar auto-refresh online */
+    if (_onlineTimer) { clearTimeout(_onlineTimer); _onlineTimer = null; }
+    if (cargadores[id]) cargadores[id]();
+  }
 
   setTimeout(toggleFloatingBtn, 100);
 }
@@ -2148,10 +2143,10 @@ function renderTablaPsico(items) {
       + '<td>' + esc(c.DELITO||c.DELITO_GENERICO||'—') + '</td>'
       + '<td>' + esc(c.N_CITA||'—') + '</td>'
       + '<td><span class="b ' + (c.ASISTENCIA && c.ASISTENCIA !== '' ? 'bgr' : 'bgy') + '">' + esc(c.ASISTENCIA||'—') + '</span></td>'
-      + '<td><div style="display:flex;gap:4px;flex-wrap:wrap">'
+      + '<td class="td-acc"><div class="acc-btns">'
         + '<button class="btn bpu2 sm" onclick="openEditPsico(\'' + esc(c.ID) + '\')" title="Editar">✏️</button>'
         + '<button class="btn bd sm" onclick="elimCitaPsico(\'' + esc(c.ID) + '\')" title="Eliminar">🗑️</button>'
-        + '<button onclick="generarPdfPsicologia(\'' + esc(c.ID) + '\')" style="background:#f59e0b;color:#fff;border:none;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:11px;" title="PDF">📄 PDF</button>'
+        + '<button class="btn bora sm" onclick="generarPdfPsicologia(\'' + esc(c.ID) + '\')" title="Generar PDF">📄 PDF</button>'
       + '</div></td>'
     + '</tr>';
   }).join('');
@@ -2589,24 +2584,131 @@ function leerN(id, el) {
 
 function loadUsr() {
   if (S.usuario.rol !== 'ADMINISTRADOR') return;
+  /* Cargar usuarios Y estado online en paralelo */
+  var usData = null, onlineData = null;
+  var pending = 2;
+  function maybeRender() {
+    if (--pending > 0) return;
+    if (usData) renderUsr(usData);
+  }
   _gsrCall('obtenerUsuarios', [S.token],
-    function(r) { if (r.ok) renderUsr(r.datos); },
-    function(){});
+    function(r) { if (r.ok) usData = r.datos; maybeRender(); },
+    function(){ maybeRender(); });
+  _gsrCall('obtenerUsuariosEnLinea', [S.token],
+    function(r) {
+      _idsEnLineaCache = {};
+      if (r.ok && r.datos) {
+        r.datos.forEach(function(u){ _idsEnLineaCache[String(u.id||'')] = true; _idsEnLineaCache[String(u.email||'')] = true; });
+      }
+      maybeRender();
+    },
+    function(){ maybeRender(); });
 }
 
 function loadOnline() {
   var c = document.getElementById('lista-online');
-  _gsrCall('obtenerUsuariosEnLinea', [S.token],
-    function(r) {
-      if (!r.ok || !r.datos || !r.datos.length) { c.innerHTML = '<p style="font-size:13px;color:var(--mu)">Ningún usuario activo en este momento</p>'; return; }
-      c.innerHTML = r.datos.map(function(u) {
-        return '<div class="ocard"><div class="oav">' + u.nombre.charAt(0) + '</div>'
-          + '<div style="flex:1"><div style="font-size:12px;font-weight:700"><span class="odot"></span>' + esc(u.nombre) + '</div>'
-          + '<div style="font-size:10px;color:var(--mu)">' + esc(u.rol) + ' · ' + esc(u.email) + '</div></div>'
-          + '<span class="b bgr" style="font-size:10px">En línea</span></div>';
-      }).join('');
+  c.innerHTML = '<p style="font-size:13px;color:var(--mu)">⏳ Actualizando...</p>';
+
+  /* Primero obtenemos TODOS los usuarios para mostrar online/offline */
+  _gsrCall('obtenerUsuarios', [S.token],
+    function(rAll) {
+      if (!rAll.ok) { c.innerHTML = '<p style="font-size:13px;color:var(--red)">Error al cargar usuarios</p>'; return; }
+      var todosLosUsers = (rAll.datos || []).filter(function(u){ return u.rol === 'ASISTENTE'; });
+
+      /* Luego obtenemos los que están actualmente en línea */
+      _gsrCall('obtenerUsuariosEnLinea', [S.token],
+        function(r) {
+          var enLinea = (r.ok && r.datos) ? r.datos : [];
+          var idsEnLinea = {};
+          enLinea.forEach(function(u){ idsEnLinea[String(u.id || u.email)] = true; });
+
+          /* Marcar cada usuario con su estado online/offline */
+          var conEstado = todosLosUsers.map(function(u) {
+            var keyId  = String(u.id || '');
+            var keyEm  = String(u.email || '');
+            var online = idsEnLinea[keyId] || idsEnLinea[keyEm];
+            /* Buscar datos adicionales del usuario en línea si existe */
+            var uOnline = enLinea.filter(function(x){ return String(x.id||x.email) === keyId || String(x.email) === keyEm; })[0];
+            return { nombre: u.nombre, email: u.email, rol: u.rol, estado: u.estado, online: !!online, ultimaVez: uOnline ? uOnline.ultimaVez : null };
+          });
+
+          /* Ordenar: en línea primero */
+          conEstado.sort(function(a,b){ return (b.online ? 1 : 0) - (a.online ? 1 : 0); });
+
+          var totalOnline  = conEstado.filter(function(u){ return u.online; }).length;
+          var totalOffline = conEstado.filter(function(u){ return !u.online; }).length;
+
+          /* Actualizar stats bar */
+          var statsBar = document.getElementById('online-stats-bar');
+          var cntOn    = document.getElementById('cnt-online');
+          var cntOff   = document.getElementById('cnt-offline');
+          if (statsBar) statsBar.style.display = conEstado.length ? 'flex' : 'none';
+          if (cntOn)    cntOn.textContent  = totalOnline;
+          if (cntOff)   cntOff.textContent = totalOffline;
+
+          /* Timestamp */
+          var ts = document.getElementById('online-timestamp');
+          if (ts) { var now = new Date(); ts.textContent = 'Actualizado ' + pad2(now.getHours()) + ':' + pad2(now.getMinutes()) + ':' + pad2(now.getSeconds()); }
+
+          if (!conEstado.length) {
+            c.innerHTML = '<p style="font-size:13px;color:var(--mu)">No hay asistentes registrados</p>';
+            return;
+          }
+
+          c.innerHTML = '<div class="online-grid">' + conEstado.map(function(u) {
+            var inicial = (u.nombre || '?').charAt(0).toUpperCase();
+            var estadoLabel = u.online
+              ? '<span class="b bgr" style="font-size:10px;padding:3px 9px">● En línea</span>'
+              : '<span class="b bgy" style="font-size:10px;padding:3px 9px">○ Desconectado</span>';
+            var tiempoInfo = '';
+            if (!u.online && u.ultimaVez) {
+              try {
+                var d = new Date(u.ultimaVez);
+                if (!isNaN(d.getTime())) {
+                  tiempoInfo = '<div style="font-size:9px;color:var(--mu);margin-top:2px">Última vez: ' + pad2(d.getDate()) + '/' + pad2(d.getMonth()+1) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + '</div>';
+                }
+              } catch(e){}
+            }
+            var userActivoLabel = u.estado === 'ACTIVO' ? '' : '<span style="font-size:9px;color:var(--ora);margin-left:4px">(inactivo)</span>';
+            return '<div class="ocard' + (u.online ? '' : ' offline') + '">'
+              + '<div class="oav' + (u.online ? '' : ' offline') + '">' + esc(inicial) + '</div>'
+              + '<div style="flex:1;min-width:0">'
+                + '<div style="font-size:12px;font-weight:700;display:flex;align-items:center;flex-wrap:wrap;gap:3px">'
+                  + '<span class="odot ' + (u.online ? 'online' : 'offline') + '"></span>'
+                  + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px" title="' + esc(u.nombre) + '">' + esc(u.nombre) + '</span>'
+                  + userActivoLabel
+                + '</div>'
+                + '<div style="font-size:10px;color:var(--mu);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(u.email) + '</div>'
+                + tiempoInfo
+              + '</div>'
+              + estadoLabel
+              + '</div>';
+          }).join('') + '</div>';
+
+          /* Si hay usuarios en línea, hacer refresh automático en 60s */
+          if (_onlineTimer) clearTimeout(_onlineTimer);
+          if (totalOnline > 0) {
+            _onlineTimer = setTimeout(function(){ if (S.usuario && S.usuario.rol === 'ADMINISTRADOR') loadOnline(); }, 60000);
+          }
+        },
+        function() {
+          /* Si falla obtenerUsuariosEnLinea, mostrar todos como offline */
+          var conEstado = todosLosUsers.map(function(u){ return Object.assign({}, u, {online:false, ultimaVez:null}); });
+          var ts = document.getElementById('online-timestamp');
+          if (ts) ts.textContent = 'Sin datos de sesión';
+          var statsBar = document.getElementById('online-stats-bar');
+          if (statsBar) statsBar.style.display = 'flex';
+          var cntOn  = document.getElementById('cnt-online');  if (cntOn) cntOn.textContent = '0';
+          var cntOff = document.getElementById('cnt-offline'); if (cntOff) cntOff.textContent = conEstado.length;
+          c.innerHTML = '<div class="online-grid">' + conEstado.map(function(u){
+            return '<div class="ocard offline"><div class="oav offline">' + esc((u.nombre||'?').charAt(0).toUpperCase()) + '</div>'
+              + '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700"><span class="odot offline"></span>' + esc(u.nombre) + '</div>'
+              + '<div style="font-size:10px;color:var(--mu)">' + esc(u.email) + '</div></div>'
+              + '<span class="b bgy" style="font-size:10px">○ Desconectado</span></div>';
+          }).join('') + '</div>';
+        });
     },
-    function(){ c.innerHTML = '<p style="font-size:13px;color:var(--mu)">—</p>'; });
+    function(){ c.innerHTML = '<p style="font-size:13px;color:var(--red)">Error de conexión</p>'; });
 }
 
 function renderUsr(us) {
@@ -2619,10 +2721,10 @@ function renderUsr(us) {
       + '<td>' + esc(u.celular||'—') + '</td>'
       + '<td><span class="b ' + (u.rol === 'ADMINISTRADOR' ? 'bre' : 'baz') + '">' + u.rol + '</span></td>'
       + '<td><span class="b ' + (u.estado === 'ACTIVO' ? 'bgr' : 'bgy') + '">' + u.estado + '</span></td>'
-      + '<td>'
+      + '<td class="td-acc"><div class="acc-btns">'
         + '<button class="btn bg sm" onclick="editUsr(\'' + u.id + '\',\'' + esc(u.nombre) + '\',\'' + esc(u.email) + '\',\'' + esc(u.celular||'') + '\',\'' + u.rol + '\')">✏️ Editar</button>'
-        + ' <button class="btn bd sm" onclick="elimUsr(\'' + u.id + '\')">🗑️</button>'
-      + '</td></tr>';
+        + '<button class="btn bd sm" onclick="elimUsr(\'' + u.id + '\')">🗑️</button>'
+      + '</div></td></tr>';
   }).join('');
   asignarDataLabels('#tbody-usr', '#thead-usr');
 }
