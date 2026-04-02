@@ -1872,7 +1872,17 @@ function renderDil(items) {
   tb.innerHTML = items.map(function(d) {
     var real = d.SE_REALIZO || '';
     var bdg  = real === 'SÍ' ? '<span class="b bgr">✅ Sí</span>' : real === 'NO' ? '<span class="b bre">❌ No</span>' : '<span class="b bgy">⏳</span>';
-    var ofc  = d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎</a>' : '<span class="b bgy" style="font-size:10px">Sin PDF</span>';
+    var ofc;
+    if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') {
+      ofc = '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎</a>';
+    } else if (!isAdm) {
+      // Asistente: botón 📤 que abre selector de archivo oculto
+      var uid = 'upd-' + esc(d.N);
+      ofc = '<input type="file" id="' + uid + '" accept="application/pdf" style="display:none" onchange="_subirOficioDil(this,\'' + esc(d.N) + '\')">'
+          + '<button class="btn bp sm" title="Subir PDF" onclick="document.getElementById(\'' + uid + '\').click()">📤</button>';
+    } else {
+      ofc = '<span class="b bgy" style="font-size:10px">Sin PDF</span>';
+    }
     var crep = d.CANTIDAD_REPROGRAMACION && d.CANTIDAD_REPROGRAMACION !== '0' && d.CANTIDAD_REPROGRAMACION !== '' ? '<span class="b bor">🔁 ' + esc(d.CANTIDAD_REPROGRAMACION) + '</span>' : '<span class="b bgy">0</span>';
     var acc  = isAdm
       ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
@@ -2434,10 +2444,41 @@ function uploadDoc(carpeta, inputId, nmId) {
   });
 }
 function elimDoc(id, carpeta, elId) {
-  if (!confirm('¿Eliminar este documento?')) return;
+  if (!confirm('¿Eliminar este documento? Se borrará también de Drive.')) return;
   _gsrCall('eliminarDocumento', [S.token, id],
     function(r) { if (r.ok) { toast('✅ Eliminado', 'ok'); cargarListaDocs(carpeta, elId); } else toast(r.error, 'error'); },
     null);
+}
+
+/**
+ * Sube el oficio PDF de una diligencia directamente desde la tabla del asistente.
+ * Al terminar reemplaza el botón 📤 por el enlace 📎 y oculta el input.
+ */
+function _subirOficioDil(inputEl, n) {
+  var file = inputEl.files[0];
+  if (!file) return;
+  if (file.type !== 'application/pdf') { toast('Solo se permiten archivos PDF', 'error'); return; }
+  toast('⏳ Subiendo PDF...', 'ok');
+  uploadB64(file, 'oficios', function(url) {
+    if (!url) return;
+    // Actualizar la diligencia con la nueva URL del oficio
+    _gsrCall('actualizarDiligencia', [S.token, n, { S_OFICIO: file.name, S_OFICIO_URL: url }],
+      function(r2) {
+        if (r2.ok) {
+          toast('✅ PDF vinculado', 'ok');
+          // Reemplazar el botón por el enlace 📎 sin recargar toda la tabla
+          var btn = inputEl.parentElement;
+          if (btn) btn.outerHTML = '<a href="' + url + '" target="_blank" class="btn bg sm">📎</a>';
+          // Actualizar también el cache local
+          if (_dilAll) _dilAll.forEach(function(d) { if (String(d.N) === String(n)) d.S_OFICIO_URL = url; });
+          if (_dilFilt) _dilFilt.forEach(function(d) { if (String(d.N) === String(n)) d.S_OFICIO_URL = url; });
+        } else {
+          toast('Error al vincular: ' + r2.error, 'error');
+        }
+      },
+      function(e) { toast('Error: ' + e.message, 'error'); }
+    );
+  });
 }
 
 // ════════════════════════════════════════════════════════════
