@@ -76,14 +76,12 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .urole{font-size:10px;color:#94a3b8}
 .btnlo{margin-top:10px;width:100%;padding:8px;background:transparent;border:1px solid #475569;color:#94a3b8;border-radius:8px;font-size:12px;cursor:pointer;transition:all .2s}
 .btnlo:hover{background:rgba(239,68,68,.15);border-color:var(--red);color:var(--red)}
-/* ── CAMPANITA ── */
-.bell-btn{position:relative;background:transparent;border:none;cursor:pointer;padding:6px 8px;border-radius:8px;color:#94a3b8;font-size:20px;transition:all .2s;display:flex;align-items:center;justify-content:center}
-.bell-btn:hover{background:rgba(255,255,255,.1);color:#fff}
-.bell-badge{position:absolute;top:2px;right:2px;background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;display:none;animation:bellPulse 1s ease infinite}
-@keyframes bellPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
-@keyframes bellRing{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-15deg)}40%,80%{transform:rotate(15deg)}}
-.bell-btn.ringing .bell-ico{display:inline-block;animation:bellRing .5s ease}
-.bell-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.bell-wrap{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.bell-btn{position:relative;background:rgba(255,255,255,.08);border:none;cursor:pointer;padding:7px 9px;border-radius:8px;color:#cbd5e1;font-size:18px;transition:all .2s;flex-shrink:0}
+.bell-btn:hover{background:rgba(255,255,255,.15);color:#fff}
+.bell-badge{position:absolute;top:-3px;right:-3px;background:var(--red);color:#fff;border-radius:50%;min-width:16px;height:16px;font-size:9px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 3px}
+@keyframes bellRing{0%,100%{transform:rotate(0)}15%,45%{transform:rotate(-18deg)}30%,60%{transform:rotate(18deg)}}
+.bell-btn.ringing{animation:bellRing .5s ease}
 /* Hamburguesa: oculta por defecto en todos los tamaños.
    En mobile (≤768px) el media query la activa con display:flex,
    pero SOLO cuando tiene la clase 'visible' agregada por JS al hacer login. */
@@ -461,12 +459,9 @@ tr:hover td{background:#f8fafc}
           <div class="urole" id="urole">—</div>
         </div>
       </div>
-      <div class="bell-row">
-        <button class="bell-btn" id="bell-btn" onclick="nav2('notif')" title="Notificaciones">
-          <span class="bell-ico">🔔</span>
-          <span class="bell-badge" id="bell-badge"></span>
-        </button>
-        <button class="btnlo" style="margin-top:0;flex:1;margin-left:8px" onclick="doLogout()">🚪 Cerrar sesión</button>
+      <div class="bell-wrap">
+        <button class="bell-btn" id="bell-btn" onclick="nav2('notif')" title="Notificaciones">🔔<span class="bell-badge" id="bell-badge"></span></button>
+        <button class="btnlo" style="margin-top:0;flex:1" onclick="doLogout()">🚪 Cerrar sesión</button>
       </div>
     </div>
   </aside>
@@ -975,19 +970,17 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
-
-<!-- Modal: Visor PDF (Drive embed) -->
+<!-- Modal: Visor PDF (iframe Drive) -->
 <div class="mo" id="mo-pdf-visor">
-  <div class="modal" style="max-width:860px;width:96vw;padding:0;overflow:hidden;border-radius:16px">
-    <div class="mhdr" style="padding:14px 18px;border-radius:16px 16px 0 0">
-      <div class="mtit" id="mo-pdf-titulo">Documento</div>
-      <button class="mcls" onclick="cerrarVisorPdf()">✕</button>
+  <div class="modal" style="max-width:880px;width:96vw;padding:0;overflow:hidden;border-radius:16px">
+    <div class="mhdr" style="padding:12px 18px">
+      <div class="mtit" id="mo-pdf-titulo" style="font-size:14px">Documento</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a id="mo-pdf-ext-link" href="#" target="_blank" class="btn bg sm">↗️ Drive</a>
+        <button class="mcls" onclick="cerrarVisorPdf()">✕</button>
+      </div>
     </div>
-    <iframe id="mo-pdf-frame" src="" style="width:100%;height:75vh;border:none;display:block" allowfullscreen></iframe>
-    <div style="padding:10px 16px;background:#f8fafc;border-top:1px solid var(--bo);display:flex;justify-content:flex-end;gap:8px;border-radius:0 0 16px 16px">
-      <button class="btn bg sm" onclick="cerrarVisorPdf()">Cerrar</button>
-      <button class="btn bp sm" id="mo-pdf-abrir-ext" onclick="window.open(document.getElementById('mo-pdf-frame').src.replace('/preview',''), '_blank')">↗️ Abrir en Drive</button>
-    </div>
+    <iframe id="mo-pdf-frame" src="" style="width:100%;height:78vh;border:none;display:block"></iframe>
   </div>
 </div>
 
@@ -1136,20 +1129,6 @@ function fF(s) {
 
 /** Alias de horaCorta para contexto de tabla */
 function fH(s) { return horaCorta(s); }
-
-/** Normaliza URL de Drive para visualización correcta (corrige URLs antiguas) */
-function fixDriveUrl(url) {
-  if (!url || url === '') return url;
-  // Si ya es URL de visualización pública, está bien
-  if (url.indexOf('/view') >= 0) return url;
-  // Convertir URL de descarga directa a visualización
-  var m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  if (m) return 'https://drive.google.com/file/d/' + m[1] + '/view?usp=sharing';
-  // Convertir ?id= style
-  var m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (m2) return 'https://drive.google.com/file/d/' + m2[1] + '/view?usp=sharing';
-  return url;
-}
 
 /** Normaliza fecha a formato YYYY-MM-DD (para lógica interna y CalWidget) */
 function nF(f) {
@@ -1588,56 +1567,48 @@ function startApp() {
     function(){});
   loadCfgVisual();
   nav2('dashboard');
-  // Iniciar polling de notificaciones (campanita)
   iniciarPollNotif();
 }
 
 // ════════════════════════════════════════════════════════════
-// MÓDULO: CAMPANITA DE NOTIFICACIONES
-// Polling cada 30s para actualizar el badge en el sidebar
+// CAMPANITA — polling de notificaciones no leídas
 // ════════════════════════════════════════════════════════════
-
 var _bellTimer = null;
 
-/** Actualiza el badge de la campanita con las notificaciones no leídas */
 function actualizarBell() {
   if (!S.token) return;
   _gsrCall('obtenerNotificaciones', [S.token],
     function(r) {
       if (!r.ok) return;
-      var noLeidos = 0;
+      var n = 0;
       (r.datos || []).forEach(function(m) {
         var sent = S.usuario.rol === 'ADMINISTRADOR' && m.remitente === S.usuario.id;
-        if (!m.leida && !sent) noLeidos++;
+        if (!m.leida && !sent) n++;
       });
       var badge = document.getElementById('bell-badge');
       var btn   = document.getElementById('bell-btn');
       if (!badge || !btn) return;
-      if (noLeidos > 0) {
-        badge.textContent = noLeidos > 9 ? '9+' : noLeidos;
+      if (n > 0) {
+        badge.textContent = n > 9 ? '9+' : n;
         badge.style.display = 'flex';
         btn.classList.add('ringing');
         setTimeout(function(){ btn.classList.remove('ringing'); }, 600);
       } else {
         badge.style.display = 'none';
-        btn.classList.remove('ringing');
       }
-    },
-    function(){});
+    }, function(){});
 }
 
-/** Inicia el polling de notificaciones */
 function iniciarPollNotif() {
-  actualizarBell(); // Primera vez inmediata
+  actualizarBell();
   if (_bellTimer) clearInterval(_bellTimer);
-  _bellTimer = setInterval(actualizarBell, 30000); // Cada 30 segundos
+  _bellTimer = setInterval(actualizarBell, 30000);
 }
 
-/** Detiene el polling al cerrar sesión */
 function detenerPollNotif() {
   if (_bellTimer) { clearInterval(_bellTimer); _bellTimer = null; }
-  var badge = document.getElementById('bell-badge');
-  if (badge) badge.style.display = 'none';
+  var b = document.getElementById('bell-badge');
+  if (b) b.style.display = 'none';
 }
 
 /** Puebla todos los <select> del sistema con las listas dinámicas del backend */
@@ -1937,7 +1908,7 @@ function renderDil(items) {
   tb.innerHTML = items.map(function(d) {
     var real = d.SE_REALIZO || '';
     var bdg  = real === 'SÍ' ? '<span class="b bgr">✅ Sí</span>' : real === 'NO' ? '<span class="b bre">❌ No</span>' : '<span class="b bgy">⏳</span>';
-    var ofc  = d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + fixDriveUrl(d.S_OFICIO_URL) + '" target="_blank" title="Ver oficio PDF" style="text-decoration:none;font-size:20px;line-height:1;display:inline-block">📎</a>' : '<span style="color:#94a3b8;font-size:11px">—</span>';
+    var ofc  = d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + d.S_OFICIO_URL + '" target="_blank" title="Ver oficio PDF" style="font-size:20px;text-decoration:none">📎</a>' : '<span style="color:#94a3b8">—</span>';
     var crep = d.CANTIDAD_REPROGRAMACION && d.CANTIDAD_REPROGRAMACION !== '0' && d.CANTIDAD_REPROGRAMACION !== '' ? '<span class="b bor">🔁 ' + esc(d.CANTIDAD_REPROGRAMACION) + '</span>' : '<span class="b bgy">0</span>';
     var acc  = isAdm
       ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
@@ -1989,8 +1960,8 @@ function verDil(n) {
 
       var html = renderGrp('📋 Solicitud',g1) + renderGrp('👤 Caso',g2) + renderGrp('⚡ Ejecución',g3) + renderGrp('🔁 Reprogramación',g4) + renderGrp('🧠 Psicológico',g5);
       html += '<div style="display:flex;gap:7px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--bo)">';
-      if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') html += '<button class="btn bp sm" onclick="abrirDocumento(\'' + fixDriveUrl(d.S_OFICIO_URL).replace(/\'/g,\'%27\') + '\',\'Oficio\')">📎 Oficio</button>';
-      if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') html += '<button class="btn bg sm" onclick="abrirDocumento(\'' + fixDriveUrl(d.TRANSCRIPCION_URL).replace(/\'/g,\'%27\') + '\',\'Transcripción\')">📄 Transcripción</button>';
+      if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') html += '<button class="btn bp sm" onclick="abrirDoc(\'' + esc(d.S_OFICIO_URL) + '\', \'Oficio\')">📎 Oficio</button>';
+      if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') html += '<button class="btn bg sm" onclick="abrirDoc(\'' + esc(d.TRANSCRIPCION_URL) + '\', \'Transcripción\')">📄 Transcripción</button>';
       if (d.CELULAR && d.CELULAR !== '') html += '<a href="https://wa.me/' + d.CELULAR.replace(/\D/g,'') + '" target="_blank" class="btn bs sm">💬 WhatsApp</a>';
       html += '</div>';
 
@@ -2032,8 +2003,8 @@ function openEdit() {
   document.getElementById('me-tr-fn').textContent = '';
 
   var lh = '';
-  if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px;margin-bottom:5px"><span>📋</span><span style="flex:1">Oficio actual</span><button class="btn bg sm" onclick="abrirDocumento(\'' + fixDriveUrl(d.S_OFICIO_URL).replace(/\'/g,\'%27\') + '\',\'Oficio\')">Ver</button></div>';
-  if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px"><span>📄</span><span style="flex:1">Transcripción actual</span><button class="btn bg sm" onclick="abrirDocumento(\'' + fixDriveUrl(d.TRANSCRIPCION_URL).replace(/\'/g,\'%27\') + '\',\'Transcripción\')">Ver</button></div>';
+  if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px;margin-bottom:5px"><span>📋</span><span style="flex:1">Oficio actual</span><button class="btn bg sm" onclick="abrirDoc(\'' + esc(d.S_OFICIO_URL) + '\',\'Oficio\')">Ver</button></div>';
+  if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px"><span>📄</span><span style="flex:1">Transcripción actual</span><button class="btn bg sm" onclick="abrirDoc(\'' + esc(d.TRANSCRIPCION_URL) + '\',\'Transcripción\')">Ver</button></div>';
   document.getElementById('me-links').innerHTML = lh || '<p style="font-size:12px;color:var(--mu)">Sin archivos actualmente</p>';
 
   toggleNR();
@@ -2073,9 +2044,8 @@ function saveEdit() {
   var aO = iO && iO.files[0] ? iO.files[0] : null;
   var aT = iT && iT.files[0] ? iT.files[0] : null;
 
-  // Capturar carpeta fiscal ANTES de llamar al backend (por si _dilActual se limpia)
-  var _cfParaDocs = _dilActual ? (_dilActual.CARPETA_FISCAL || '') : '';
-  var _tabAlGuardar = _meTabActual; // Capturar pestaña activa en este momento
+  var _cfGuardar = _dilActual ? (_dilActual.CARPETA_FISCAL || '') : '';
+  var _tabGuardar = _meTabActual;
 
   function fin() {
     _gsrCall('actualizarDiligencia', [S.token, n, campos],
@@ -2085,13 +2055,12 @@ function saveEdit() {
           toast('✅ Actualizado', 'ok');
           closeM('mo-edit');
           _dilActual = null;
-          // Si estaba en pestaña Psicológico (tab 2) → ir a Documentos amarrado a la carpeta fiscal
-          if (_tabAlGuardar === 2) {
+          if (_tabGuardar === 2) {
             nav2('docs');
             setTimeout(function() {
-              if (_cfParaDocs) {
+              if (_cfGuardar) {
                 var qOfc = document.getElementById('q-ofc');
-                if (qOfc) { qOfc.value = _cfParaDocs; filtrarDocs('oficios','q-ofc','lista-ofc'); }
+                if (qOfc) { qOfc.value = _cfGuardar; filtrarDocs('oficios', 'q-ofc', 'lista-ofc'); }
               }
             }, 600);
           } else {
@@ -2503,45 +2472,16 @@ function renderListaDocs(carpeta, elId, q) {
   if (!items.length) { c.innerHTML = '<p style="font-size:12px;color:var(--mu);text-align:center;padding:12px">Sin documentos</p>'; return; }
   var isAdm = S.usuario.rol === 'ADMINISTRADOR';
   c.innerHTML = items.map(function(d) {
-    var esPdf = d.tipo === 'application/pdf' || (d.nombre||'').toLowerCase().endsWith('.pdf');
-    var ico = esPdf ? '📋' : '📄';
-    var urlFix = fixDriveUrl(d.url || '');
+    var ico = d.tipo === 'application/pdf' ? '📋' : '📄';
     var esMio = String(d.subidoPor) === String(S.usuario.id);
     var puedeElim = isAdm || esMio;
     return '<div class="doci">'
       + '<span style="font-size:16px">' + ico + '</span>'
       + '<div class="docin"><b>' + esc(d.nombre) + '</b><small>' + esc(d.fecha||'') + (isAdm ? ' · ' + esc(d.subidoPor||'') : '') + '</small></div>'
-      + '<button class="docib" onclick="abrirDocumento(\'' + urlFix.replace(/\'/g, '%27') + '\',\'' + esc(d.nombre) + '\')" title="Ver">↗️</button>'
+      + '<button class="docib" onclick="abrirDoc(\'' + esc(d.url||'') + '\',\'' + esc(d.nombre||'') + '\'" title="Ver">↗️</button>'
       + (puedeElim ? '<button class="docib del" onclick="elimDoc(\'' + d.id + '\',\'' + carpeta + '\',\'' + elId + '\')" title="Eliminar">🗑️</button>' : '')
       + '</div>';
   }).join('');
-}
-
-/** Abre documento Drive en visor modal embed */
-function abrirDocumento(url, nombre) {
-  if (!url) { toast('URL no disponible', 'error'); return; }
-  var urlFix = fixDriveUrl(url);
-  var m = urlFix.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  if (m) { _abrirVisorPdf('https://drive.google.com/file/d/' + m[1] + '/preview', nombre); return; }
-  window.open(urlFix, '_blank');
-}
-
-function cerrarVisorPdf() {
-  var mo = document.getElementById('mo-pdf-visor');
-  var fr = document.getElementById('mo-pdf-frame');
-  if (mo) mo.classList.remove('open');
-  if (fr) fr.src = ''; // detener descarga
-}
-
-/** Modal visor iframe Drive */
-function _abrirVisorPdf(embedUrl, nombre) {
-  var mo = document.getElementById('mo-pdf-visor');
-  var ti = document.getElementById('mo-pdf-titulo');
-  var fr = document.getElementById('mo-pdf-frame');
-  if (!mo || !fr) { window.open(embedUrl, '_blank'); return; }
-  ti.textContent = nombre || 'Documento';
-  fr.src = ''; fr.src = embedUrl;
-  mo.classList.add('open');
 }
 function uploadDoc(carpeta, inputId, nmId) {
   var inp = document.getElementById(inputId);
@@ -2614,7 +2554,7 @@ function sendNotif() {
 
 function leerN(id, el) {
   el.querySelector('.mhora').textContent = el.querySelector('.mhora').textContent.replace(' ✓', ' ✓✓');
-  _gsrCall('marcarNotificacionLeida', [S.token, id], function(){ actualizarBell(); }, null);
+  _gsrCall('marcarNotificacionLeida', [S.token, id], null, null);
   var b = document.getElementById('cbadge');
   var n = parseInt(b.textContent || 0) - 1;
   if (n <= 0) b.style.display = 'none'; else b.textContent = n;
@@ -2993,6 +2933,59 @@ document.addEventListener('blur', function(e) {
 // INICIALIZACIÓN DE LA APLICACIÓN
 // Recupera sesión del sessionStorage si existe
 // ════════════════════════════════════════════════════════════
+
+
+// ════════════════════════════════════════════════════════════
+// VISOR PDF — abre documentos Drive en modal embed
+// ════════════════════════════════════════════════════════════
+
+/** Normaliza URL de Drive al formato /view correcto */
+function fixDriveUrl(url) {
+  if (!url) return '';
+  if (url.indexOf('drive.google.com') < 0) return url;
+  var m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (m) return 'https://drive.google.com/file/d/' + m[1] + '/view?usp=sharing';
+  var m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (m2) return 'https://drive.google.com/file/d/' + m2[1] + '/view?usp=sharing';
+  return url;
+}
+
+/** Extrae el fileId de una URL de Drive */
+function _driveFileId(url) {
+  if (!url) return null;
+  var m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+
+/** Abre un documento en el visor modal (Drive embed) o nueva pestaña */
+function abrirDoc(url, nombre) {
+  if (!url) { toast('Sin URL de documento', 'error'); return; }
+  var fid = _driveFileId(fixDriveUrl(url));
+  if (fid) {
+    var embedUrl  = 'https://drive.google.com/file/d/' + fid + '/preview';
+    var directUrl = 'https://drive.google.com/file/d/' + fid + '/view?usp=sharing';
+    var mo    = document.getElementById('mo-pdf-visor');
+    var ti    = document.getElementById('mo-pdf-titulo');
+    var fr    = document.getElementById('mo-pdf-frame');
+    var extLk = document.getElementById('mo-pdf-ext-link');
+    if (mo && fr) {
+      ti.textContent = nombre || 'Documento';
+      fr.src = '';
+      fr.src = embedUrl;
+      if (extLk) extLk.href = directUrl;
+      mo.classList.add('open');
+      return;
+    }
+  }
+  window.open(fixDriveUrl(url), '_blank');
+}
+
+function cerrarVisorPdf() {
+  var mo = document.getElementById('mo-pdf-visor');
+  var fr = document.getElementById('mo-pdf-frame');
+  if (mo) mo.classList.remove('open');
+  if (fr) fr.src = '';
+}
 
 (function init() {
   loadCfgLogin(); // Cargar logo/fondo antes del login
