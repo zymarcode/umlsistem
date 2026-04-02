@@ -712,7 +712,7 @@ tr:hover td{background:#f8fafc}
             <div><div style="font-size:14px;font-weight:700">Oficios</div><div style="font-size:11px;color:var(--mu)">Solo PDF</div></div>
           </div>
           <div class="sbar"><input class="sinp" type="text" id="q-ofc" placeholder="BUSCAR OFICIO..." oninput="filtrarDocs('oficios','q-ofc','lista-ofc')"></div>
-          <div id="zona-upload-ofc" style="display:none">
+          <div style="display:none">
           <div class="fd" onclick="document.getElementById('inp-ofc-doc').click()" style="padding:12px">
             <div class="fdi">📤</div><p>Subir oficio PDF</p><div class="fnm" id="ofc-doc-fn"></div>
           </div>
@@ -728,11 +728,13 @@ tr:hover td{background:#f8fafc}
             <div><div style="font-size:14px;font-weight:700">Transcripciones</div><div style="font-size:11px;color:var(--mu)">PDF o Word</div></div>
           </div>
           <div class="sbar"><input class="sinp" type="text" id="q-trans" placeholder="BUSCAR TRANSCRIPCIÓN..." oninput="filtrarDocs('transcripciones','q-trans','lista-trans')"></div>
+          <div style="display:none">
           <div class="fd" onclick="document.getElementById('inp-trans-doc').click()" style="padding:12px">
             <div class="fdi">📤</div><p>PDF o Word (.docx)</p><div class="fnm" id="trans-doc-fn"></div>
           </div>
           <input type="file" id="inp-trans-doc" accept=".pdf,.docx,.doc" style="display:none" onchange="setPF(this,'trans-doc-fn',null)">
           <button class="btn bp sm" onclick="uploadDoc('transcripciones','inp-trans-doc','trans-doc-fn')">📤 Subir</button>
+          </div>
           <div class="docl" id="lista-trans"></div>
         </div>
       </div>
