@@ -712,11 +712,13 @@ tr:hover td{background:#f8fafc}
             <div><div style="font-size:14px;font-weight:700">Oficios</div><div style="font-size:11px;color:var(--mu)">Solo PDF</div></div>
           </div>
           <div class="sbar"><input class="sinp" type="text" id="q-ofc" placeholder="BUSCAR OFICIO..." oninput="filtrarDocs('oficios','q-ofc','lista-ofc')"></div>
+          <div id="zona-upload-ofc">
           <div class="fd" onclick="document.getElementById('inp-ofc-doc').click()" style="padding:12px">
             <div class="fdi">📤</div><p>Subir oficio PDF</p><div class="fnm" id="ofc-doc-fn"></div>
           </div>
           <input type="file" id="inp-ofc-doc" accept=".pdf" style="display:none" onchange="setPF(this,'ofc-doc-fn',null)">
           <button class="btn bp sm" onclick="uploadDoc('oficios','inp-ofc-doc','ofc-doc-fn')">📤 Subir</button>
+          </div>
           <div class="docl" id="lista-ofc"></div>
         </div>
         <!-- Solo visible para ADMINISTRADOR -->
@@ -1876,7 +1878,6 @@ function renderDil(items) {
     if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') {
       ofc = '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎</a>';
     } else if (!isAdm) {
-      // Asistente: botón 📤 que abre selector de archivo oculto
       var uid = 'upd-' + esc(d.N);
       ofc = '<input type="file" id="' + uid + '" accept="application/pdf" style="display:none" onchange="_subirOficioDil(this,\'' + esc(d.N) + '\')">'
           + '<button class="btn bp sm" title="Subir PDF" onclick="document.getElementById(\'' + uid + '\').click()">📤</button>';
@@ -2409,8 +2410,13 @@ function generarPdfPsicologia(id) {
 // ════════════════════════════════════════════════════════════
 
 function loadDocs() {
+  var isAdm = S.usuario.rol === 'ADMINISTRADOR';
+  // Ocultar zona de subida directa de oficios para el asistente
+  // (el asistente sube PDFs desde la tabla de Mis Diligencias)
+  var zonaOfc = document.getElementById('zona-upload-ofc');
+  if (zonaOfc) zonaOfc.style.display = isAdm ? '' : 'none';
   cargarListaDocs('oficios', 'lista-ofc');
-  if (S.usuario.rol === 'ADMINISTRADOR') cargarListaDocs('transcripciones', 'lista-trans');
+  if (isAdm) cargarListaDocs('transcripciones', 'lista-trans');
 }
 function cargarListaDocs(carpeta, elId) {
   _gsrCall('obtenerDocumentos', [S.token, carpeta.toLowerCase()],
@@ -2451,34 +2457,34 @@ function elimDoc(id, carpeta, elId) {
 }
 
 /**
- * Sube el oficio PDF de una diligencia directamente desde la tabla del asistente.
- * Al terminar reemplaza el botón 📤 por el enlace 📎 y oculta el input.
+ * Sube el oficio PDF de una diligencia desde la tabla del asistente.
+ * Usa la función subirOficioDiligencia del backend (no requiere ser admin).
+ * Al terminar reemplaza el botón 📤 por el enlace 📎.
  */
 function _subirOficioDil(inputEl, n) {
   var file = inputEl.files[0];
   if (!file) return;
   if (file.type !== 'application/pdf') { toast('Solo se permiten archivos PDF', 'error'); return; }
   toast('⏳ Subiendo PDF...', 'ok');
-  uploadB64(file, 'oficios', function(url) {
-    if (!url) return;
-    // Actualizar la diligencia con la nueva URL del oficio
-    _gsrCall('actualizarDiligencia', [S.token, n, { S_OFICIO: file.name, S_OFICIO_URL: url }],
+  var fr = new FileReader();
+  fr.onload = function(ev) {
+    var b64 = ev.target.result.split(',')[1];
+    _gsrCall('subirOficioDiligencia', [S.token, n, b64, file.name],
       function(r2) {
         if (r2.ok) {
           toast('✅ PDF vinculado', 'ok');
-          // Reemplazar el botón por el enlace 📎 sin recargar toda la tabla
-          var btn = inputEl.parentElement;
-          if (btn) btn.outerHTML = '<a href="' + url + '" target="_blank" class="btn bg sm">📎</a>';
-          // Actualizar también el cache local
-          if (_dilAll) _dilAll.forEach(function(d) { if (String(d.N) === String(n)) d.S_OFICIO_URL = url; });
-          if (_dilFilt) _dilFilt.forEach(function(d) { if (String(d.N) === String(n)) d.S_OFICIO_URL = url; });
+          var wrapper = inputEl.parentElement;
+          if (wrapper) wrapper.outerHTML = '<a href="' + r2.url + '" target="_blank" class="btn bg sm">📎</a>';
+          if (_dilAll) _dilAll.forEach(function(d) { if (String(d.N) === String(n)) d.S_OFICIO_URL = r2.url; });
+          if (_dilFilt) _dilFilt.forEach(function(d) { if (String(d.N) === String(n)) d.S_OFICIO_URL = r2.url; });
         } else {
-          toast('Error al vincular: ' + r2.error, 'error');
+          toast('Error: ' + r2.error, 'error');
         }
       },
-      function(e) { toast('Error: ' + e.message, 'error'); }
+      function(ex) { toast('Error: ' + ex.message, 'error'); }
     );
-  });
+  };
+  fr.readAsDataURL(file);
 }
 
 // ════════════════════════════════════════════════════════════
