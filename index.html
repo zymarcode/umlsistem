@@ -442,29 +442,7 @@ tr:hover td{background:#f8fafc}
   <aside class="sidebar" id="sidebar">
     <div class="sbh">
       <div class="sblogo" id="sblogo">⚖️</div>
-      <div style="flex:1"><h1>UML Huaral</h1><p>Sistema Administrativo</p></div>
-      <!-- 🔔 CAMPANITA DE NOTIFICACIONES -->
-      <div id="bell-wrap" style="position:relative;flex-shrink:0">
-        <button id="bell-btn" onclick="toggleBellPanel()" title="Notificaciones"
-          style="background:rgba(255,255,255,.08);border:none;border-radius:10px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:background .2s;position:relative">
-          🔔
-          <span id="bell-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border-radius:50%;min-width:18px;height:18px;font-size:10px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 3px;border:2px solid var(--sb)">0</span>
-        </button>
-        <!-- Panel de notificaciones -->
-        <div id="bell-panel" style="display:none;position:fixed;top:60px;right:12px;width:320px;max-width:94vw;background:#fff;border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.22);z-index:9000;overflow:hidden;border:1px solid var(--bo)">
-          <div style="padding:13px 16px;border-bottom:1px solid var(--bo);display:flex;align-items:center;justify-content:space-between;background:#f8fafc">
-            <span style="font-size:13px;font-weight:800;color:var(--tx)">🔔 Notificaciones</span>
-            <button onclick="toggleBellPanel()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--mu);line-height:1">✕</button>
-          </div>
-          <div id="bell-list" style="max-height:340px;overflow-y:auto;padding:10px 12px">
-            <p style="text-align:center;color:var(--mu);font-size:13px;padding:16px 0">Cargando...</p>
-          </div>
-          <div style="padding:10px 14px;border-top:1px solid var(--bo);background:#f8fafc;display:flex;gap:8px">
-            <button onclick="marcarTodasLeidas()" class="btn bg sm" style="flex:1;font-size:11px">✓ Marcar todas leídas</button>
-            <button onclick="nav2('notif');toggleBellPanel()" class="btn bp sm" style="flex:1;font-size:11px">Ver todas</button>
-          </div>
-        </div>
-      </div>
+      <div><h1>UML Huaral</h1><p>Sistema Administrativo</p></div>
     </div>
     <nav class="sbnav" id="sbnav"></nav>
     <div class="sbf">
@@ -842,6 +820,7 @@ tr:hover td{background:#f8fafc}
       <button class="tab active" onclick="meTab(0)">📋 Ejecución</button>
       <button class="tab" onclick="meTab(1)">🔁 Reprogramación</button>
       <button class="tab" onclick="meTab(2)">🧠 Psicológico</button>
+      <button class="tab" onclick="meTab(3)">📎 Archivos</button>
     </div>
     <div class="tabp" id="me-p0">
       <div class="fg2">
@@ -874,18 +853,31 @@ tr:hover td{background:#f8fafc}
         <div class="fi"><label>Fecha/hora evaluación</label><input type="datetime-local" id="me-fps" style="text-transform:none"></div>
       </div>
       <div class="fi" style="margin-top:10px"><label>Observaciones psicológicas</label><textarea id="me-obspsic" style="text-transform:none"></textarea></div>
-    </div>
-    <!-- ══ BOTÓN IR A DOCUMENTOS ══ -->
-    <div style="margin-top:14px;padding:12px 14px;background:var(--azl);border-radius:10px;border:1px solid #93c5fd;display:flex;align-items:center;gap:12px">
-      <span style="font-size:22px">📁</span>
-      <div style="flex:1">
-        <div style="font-size:12px;font-weight:700;color:var(--azd)">Ver Oficios y Transcripciones</div>
-        <div style="font-size:11px;color:var(--mu)" id="me-docs-hint">Los documentos de esta diligencia están en la sección Documentos</div>
+      <div style="display:flex;justify-content:flex-end;margin-top:14px">
+        <button class="btn bp sm" onclick="irAArchivosConCarpeta()">Siguiente → 📁 Archivos</button>
       </div>
-      <button class="btn bp sm" onclick="irADocumentos()">📁 Ir a Documentos</button>
+    </div>
+    <div class="tabp" id="me-p3" style="display:none">
+      <div class="fg2">
+        <div>
+          <p style="font-size:11px;color:var(--mu);margin-bottom:7px">📋 Oficio nuevo (opcional)</p>
+          <div class="fd" onclick="document.getElementById('me-inp-ofc').click()" style="padding:10px">
+            <div class="fdi" style="font-size:20px">📋</div><p>PDF</p><div class="fnm" id="me-ofc-fn"></div>
+          </div>
+          <input type="file" id="me-inp-ofc" accept=".pdf" style="display:none" onchange="setPF(this,'me-ofc-fn',null)">
+        </div>
+        <div>
+          <p style="font-size:11px;color:var(--mu);margin-bottom:7px">📄 Transcripción</p>
+          <div class="fd" onclick="document.getElementById('me-inp-tr').click()" style="padding:10px">
+            <div class="fdi" style="font-size:20px">📄</div><p>PDF / Word</p><div class="fnm" id="me-tr-fn"></div>
+          </div>
+          <input type="file" id="me-inp-tr" accept=".pdf,.docx,.doc" style="display:none" onchange="setPF(this,'me-tr-fn',null)">
+        </div>
+      </div>
+      <div id="me-links" style="margin-top:12px"></div>
     </div>
     <input type="hidden" id="me-n">
-    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;border-top:1px solid var(--bo);padding-top:14px">
+    <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end;border-top:1px solid var(--bo);padding-top:14px">
       <button class="btn bg" onclick="closeM('mo-edit')">Cancelar</button>
       <button class="btn bs" id="btn-save-edit" onclick="saveEdit()">💾 Guardar cambios</button>
     </div>
@@ -1500,7 +1492,6 @@ document.getElementById('l-pass').addEventListener('keydown', function(e) {
 /** Cierra la sesión del usuario */
 function doLogout() {
   _gsrCall('logout', [S.token], null, null);
-  stopBellPolling(); // 🔔 Detener campanita
   S = { token: null, usuario: null };
   sessionStorage.clear();
   // Ocultar hamburguesa al cerrar sesión
@@ -1555,7 +1546,6 @@ function startApp() {
     function(r) { if (r.ok) { _listas = r.listas; fillSelects(); } },
     function(){});
   loadCfgVisual();
-  startBellPolling(); // 🔔 Iniciar campanita de notificaciones
   nav2('dashboard');
 }
 
@@ -1819,8 +1809,8 @@ function loadDil() {
   var isAdm = S.usuario.rol === 'ADMINISTRADOR';
 
   document.getElementById('thead-dil').innerHTML = isAdm
-    ? '<th>N°</th><th>Carpeta Fiscal</th><th>Expediente</th><th>Fecha</th><th>Hora</th><th>Agraviados</th><th>Asistente</th><th>Reprogram.</th><th>Realizó</th><th>📁 Documentos</th><th>Acciones</th>'
-    : '<th>N°</th><th>Carpeta Fiscal</th><th>Expediente</th><th>Fecha</th><th>Hora</th><th>Agraviados</th><th>Reprogram.</th><th>Realizó</th><th>📁 Documentos</th><th>Acciones</th>';
+    ? '<th>N°</th><th>Carpeta Fiscal</th><th>Expediente</th><th>Fecha</th><th>Hora</th><th>Agraviados</th><th>Asistente</th><th>Reprogram.</th><th>Realizó</th><th>Acciones</th>'
+    : '<th>N°</th><th>Carpeta Fiscal</th><th>Expediente</th><th>Fecha</th><th>Hora</th><th>Agraviados</th><th>Reprogram.</th><th>Realizó</th><th>Acciones</th>';
 
   document.getElementById('ph-dil-btns').innerHTML = isAdm
     ? '<button class="btn bs sm" onclick="exportarXLS()">📥 Excel</button><button class="btn bp sm" onclick="nav2(\'agenda\')">➕ Nueva</button>'
@@ -1856,16 +1846,11 @@ function renderDil(items) {
   tb.innerHTML = items.map(function(d) {
     var real = d.SE_REALIZO || '';
     var bdg  = real === 'SÍ' ? '<span class="b bgr">✅ Sí</span>' : real === 'NO' ? '<span class="b bre">❌ No</span>' : '<span class="b bgy">⏳</span>';
-    var ofc  = (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') || (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '')
-      ? '<div style="display:flex;gap:4px;flex-wrap:wrap">'
-          + (d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm" title="Oficio">📋</a>' : '')
-          + (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '' ? '<a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm" title="Transcripción">📄</a>' : '')
-          + '</div>'
-      : '<span class="b bgy" style="font-size:10px">Sin docs</span>';
+    var ofc  = d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎</a>' : '<span class="b bgy" style="font-size:10px">Sin PDF</span>';
     var crep = d.CANTIDAD_REPROGRAMACION && d.CANTIDAD_REPROGRAMACION !== '0' && d.CANTIDAD_REPROGRAMACION !== '' ? '<span class="b bor">🔁 ' + esc(d.CANTIDAD_REPROGRAMACION) + '</span>' : '<span class="b bgy">0</span>';
     var acc  = isAdm
-      ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bp sm" onclick="editDilDir(\'' + esc(d.N) + '\')">✏️</button><button class="btn bs sm" onclick="irADocsPorCarpeta(\'' + esc(d.CARPETA_FISCAL) + '\')" title="Ver documentos">📁</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
-      : '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️ Ver</button><button class="btn bs sm" onclick="irADocsPorCarpeta(\'' + esc(d.CARPETA_FISCAL) + '\')" title="Ver documentos">📁</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>';
+      ? '<div style="display:flex;gap:3px"><button class="btn bp sm" onclick="editDilDir(\'' + esc(d.N) + '\')">✏️ Completar</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
+      : '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️ Ver</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>';
     return '<tr>'
       + '<td><b>' + esc(d.N||'—') + '</b></td>'
       + '<td><b>' + esc(d.CARPETA_FISCAL||'—') + '</b></td>'
@@ -1876,7 +1861,6 @@ function renderDil(items) {
       + (isAdm ? '<td>' + esc(d.ASISTENTE||'—') + '</td>' : '')
       + '<td>' + crep + '</td>'
       + '<td>' + bdg + '</td>'
-      + '<td>' + ofc + '</td>'
       + '<td>' + acc + '</td>'
       + '</tr>';
   }).join('');
@@ -1913,7 +1897,7 @@ function verDil(n) {
 
       var html = renderGrp('📋 Solicitud',g1) + renderGrp('👤 Caso',g2) + renderGrp('⚡ Ejecución',g3) + renderGrp('🔁 Reprogramación',g4) + renderGrp('🧠 Psicológico',g5);
       html += '<div style="display:flex;gap:7px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--bo)">';
-      if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') html += '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bp sm">📋 Oficio</a>';
+      if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') html += '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bp sm">📎 Oficio</a>';
       if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') html += '<a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">📄 Transcripción</a>';
       if (d.CELULAR && d.CELULAR !== '') html += '<a href="https://wa.me/' + d.CELULAR.replace(/\D/g,'') + '" target="_blank" class="btn bs sm">💬 WhatsApp</a>';
       html += '</div>';
@@ -1952,9 +1936,13 @@ function openEdit() {
     ms.value = d.MOTIVO_NO_REALIZADO || '';
   }
 
-  // Mostrar carpeta fiscal en el hint del botón 📁 Documentos
-  var hint = document.getElementById('me-docs-hint');
-  if (hint) hint.textContent = 'Filtrar por Carpeta Fiscal: ' + (d.CARPETA_FISCAL || '—');
+  document.getElementById('me-ofc-fn').textContent = '';
+  document.getElementById('me-tr-fn').textContent = '';
+
+  var lh = '';
+  if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px;margin-bottom:5px"><span>📋</span><span style="flex:1">Oficio actual</span><a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">Ver</a></div>';
+  if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px"><span>📄</span><span style="flex:1">Transcripción actual</span><a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">Ver</a></div>';
+  document.getElementById('me-links').innerHTML = lh || '<p style="font-size:12px;color:var(--mu)">Sin archivos actualmente</p>';
 
   toggleNR();
   document.getElementById('me-sub').textContent = 'Carpeta: ' + (d.CARPETA_FISCAL||'—') + ' | ' + fF(d.FECHA_PROGRAMADA) + ' ' + fH(d.HORA_PROGRAMADA);
@@ -1966,6 +1954,24 @@ function openEdit() {
 function meTab(i) {
   document.querySelectorAll('.tabs .tab').forEach(function(t, j){ t.classList.toggle('active', j === i); });
   document.querySelectorAll('#mo-edit .tabp').forEach(function(p, j){ p.style.display = j === i ? 'block' : 'none'; });
+}
+
+/** Desde tab Psicológico → ir a tab Archivos y mostrar info de carpeta fiscal */
+function irAArchivosConCarpeta() {
+  meTab(3);
+  // Mostrar banner con carpeta fiscal vinculada
+  var d = _dilActual;
+  if (!d) return;
+  var lh = '';
+  var cf = d.CARPETA_FISCAL || '—';
+  lh += '<div style="padding:10px 13px;background:#ede9fe;border-radius:9px;border:1px solid #c4b5fd;font-size:12px;color:var(--pur);margin-bottom:10px">';
+  lh += '📁 Carpeta Fiscal vinculada: <b>' + esc(cf) + '</b>';
+  if (d.EXPEDIENTE && d.EXPEDIENTE !== '') lh += ' &nbsp;|&nbsp; Expediente: <b>' + esc(d.EXPEDIENTE) + '</b>';
+  lh += '</div>';
+  if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px;margin-bottom:5px"><span>📋</span><span style="flex:1">Oficio actual</span><a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">Ver</a></div>';
+  if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px"><span>📄</span><span style="flex:1">Transcripción actual</span><a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">Ver</a></div>';
+  if (!d.S_OFICIO_URL && !d.TRANSCRIPCION_URL) lh += '<p style="font-size:12px;color:var(--mu)">Sin archivos actualmente. Puedes subir nuevos abajo.</p>';
+  document.getElementById('me-links').innerHTML = lh;
 }
 
 // Mostrar/ocultar sección de motivo cuando "No se realizó"
@@ -1985,7 +1991,10 @@ function saveEdit() {
     FECHA_HORA_REPROGRAMACION: g('me-frep'), CANTIDAD_REPROGRAMACION: g('me-crep'),
     PSICOLOGO: g('me-psic'), FECHA_HORA_PSICOLOGICA: g('me-fps')
   };
-  // Archivos se suben inmediatamente desde la sección 📁 Documentos — solo guardar campos
+  var iO = document.getElementById('me-inp-ofc'), iT = document.getElementById('me-inp-tr');
+  var aO = iO && iO.files[0] ? iO.files[0] : null;
+  var aT = iT && iT.files[0] ? iT.files[0] : null;
+
   function fin() {
     _gsrCall('actualizarDiligencia', [S.token, n, campos],
       function(r) {
@@ -1995,7 +2004,10 @@ function saveEdit() {
       },
       function(e) { btn.disabled = false; btn.textContent = '💾 Guardar cambios'; toast('Error: ' + e.message, 'error'); });
   }
-  fin();
+
+  if (aO) { uploadB64(aO, 'oficios', function(u) { if (u) { campos['S_OFICIO'] = aO.name; campos['S_OFICIO_URL'] = u; } if (aT) { uploadB64(aT, 'transcripciones', function(u2) { if (u2) campos['TRANSCRIPCION_URL'] = u2; fin(); }); } else fin(); }); }
+  else if (aT) { uploadB64(aT, 'transcripciones', function(u2) { if (u2) campos['TRANSCRIPCION_URL'] = u2; fin(); }); }
+  else fin();
 }
 
 function elimDil(n) {
@@ -2365,34 +2377,8 @@ function generarPdfPsicologia(id) {
   _gsrCall('generarPdfPsicologia', [S.token, id],
     function(r) {
       if (r.ok && r.dataUrl) {
-        try {
-          // Convertir base64 a Blob para evitar bloqueo de navegadores modernos con data: URLs en iframes
-          var base64 = r.dataUrl.split(',')[1] || r.dataUrl;
-          var mimeType = r.dataUrl.startsWith('data:') ? r.dataUrl.split(';')[0].split(':')[1] : 'application/pdf';
-          var byteChars = atob(base64);
-          var byteNums = new Array(byteChars.length);
-          for (var i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
-          var byteArray = new Uint8Array(byteNums);
-          var blob = new Blob([byteArray], { type: mimeType });
-          var blobUrl = URL.createObjectURL(blob);
-          var win = window.open(blobUrl, '_blank');
-          if (!win) {
-            // Fallback: crear link de descarga si el popup fue bloqueado
-            var a = document.createElement('a');
-            a.href = blobUrl; a.download = 'constancia_psicologica_' + id + '.pdf';
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-          }
-          setTimeout(function(){ URL.revokeObjectURL(blobUrl); }, 30000);
-          toast('✅ PDF listo', 'ok');
-        } catch(ex) {
-          // Último fallback: abrir dataUrl directamente
-          var win2 = window.open();
-          if (win2) win2.location.href = r.dataUrl;
-          toast('✅ PDF generado', 'ok');
-        }
-      } else if (r.ok && r.url) {
-        // Si el backend retorna una URL directa de Drive
-        window.open(r.url, '_blank');
+        var win = window.open();
+        win.document.write('<iframe src="' + r.dataUrl + '" width="100%" height="100%" style="border:none"></iframe>');
         toast('✅ PDF listo', 'ok');
       } else toast('Error: ' + (r.error || 'No se pudo generar'), 'error');
     },
@@ -2451,13 +2437,7 @@ function elimDoc(id, carpeta, elId) {
 
 function loadNotif() {
   _gsrCall('obtenerNotificaciones', [S.token],
-    function(r) {
-      if (r.ok) {
-        renderChat(r.datos);
-        _bellNotifs = r.datos || []; // sincronizar campanita
-        _updateBadge(_bellNotifs);
-      }
-    },
+    function(r) { if (r.ok) renderChat(r.datos); },
     function(){});
   if (S.usuario.rol === 'ADMINISTRADOR') cargarDest();
 }
@@ -2657,10 +2637,7 @@ function renderDashAst(dils) {
         + '<div><div style="font-size:14px;font-weight:800">📁 ' + esc(d.CARPETA_FISCAL||'—') + '</div><div style="font-size:12px;color:var(--mu);margin-top:2px">📅 ' + fF(d.FECHA_PROGRAMADA) + ' 🕐 ' + fH(d.HORA_PROGRAMADA) + '</div></div>' + bdg
       + '</div>'
       + '<div class="dcf">' + cf('¿Se realizó?',d.SE_REALIZO) + cf('Motivo no realizado',d.MOTIVO_NO_REALIZADO) + cf('Detalle frustración',d.DETALLE_FRUSTRACION) + cf('¿Se reprograma?',d.SE_REPROGRAMA) + cf('Fecha reprogramación',d.FECHA_HORA_REPROGRAMACION) + '</div>'
-      + (d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<div style="margin-top:9px;display:flex;gap:6px">'
-          + '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📋 Oficio</a>'
-          + (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '' ? '<a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">📄 Transcripción</a>' : '')
-          + '</div>' : '')
+      + (d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<div style="margin-top:9px"><a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎 Oficio</a></div>' : '')
       + '</div>';
   });
   html += '<div style="text-align:center;padding:14px 0 6px;font-size:11px;color:var(--mu);border-top:1px solid var(--bo);margin-top:10px">Desarrollado por: <strong style="color:var(--az)">Jose Palacios</strong></div>';
@@ -2884,178 +2861,6 @@ document.addEventListener('blur', function(e) {
   if (excluidos.indexOf(tipo) >= 0) return;
   if (el.value) el.value = el.value.toUpperCase();
 }, true);
-
-// ════════════════════════════════════════════════════════════
-// ════════════════════════════════════════════════════════════
-// MÓDULO 18: IR A DOCUMENTOS DESDE MODAL EDITAR
-// ════════════════════════════════════════════════════════════
-
-/**
- * Navega a 📁 Documentos y filtra por una Carpeta Fiscal específica.
- * Llamado desde el botón 📁 de la tabla Mis Diligencias.
- */
-function irADocsPorCarpeta(carpetaFiscal) {
-  nav2('docs');
-  setTimeout(function() {
-    var qOfc   = document.getElementById('q-ofc');
-    var qTrans = document.getElementById('q-trans');
-    if (qOfc)   { qOfc.value   = carpetaFiscal; filtrarDocs('oficios',         'q-ofc',   'lista-ofc'); }
-    if (qTrans) { qTrans.value = carpetaFiscal; filtrarDocs('transcripciones', 'q-trans', 'lista-trans'); }
-    if (carpetaFiscal) toast('🔍 Documentos de: ' + carpetaFiscal, 'ok');
-  }, 600);
-}
-
-/**
- * Cierra el modal de edición, navega a 📁 Documentos
- * y filtra automáticamente por la Carpeta Fiscal de la diligencia activa.
- */
-function irADocumentos() {
-  var carpeta = _dilActual ? (_dilActual.CARPETA_FISCAL || '') : '';
-  closeM('mo-edit');
-  irADocsPorCarpeta(carpeta);
-}
-
-// ════════════════════════════════════════════════════════════
-// MÓDULO 19: CAMPANITA DE NOTIFICACIONES 🔔
-// Accesible para ADMINISTRADOR y ASISTENTE.
-// Se actualiza automáticamente cada 60 segundos.
-// ════════════════════════════════════════════════════════════
-
-var _bellOpen = false;
-var _bellTimer = null;
-var _bellNotifs = [];
-
-/** Abre o cierra el panel de notificaciones */
-function toggleBellPanel() {
-  _bellOpen = !_bellOpen;
-  var panel = document.getElementById('bell-panel');
-  if (!panel) return;
-  panel.style.display = _bellOpen ? 'block' : 'none';
-  if (_bellOpen) {
-    refreshBell();
-    // Cerrar al hacer clic fuera
-    setTimeout(function() {
-      document.addEventListener('click', closeBellOutside, true);
-    }, 50);
-  } else {
-    document.removeEventListener('click', closeBellOutside, true);
-  }
-}
-
-function closeBellOutside(e) {
-  var wrap = document.getElementById('bell-wrap');
-  if (wrap && !wrap.contains(e.target)) {
-    _bellOpen = false;
-    var panel = document.getElementById('bell-panel');
-    if (panel) panel.style.display = 'none';
-    document.removeEventListener('click', closeBellOutside, true);
-  }
-}
-
-/** Recarga las notificaciones y actualiza el badge */
-function refreshBell() {
-  if (!S.token) return;
-  _gsrCall('obtenerNotificaciones', [S.token],
-    function(r) {
-      if (!r.ok) return;
-      _bellNotifs = r.datos || [];
-      _renderBell(_bellNotifs);
-      _updateBadge(_bellNotifs);
-    },
-    function() {});
-}
-
-/** Actualiza el número en el badge de la campanita */
-function _updateBadge(notifs) {
-  var badge = document.getElementById('bell-badge');
-  if (!badge) return;
-  var noLeidas = notifs.filter(function(n) { return !n.leida; }).length;
-  if (noLeidas > 0) {
-    badge.textContent = noLeidas > 99 ? '99+' : noLeidas;
-    badge.style.display = 'flex';
-  } else {
-    badge.style.display = 'none';
-  }
-}
-
-/** Renderiza la lista de notificaciones en el panel */
-function _renderBell(notifs) {
-  var list = document.getElementById('bell-list');
-  if (!list) return;
-  if (!notifs || !notifs.length) {
-    list.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--mu)"><div style="font-size:28px;margin-bottom:6px">📭</div><p style="font-size:12px">Sin notificaciones</p></div>';
-    return;
-  }
-  var html = notifs.slice(0, 15).map(function(n) {
-    var leida = n.leida;
-    var horaStr = '';
-    if (n.fecha) { try { var d = new Date(n.fecha); horaStr = fF(n.fecha) + ' ' + horaCorta(pad2(d.getHours()) + ':' + pad2(d.getMinutes())); } catch(e) {} }
-    return '<div onclick="bellLeer(\'' + n.id + '\',this)" style="padding:10px 12px;border-radius:10px;margin-bottom:6px;cursor:pointer;transition:background .15s;'
-      + (leida ? 'background:#f8fafc;border:1px solid var(--bo)' : 'background:#eff6ff;border:1px solid #93c5fd;border-left:4px solid var(--az)')
-      + '">'
-      + '<div style="display:flex;align-items:flex-start;gap:8px">'
-      + '<span style="font-size:16px;flex-shrink:0">' + (leida ? '📩' : '🔔') + '</span>'
-      + '<div style="flex:1;min-width:0">'
-      + '<div style="font-size:12px;font-weight:' + (leida ? '600' : '800') + ';color:var(--tx);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(n.asunto || 'Notificación') + '</div>'
-      + '<div style="font-size:11px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(n.mensaje || '') + '</div>'
-      + (horaStr ? '<div style="font-size:10px;color:#94a3b8;margin-top:3px">' + horaStr + '</div>' : '')
-      + '</div>'
-      + (!leida ? '<span style="width:8px;height:8px;border-radius:50%;background:var(--az);flex-shrink:0;margin-top:4px"></span>' : '')
-      + '</div></div>';
-  }).join('');
-  list.innerHTML = html;
-}
-
-/** Marca una notificación como leída desde el panel de campanita */
-function bellLeer(id, el) {
-  if (!id) return;
-  _gsrCall('marcarNotificacionLeida', [S.token, id], null, null);
-  // Actualizar UI localmente (sin recargar)
-  if (el) {
-    el.style.background = '#f8fafc';
-    el.style.border = '1px solid var(--bo)';
-    el.style.borderLeft = '';
-    var ico = el.querySelector('span');
-    if (ico) ico.textContent = '📩';
-    var dot = el.querySelector('span[style*="border-radius:50%"]');
-    if (dot) dot.remove();
-  }
-  _bellNotifs.forEach(function(n) { if (n.id === id) n.leida = true; });
-  _updateBadge(_bellNotifs);
-}
-
-/** Marca todas las notificaciones como leídas */
-function marcarTodasLeidas() {
-  _bellNotifs.filter(function(n){ return !n.leida; }).forEach(function(n) {
-    _gsrCall('marcarNotificacionLeida', [S.token, n.id], null, null);
-    n.leida = true;
-  });
-  _updateBadge(_bellNotifs);
-  _renderBell(_bellNotifs);
-  // Actualizar badge del chat también
-  var cb = document.getElementById('cbadge');
-  if (cb) cb.style.display = 'none';
-}
-
-/** Inicia el polling de notificaciones cada 60 segundos */
-function startBellPolling() {
-  if (_bellTimer) clearInterval(_bellTimer);
-  refreshBell(); // Carga inmediata
-  _bellTimer = setInterval(function() {
-    if (S.token) refreshBell();
-  }, 60000); // Cada 60 segundos
-}
-
-/** Detiene el polling de la campanita al cerrar sesión */
-function stopBellPolling() {
-  if (_bellTimer) { clearInterval(_bellTimer); _bellTimer = null; }
-  _bellOpen = false;
-  _bellNotifs = [];
-  var badge = document.getElementById('bell-badge');
-  if (badge) badge.style.display = 'none';
-  var panel = document.getElementById('bell-panel');
-  if (panel) panel.style.display = 'none';
-}
 
 // ════════════════════════════════════════════════════════════
 // INICIALIZACIÓN DE LA APLICACIÓN
