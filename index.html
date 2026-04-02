@@ -76,12 +76,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .urole{font-size:10px;color:#94a3b8}
 .btnlo{margin-top:10px;width:100%;padding:8px;background:transparent;border:1px solid #475569;color:#94a3b8;border-radius:8px;font-size:12px;cursor:pointer;transition:all .2s}
 .btnlo:hover{background:rgba(239,68,68,.15);border-color:var(--red);color:var(--red)}
-/* ── CAMPANITA ── */
-.bell-btn{position:relative;background:none;border:none;cursor:pointer;font-size:18px;padding:4px 6px;border-radius:8px;transition:background .15s;margin-left:auto;flex-shrink:0}
-.bell-btn:hover{background:rgba(255,255,255,.1)}
-.bell-btn.ringing{animation:bellRing .5s ease 3}
-@keyframes bellRing{0%,100%{transform:rotate(0)}20%{transform:rotate(-20deg)}40%{transform:rotate(20deg)}60%{transform:rotate(-15deg)}80%{transform:rotate(15deg)}}
-.bell-badge{position:absolute;top:-3px;right:-3px;background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;pointer-events:none;border:2px solid var(--sb)}
 /* Hamburguesa: oculta por defecto en todos los tamaños.
    En mobile (≤768px) el media query la activa con display:flex,
    pero SOLO cuando tiene la clase 'visible' agregada por JS al hacer login. */
@@ -458,10 +452,6 @@ tr:hover td{background:#f8fafc}
           <div class="uname" id="uname">—</div>
           <div class="urole" id="urole">—</div>
         </div>
-        <button class="bell-btn" id="bell-btn" onclick="abrirCampanita()" title="Notificaciones">
-          🔔
-          <span class="bell-badge" id="bell-badge" style="display:none">0</span>
-        </button>
       </div>
       <button class="btnlo" onclick="doLogout()">🚪 Cerrar sesión</button>
     </div>
@@ -873,8 +863,8 @@ tr:hover td{background:#f8fafc}
           </div>
           <input type="file" id="me-inp-ofc" accept=".pdf" style="display:none" onchange="setPF(this,'me-ofc-fn',null)">
         </div>
-        <div id="me-sec-trans">
-          <p style="font-size:11px;color:var(--mu);margin-bottom:7px">📄 Transcripción <span style="font-size:9px;background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700">Solo Admin</span></p>
+        <div>
+          <p style="font-size:11px;color:var(--mu);margin-bottom:7px">📄 Transcripción</p>
           <div class="fd" onclick="document.getElementById('me-inp-tr').click()" style="padding:10px">
             <div class="fdi" style="font-size:20px">📄</div><p>PDF / Word</p><div class="fnm" id="me-tr-fn"></div>
           </div>
@@ -968,39 +958,6 @@ tr:hover td{background:#f8fafc}
     <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
       <button class="btn bg" onclick="closeM('modal-txt-psico')">Cancelar</button>
       <button class="btn bpu2" onclick="uploadAgPsicoModal()">📤 Procesar</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: Visor de archivo (transcripción/oficio) -->
-<div class="mo" id="mo-visor">
-  <div class="modal" style="max-width:800px;height:85vh;display:flex;flex-direction:column;padding:0">
-    <div class="mhdr" style="padding:14px 18px;flex-shrink:0">
-      <div class="mtit">📄 Visor de archivo</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <a id="visor-abrir-link" href="#" target="_blank" class="btn bp sm">↗️ Abrir en Drive</a>
-        <button class="mcls" onclick="closeM('mo-visor')">✕</button>
-      </div>
-    </div>
-    <div style="flex:1;overflow:hidden;border-top:1px solid var(--bo)">
-      <iframe id="visor-iframe" src="" style="width:100%;height:100%;border:none"></iframe>
-    </div>
-    <div style="padding:10px 18px;background:#f8fafc;border-top:1px solid var(--bo);font-size:11px;color:var(--mu);text-align:center;flex-shrink:0">
-      Si el archivo no carga, usa el botón <strong>↗️ Abrir en Drive</strong> arriba a la derecha.
-    </div>
-  </div>
-</div>
-
-<!-- Modal: Campanita de Notificaciones -->
-<div class="mo" id="mo-notif-bell">
-  <div class="modal" style="max-width:460px;max-height:80vh;display:flex;flex-direction:column;padding:0">
-    <div class="mhdr" style="padding:14px 18px;flex-shrink:0">
-      <div class="mtit">🔔 Notificaciones</div>
-      <button class="mcls" onclick="closeM('mo-notif-bell')">✕</button>
-    </div>
-    <div id="mo-notif-bell-body" style="flex:1;overflow-y:auto;padding:14px"></div>
-    <div style="padding:10px 18px;border-top:1px solid var(--bo);flex-shrink:0;text-align:right">
-      <button class="btn bg sm" onclick="nav2('notif');closeM('mo-notif-bell')">Ver todos los mensajes</button>
     </div>
   </div>
 </div>
@@ -1199,25 +1156,6 @@ function esc(s) {
   if (!s) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
-/**
- * Construye una URL de visualización robusta para archivos de Google Drive.
- * Extrae el fileId y genera la URL de preview directa.
- * Para PDF: usa /preview. Para Word: usa Google Docs viewer.
- * @param {string} url - URL original de Drive
- * @param {string} tipo - 'pdf' o 'word' (opcional, para forzar viewer)
- * @returns {string} URL de previsualización confiable
- */
-function driveViewUrl(url) {
-  if (!url) return '';
-  // Extraer el fileId de cualquier formato de URL de Drive
-  var m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  if (!m) return url; // Si no podemos extraer, devolver original
-  var fileId = m[1];
-  // Usar /preview para visualización directa (funciona para PDF y Word)
-  return 'https://drive.google.com/file/d/' + fileId + '/preview';
-}
-
 
 /**
  * Asigna data-label a cada celda de una tabla para el modo responsive tipo tarjeta.
@@ -1551,7 +1489,6 @@ document.getElementById('l-pass').addEventListener('keydown', function(e) {
 /** Cierra la sesión del usuario */
 function doLogout() {
   _gsrCall('logout', [S.token], null, null);
-  stopBell(); // Detener polling de notificaciones
   S = { token: null, usuario: null };
   sessionStorage.clear();
   // Ocultar hamburguesa al cerrar sesión
@@ -1606,7 +1543,6 @@ function startApp() {
     function(r) { if (r.ok) { _listas = r.listas; fillSelects(); } },
     function(){});
   loadCfgVisual();
-  initBell(); // Iniciar campanita de notificaciones
   nav2('dashboard');
 }
 
@@ -1910,8 +1846,8 @@ function renderDil(items) {
     var ofc  = d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎</a>' : '<span class="b bgy" style="font-size:10px">Sin PDF</span>';
     var crep = d.CANTIDAD_REPROGRAMACION && d.CANTIDAD_REPROGRAMACION !== '0' && d.CANTIDAD_REPROGRAMACION !== '' ? '<span class="b bor">🔁 ' + esc(d.CANTIDAD_REPROGRAMACION) + '</span>' : '<span class="b bgy">0</span>';
     var acc  = isAdm
-      ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
-      : '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️ Ver</button><button class="btn bp sm" onclick="editDilDir(\'' + esc(d.N) + '\')">✏️ Editar</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>';
+      ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bp sm" onclick="editDilDir(\'' + esc(d.N) + '\')">✏️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
+      : '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️ Ver</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>';
     return '<tr>'
       + '<td><b>' + esc(d.N||'—') + '</b></td>'
       + '<td><b>' + esc(d.CARPETA_FISCAL||'—') + '</b></td>'
@@ -1959,15 +1895,15 @@ function verDil(n) {
 
       var html = renderGrp('📋 Solicitud',g1) + renderGrp('👤 Caso',g2) + renderGrp('⚡ Ejecución',g3) + renderGrp('🔁 Reprogramación',g4) + renderGrp('🧠 Psicológico',g5);
       html += '<div style="display:flex;gap:7px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--bo)">';
-      if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') html += '<a href="' + driveViewUrl(d.S_OFICIO_URL) + '" target="_blank" class="btn bp sm">📎 Oficio</a>';
-      if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') html += '<button onclick="abrirVisorArchivo(\'' + d.TRANSCRIPCION_URL + '\')" class="btn bg sm" style="cursor:pointer">📄 Transcripción</button>';
+      if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') html += '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bp sm">📎 Oficio</a>';
+      if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') html += '<a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">📄 Transcripción</a>';
       if (d.CELULAR && d.CELULAR !== '') html += '<a href="https://wa.me/' + d.CELULAR.replace(/\D/g,'') + '" target="_blank" class="btn bs sm">💬 WhatsApp</a>';
       html += '</div>';
 
       document.getElementById('mo-ver-tit').textContent = 'Carpeta: ' + esc(d.CARPETA_FISCAL || '—');
       document.getElementById('mo-ver-body').innerHTML = html;
       var be = document.getElementById('btn-editar-dil');
-      if (be) be.style.display = 'inline-flex';
+      if (be) be.style.display = S.usuario.rol === 'ADMINISTRADOR' ? 'inline-flex' : 'none';
       document.getElementById('mo-ver').classList.add('open');
     },
     function(e) { toast('Error: ' + e.message, 'error'); });
@@ -2002,17 +1938,9 @@ function openEdit() {
   document.getElementById('me-tr-fn').textContent = '';
 
   var lh = '';
-  if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px;margin-bottom:5px"><span>📋</span><span style="flex:1">Oficio actual</span><a href="' + driveViewUrl(d.S_OFICIO_URL) + '" target="_blank" class="btn bg sm">Ver</a></div>';
-  if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px"><span>📄</span><span style="flex:1">Transcripción actual</span><button onclick="abrirVisorArchivo(\'' + d.TRANSCRIPCION_URL + '\')" class="btn bg sm" style="cursor:pointer">👁️ Ver</button><a href="https://drive.google.com/file/d/' + (d.TRANSCRIPCION_URL.match(/\/d\/([a-zA-Z0-9_-]+)/)||['',''])[1] + '/view?usp=sharing" target="_blank" class="btn bp sm">⬇️ Abrir</a></div>';
+  if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px;margin-bottom:5px"><span>📋</span><span style="flex:1">Oficio actual</span><a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">Ver</a></div>';
+  if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px"><span>📄</span><span style="flex:1">Transcripción actual</span><a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">Ver</a></div>';
   document.getElementById('me-links').innerHTML = lh || '<p style="font-size:12px;color:var(--mu)">Sin archivos actualmente</p>';
-
-  // Ocultar sección de transcripción y pestañas admin-only para ASISTENTE
-  var esAdm = S.usuario.rol === 'ADMINISTRADOR';
-  var secTrans = document.getElementById('me-sec-trans');
-  if (secTrans) secTrans.style.display = esAdm ? 'block' : 'none';
-  // Ocultar pestaña Psicológico para ASISTENTE
-  var tabs = document.querySelectorAll('.tabs .tab');
-  if (tabs[2]) tabs[2].style.display = esAdm ? 'inline-flex' : 'none';
 
   toggleNR();
   document.getElementById('me-sub').textContent = 'Carpeta: ' + (d.CARPETA_FISCAL||'—') + ' | ' + fF(d.FECHA_PROGRAMADA) + ' ' + fH(d.HORA_PROGRAMADA);
@@ -2929,152 +2857,6 @@ document.addEventListener('blur', function(e) {
     startApp(); // Restaurar sesión automáticamente
   }
 })();
-
-// ════════════════════════════════════════════════════════════
-// MÓDULO 18: VISOR DE ARCHIVOS (Fix transcripciones)
-// ════════════════════════════════════════════════════════════
-
-/**
- * Abre el modal visor de archivos de Drive.
- * Usa /preview para PDF y Word — soluciona el link "roto".
- * @param {string} url - URL original de Drive
- */
-function abrirVisorArchivo(url) {
-  if (!url) { toast('Sin archivo disponible', 'error'); return; }
-  var previewUrl = driveViewUrl(url);
-  // Extraer fileId para el link de "Abrir en Drive"
-  var m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  var fileId = m ? m[1] : null;
-  var openUrl = fileId
-    ? 'https://drive.google.com/file/d/' + fileId + '/view?usp=sharing'
-    : url;
-  document.getElementById('visor-iframe').src = previewUrl;
-  document.getElementById('visor-abrir-link').href = openUrl;
-  document.getElementById('mo-visor').classList.add('open');
-}
-
-// ════════════════════════════════════════════════════════════
-// MÓDULO 19: CAMPANITA DE NOTIFICACIONES
-// Polling cada 60 segundos — actualiza badge y anima la campana
-// ════════════════════════════════════════════════════════════
-
-var _bellInterval = null;
-var _bellCount    = 0;
-var _bellNotifs   = [];
-
-/** Inicia el polling de notificaciones (llamado desde startApp) */
-function initBell() {
-  _checkBell();
-  clearInterval(_bellInterval);
-  _bellInterval = setInterval(_checkBell, 60000); // cada 60 s
-}
-
-/** Detiene el polling (llamado desde doLogout) */
-function stopBell() {
-  clearInterval(_bellInterval);
-  _bellInterval = null;
-  _bellCount    = 0;
-  _bellNotifs   = [];
-  _updateBellUI(0);
-}
-
-/** Consulta el backend y actualiza el badge de la campanita */
-function _checkBell() {
-  if (!S.token) return;
-  _gsrCall('obtenerNotificaciones', [S.token],
-    function(r) {
-      if (!r.ok) return;
-      var notifs = r.datos || [];
-      _bellNotifs = notifs;
-      // Contar no leídas para este usuario
-      var noLeidas = notifs.filter(function(n) {
-        if (n.leida) return false;
-        // Admin ve todas; Asistente solo las propias o 'TODOS'
-        if (S.usuario.rol === 'ADMINISTRADOR') return true;
-        return n.destinatario === S.usuario.id || n.destinatario === 'TODOS';
-      }).length;
-      var anterior = _bellCount;
-      _bellCount = noLeidas;
-      _updateBellUI(noLeidas);
-      // Animar campana solo si llegaron nuevas notificaciones
-      if (noLeidas > anterior) {
-        var btn = document.getElementById('bell-btn');
-        if (btn) { btn.classList.remove('ringing'); void btn.offsetWidth; btn.classList.add('ringing'); }
-        if (anterior > 0 || noLeidas > 0) toast('🔔 ' + noLeidas + ' notificación(es) sin leer', 'ok');
-      }
-    },
-    function() {}
-  );
-}
-
-/** Actualiza el badge visual de la campanita */
-function _updateBellUI(count) {
-  var badge = document.getElementById('bell-badge');
-  if (!badge) return;
-  if (count > 0) {
-    badge.textContent = count > 99 ? '99+' : count;
-    badge.style.display = 'flex';
-  } else {
-    badge.style.display = 'none';
-  }
-}
-
-/** Abre el modal de notificaciones de la campanita */
-function abrirCampanita() {
-  var body = document.getElementById('mo-notif-bell-body');
-  if (!_bellNotifs.length) {
-    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--mu)"><div style="font-size:36px;margin-bottom:8px">🔔</div><p>Sin notificaciones</p></div>';
-  } else {
-    // Filtrar las relevantes para este usuario
-    var visibles = _bellNotifs.filter(function(n) {
-      if (S.usuario.rol === 'ADMINISTRADOR') return true;
-      return n.destinatario === S.usuario.id || n.destinatario === 'TODOS';
-    }).slice(0, 10);
-    if (!visibles.length) {
-      body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--mu)"><p>Sin notificaciones para ti</p></div>';
-    } else {
-      body.innerHTML = visibles.map(function(n) {
-        var noLeida = !n.leida;
-        var horaMsg = '';
-        if (n.fecha) { try { var d = new Date(n.fecha); horaMsg = pad2(d.getDate()) + '/' + pad2(d.getMonth()+1) + ' ' + horaCorta(pad2(d.getHours())+':'+pad2(d.getMinutes())); } catch(e){} }
-        return '<div onclick="leerNotifBell(\'' + n.id + '\',this)" style="padding:10px 12px;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:background .15s;'
-          + (noLeida ? 'background:#eff6ff;border-left:4px solid var(--az)' : 'background:var(--bg);border-left:4px solid transparent')
-          + '">'
-          + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
-          + '<b style="font-size:12px">' + esc(n.asunto) + '</b>'
-          + '<span style="font-size:10px;color:var(--mu)">' + horaMsg + '</span>'
-          + '</div>'
-          + '<p style="font-size:11px;color:var(--mu);margin:0">' + esc(n.mensaje) + '</p>'
-          + (noLeida ? '<div style="font-size:9px;color:var(--az);font-weight:700;margin-top:4px">● No leída</div>' : '')
-          + '</div>';
-      }).join('');
-    }
-  }
-  document.getElementById('mo-notif-bell').classList.add('open');
-}
-
-/** Marca una notificación como leída desde el modal campanita */
-function leerNotifBell(id, el) {
-  el.style.background = 'var(--bg)';
-  el.style.borderLeftColor = 'transparent';
-  var ind = el.querySelector('[style*="No leída"]');
-  if (ind) ind.remove();
-  _gsrCall('marcarNotificacionLeida', [S.token, id], null, null);
-  // Actualizar contador
-  _bellNotifs.forEach(function(n) { if (n.id === id) n.leida = true; });
-  var count = _bellNotifs.filter(function(n) {
-    if (n.leida) return false;
-    if (S.usuario.rol === 'ADMINISTRADOR') return true;
-    return n.destinatario === S.usuario.id || n.destinatario === 'TODOS';
-  }).length;
-  _bellCount = count;
-  _updateBellUI(count);
-  // Sincronizar badge del chat
-  var cb = document.getElementById('cbadge');
-  if (cb) { if (count > 0) { cb.textContent = count; cb.style.display = 'block'; } else cb.style.display = 'none'; }
-}
-
-
 
 </script>
 </body>
