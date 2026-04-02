@@ -76,12 +76,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .urole{font-size:10px;color:#94a3b8}
 .btnlo{margin-top:10px;width:100%;padding:8px;background:transparent;border:1px solid #475569;color:#94a3b8;border-radius:8px;font-size:12px;cursor:pointer;transition:all .2s}
 .btnlo:hover{background:rgba(239,68,68,.15);border-color:var(--red);color:var(--red)}
-.bell-wrap{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.bell-btn{position:relative;background:rgba(255,255,255,.08);border:none;cursor:pointer;padding:7px 9px;border-radius:8px;color:#cbd5e1;font-size:18px;transition:all .2s;flex-shrink:0}
-.bell-btn:hover{background:rgba(255,255,255,.15);color:#fff}
-.bell-badge{position:absolute;top:-3px;right:-3px;background:var(--red);color:#fff;border-radius:50%;min-width:16px;height:16px;font-size:9px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 3px}
-@keyframes bellRing{0%,100%{transform:rotate(0)}15%,45%{transform:rotate(-18deg)}30%,60%{transform:rotate(18deg)}}
-.bell-btn.ringing{animation:bellRing .5s ease}
 /* Hamburguesa: oculta por defecto en todos los tamaños.
    En mobile (≤768px) el media query la activa con display:flex,
    pero SOLO cuando tiene la clase 'visible' agregada por JS al hacer login. */
@@ -459,10 +453,7 @@ tr:hover td{background:#f8fafc}
           <div class="urole" id="urole">—</div>
         </div>
       </div>
-      <div class="bell-wrap">
-        <button class="bell-btn" id="bell-btn" onclick="nav2('notif')" title="Notificaciones">🔔<span class="bell-badge" id="bell-badge"></span></button>
-        <button class="btnlo" style="margin-top:0;flex:1" onclick="doLogout()">🚪 Cerrar sesión</button>
-      </div>
+      <button class="btnlo" onclick="doLogout()">🚪 Cerrar sesión</button>
     </div>
   </aside>
 
@@ -829,6 +820,7 @@ tr:hover td{background:#f8fafc}
       <button class="tab active" onclick="meTab(0)">📋 Ejecución</button>
       <button class="tab" onclick="meTab(1)">🔁 Reprogramación</button>
       <button class="tab" onclick="meTab(2)">🧠 Psicológico</button>
+      <button class="tab" onclick="meTab(3)">📎 Archivos</button>
     </div>
     <div class="tabp" id="me-p0">
       <div class="fg2">
@@ -967,20 +959,6 @@ tr:hover td{background:#f8fafc}
       <button class="btn bg" onclick="closeM('modal-txt-psico')">Cancelar</button>
       <button class="btn bpu2" onclick="uploadAgPsicoModal()">📤 Procesar</button>
     </div>
-  </div>
-</div>
-
-<!-- Modal: Visor PDF (iframe Drive) -->
-<div class="mo" id="mo-pdf-visor">
-  <div class="modal" style="max-width:880px;width:96vw;padding:0;overflow:hidden;border-radius:16px">
-    <div class="mhdr" style="padding:12px 18px">
-      <div class="mtit" id="mo-pdf-titulo" style="font-size:14px">Documento</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <a id="mo-pdf-ext-link" href="#" target="_blank" class="btn bg sm">↗️ Drive</a>
-        <button class="mcls" onclick="cerrarVisorPdf()">✕</button>
-      </div>
-    </div>
-    <iframe id="mo-pdf-frame" src="" style="width:100%;height:78vh;border:none;display:block"></iframe>
   </div>
 </div>
 
@@ -1510,7 +1488,6 @@ document.getElementById('l-pass').addEventListener('keydown', function(e) {
 
 /** Cierra la sesión del usuario */
 function doLogout() {
-  detenerPollNotif();
   _gsrCall('logout', [S.token], null, null);
   S = { token: null, usuario: null };
   sessionStorage.clear();
@@ -1567,48 +1544,6 @@ function startApp() {
     function(){});
   loadCfgVisual();
   nav2('dashboard');
-  iniciarPollNotif();
-}
-
-// ════════════════════════════════════════════════════════════
-// CAMPANITA — polling de notificaciones no leídas
-// ════════════════════════════════════════════════════════════
-var _bellTimer = null;
-
-function actualizarBell() {
-  if (!S.token) return;
-  _gsrCall('obtenerNotificaciones', [S.token],
-    function(r) {
-      if (!r.ok) return;
-      var n = 0;
-      (r.datos || []).forEach(function(m) {
-        var sent = S.usuario.rol === 'ADMINISTRADOR' && m.remitente === S.usuario.id;
-        if (!m.leida && !sent) n++;
-      });
-      var badge = document.getElementById('bell-badge');
-      var btn   = document.getElementById('bell-btn');
-      if (!badge || !btn) return;
-      if (n > 0) {
-        badge.textContent = n > 9 ? '9+' : n;
-        badge.style.display = 'flex';
-        btn.classList.add('ringing');
-        setTimeout(function(){ btn.classList.remove('ringing'); }, 600);
-      } else {
-        badge.style.display = 'none';
-      }
-    }, function(){});
-}
-
-function iniciarPollNotif() {
-  actualizarBell();
-  if (_bellTimer) clearInterval(_bellTimer);
-  _bellTimer = setInterval(actualizarBell, 30000);
-}
-
-function detenerPollNotif() {
-  if (_bellTimer) { clearInterval(_bellTimer); _bellTimer = null; }
-  var b = document.getElementById('bell-badge');
-  if (b) b.style.display = 'none';
 }
 
 /** Puebla todos los <select> del sistema con las listas dinámicas del backend */
@@ -1908,11 +1843,11 @@ function renderDil(items) {
   tb.innerHTML = items.map(function(d) {
     var real = d.SE_REALIZO || '';
     var bdg  = real === 'SÍ' ? '<span class="b bgr">✅ Sí</span>' : real === 'NO' ? '<span class="b bre">❌ No</span>' : '<span class="b bgy">⏳</span>';
-    var ofc  = d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + d.S_OFICIO_URL + '" target="_blank" title="Ver oficio PDF" style="font-size:20px;text-decoration:none">📎</a>' : '<span style="color:#94a3b8">—</span>';
+    var ofc  = d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎</a>' : '<span class="b bgy" style="font-size:10px">Sin PDF</span>';
     var crep = d.CANTIDAD_REPROGRAMACION && d.CANTIDAD_REPROGRAMACION !== '0' && d.CANTIDAD_REPROGRAMACION !== '' ? '<span class="b bor">🔁 ' + esc(d.CANTIDAD_REPROGRAMACION) + '</span>' : '<span class="b bgy">0</span>';
     var acc  = isAdm
-      ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
-      : '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️ Ver</button></div>';
+      ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bp sm" onclick="editDilDir(\'' + esc(d.N) + '\')">✏️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
+      : '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️ Ver</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>';
     return '<tr>'
       + '<td><b>' + esc(d.N||'—') + '</b></td>'
       + '<td><b>' + esc(d.CARPETA_FISCAL||'—') + '</b></td>'
@@ -1960,8 +1895,8 @@ function verDil(n) {
 
       var html = renderGrp('📋 Solicitud',g1) + renderGrp('👤 Caso',g2) + renderGrp('⚡ Ejecución',g3) + renderGrp('🔁 Reprogramación',g4) + renderGrp('🧠 Psicológico',g5);
       html += '<div style="display:flex;gap:7px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--bo)">';
-      if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') html += '<button class="btn bp sm" onclick="abrirDoc(\'' + esc(d.S_OFICIO_URL) + '\', \'Oficio\')">📎 Oficio</button>';
-      if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') html += '<button class="btn bg sm" onclick="abrirDoc(\'' + esc(d.TRANSCRIPCION_URL) + '\', \'Transcripción\')">📄 Transcripción</button>';
+      if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') html += '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bp sm">📎 Oficio</a>';
+      if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') html += '<a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">📄 Transcripción</a>';
       if (d.CELULAR && d.CELULAR !== '') html += '<a href="https://wa.me/' + d.CELULAR.replace(/\D/g,'') + '" target="_blank" class="btn bs sm">💬 WhatsApp</a>';
       html += '</div>';
 
@@ -2003,8 +1938,8 @@ function openEdit() {
   document.getElementById('me-tr-fn').textContent = '';
 
   var lh = '';
-  if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px;margin-bottom:5px"><span>📋</span><span style="flex:1">Oficio actual</span><button class="btn bg sm" onclick="abrirDoc(\'' + esc(d.S_OFICIO_URL) + '\',\'Oficio\')">Ver</button></div>';
-  if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px"><span>📄</span><span style="flex:1">Transcripción actual</span><button class="btn bg sm" onclick="abrirDoc(\'' + esc(d.TRANSCRIPCION_URL) + '\',\'Transcripción\')">Ver</button></div>';
+  if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px;margin-bottom:5px"><span>📋</span><span style="flex:1">Oficio actual</span><a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">Ver</a></div>';
+  if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px"><span>📄</span><span style="flex:1">Transcripción actual</span><a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">Ver</a></div>';
   document.getElementById('me-links').innerHTML = lh || '<p style="font-size:12px;color:var(--mu)">Sin archivos actualmente</p>';
 
   toggleNR();
@@ -2013,12 +1948,8 @@ function openEdit() {
   document.getElementById('mo-edit').classList.add('open');
 }
 
-/** Pestaña activa del modal de edición */
-var _meTabActual = 0;
-
 /** Cambia la pestaña activa del modal de edición */
 function meTab(i) {
-  _meTabActual = i;
   document.querySelectorAll('.tabs .tab').forEach(function(t, j){ t.classList.toggle('active', j === i); });
   document.querySelectorAll('#mo-edit .tabp').forEach(function(p, j){ p.style.display = j === i ? 'block' : 'none'; });
 }
@@ -2044,29 +1975,11 @@ function saveEdit() {
   var aO = iO && iO.files[0] ? iO.files[0] : null;
   var aT = iT && iT.files[0] ? iT.files[0] : null;
 
-  var _cfGuardar = _dilActual ? (_dilActual.CARPETA_FISCAL || '') : '';
-  var _tabGuardar = _meTabActual;
-
   function fin() {
     _gsrCall('actualizarDiligencia', [S.token, n, campos],
       function(r) {
         btn.disabled = false; btn.textContent = '💾 Guardar cambios';
-        if (r.ok) {
-          toast('✅ Actualizado', 'ok');
-          closeM('mo-edit');
-          _dilActual = null;
-          if (_tabGuardar === 2) {
-            nav2('docs');
-            setTimeout(function() {
-              if (_cfGuardar) {
-                var qOfc = document.getElementById('q-ofc');
-                if (qOfc) { qOfc.value = _cfGuardar; filtrarDocs('oficios', 'q-ofc', 'lista-ofc'); }
-              }
-            }, 600);
-          } else {
-            loadDil();
-          }
-        }
+        if (r.ok) { toast('✅ Actualizado', 'ok'); closeM('mo-edit'); loadDil(); _dilActual = null; }
         else toast('Error: ' + r.error, 'error');
       },
       function(e) { btn.disabled = false; btn.textContent = '💾 Guardar cambios'; toast('Error: ' + e.message, 'error'); });
@@ -2478,7 +2391,7 @@ function renderListaDocs(carpeta, elId, q) {
     return '<div class="doci">'
       + '<span style="font-size:16px">' + ico + '</span>'
       + '<div class="docin"><b>' + esc(d.nombre) + '</b><small>' + esc(d.fecha||'') + (isAdm ? ' · ' + esc(d.subidoPor||'') : '') + '</small></div>'
-      + '<button class="docib" onclick="abrirDoc(\'' + esc(d.url||'') + '\',\'' + esc(d.nombre||'') + '\'" title="Ver">↗️</button>'
+      + '<a href="' + esc(d.url) + '" target="_blank" class="docib" title="Abrir">↗️</a>'
       + (puedeElim ? '<button class="docib del" onclick="elimDoc(\'' + d.id + '\',\'' + carpeta + '\',\'' + elId + '\')" title="Eliminar">🗑️</button>' : '')
       + '</div>';
   }).join('');
@@ -2504,7 +2417,7 @@ function elimDoc(id, carpeta, elId) {
 
 function loadNotif() {
   _gsrCall('obtenerNotificaciones', [S.token],
-    function(r) { if (r.ok) { renderChat(r.datos); actualizarBell(); } },
+    function(r) { if (r.ok) renderChat(r.datos); },
     function(){});
   if (S.usuario.rol === 'ADMINISTRADOR') cargarDest();
 }
@@ -2933,59 +2846,6 @@ document.addEventListener('blur', function(e) {
 // INICIALIZACIÓN DE LA APLICACIÓN
 // Recupera sesión del sessionStorage si existe
 // ════════════════════════════════════════════════════════════
-
-
-// ════════════════════════════════════════════════════════════
-// VISOR PDF — abre documentos Drive en modal embed
-// ════════════════════════════════════════════════════════════
-
-/** Normaliza URL de Drive al formato /view correcto */
-function fixDriveUrl(url) {
-  if (!url) return '';
-  if (url.indexOf('drive.google.com') < 0) return url;
-  var m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  if (m) return 'https://drive.google.com/file/d/' + m[1] + '/view?usp=sharing';
-  var m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (m2) return 'https://drive.google.com/file/d/' + m2[1] + '/view?usp=sharing';
-  return url;
-}
-
-/** Extrae el fileId de una URL de Drive */
-function _driveFileId(url) {
-  if (!url) return null;
-  var m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  return m ? m[1] : null;
-}
-
-/** Abre un documento en el visor modal (Drive embed) o nueva pestaña */
-function abrirDoc(url, nombre) {
-  if (!url) { toast('Sin URL de documento', 'error'); return; }
-  var fid = _driveFileId(fixDriveUrl(url));
-  if (fid) {
-    var embedUrl  = 'https://drive.google.com/file/d/' + fid + '/preview';
-    var directUrl = 'https://drive.google.com/file/d/' + fid + '/view?usp=sharing';
-    var mo    = document.getElementById('mo-pdf-visor');
-    var ti    = document.getElementById('mo-pdf-titulo');
-    var fr    = document.getElementById('mo-pdf-frame');
-    var extLk = document.getElementById('mo-pdf-ext-link');
-    if (mo && fr) {
-      ti.textContent = nombre || 'Documento';
-      fr.src = '';
-      fr.src = embedUrl;
-      if (extLk) extLk.href = directUrl;
-      mo.classList.add('open');
-      return;
-    }
-  }
-  window.open(fixDriveUrl(url), '_blank');
-}
-
-function cerrarVisorPdf() {
-  var mo = document.getElementById('mo-pdf-visor');
-  var fr = document.getElementById('mo-pdf-frame');
-  if (mo) mo.classList.remove('open');
-  if (fr) fr.src = '';
-}
 
 (function init() {
   loadCfgLogin(); // Cargar logo/fondo antes del login
