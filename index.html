@@ -279,6 +279,60 @@ tr:hover td{background:#f8fafc}
 .mtit{font-size:16px;font-weight:800}
 .mcls{background:none;border:none;font-size:22px;cursor:pointer;color:var(--mu)}
 
+/* ── CAMPANITA DE NOTIFICACIONES ── */
+.notif-bell-wrap{position:relative;display:inline-flex;align-items:center}
+.notif-bell-btn{background:none;border:none;cursor:pointer;font-size:22px;color:#cbd5e1;padding:4px 8px;border-radius:8px;transition:all .2s;position:relative}
+.notif-bell-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.notif-bell-badge{position:absolute;top:0;right:0;background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;pointer-events:none;border:2px solid var(--sb)}
+.notif-panel{position:fixed;top:0;right:0;width:380px;max-width:100vw;height:100vh;background:var(--card);box-shadow:-4px 0 24px rgba(0,0,0,.18);z-index:600;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.notif-panel.open{transform:translateX(0)}
+.notif-panel-hdr{padding:16px 18px;border-bottom:1px solid var(--bo);display:flex;align-items:center;justify-content:space-between;background:var(--sb);color:#fff}
+.notif-panel-hdr h3{font-size:15px;font-weight:800;margin:0}
+.notif-panel-close{background:none;border:none;color:#94a3b8;font-size:22px;cursor:pointer;padding:2px 6px;border-radius:6px}
+.notif-panel-close:hover{color:#fff;background:rgba(255,255,255,.1)}
+.notif-panel-body{flex:1;overflow-y:auto;padding:12px}
+.notif-panel-footer{padding:12px;border-top:1px solid var(--bo)}
+.notif-item{padding:11px 13px;border:1px solid var(--bo);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all .15s;position:relative}
+.notif-item:hover{background:#f8fafc;border-color:#93c5fd}
+.notif-item.unread{border-left:4px solid var(--az);background:#eff6ff}
+.notif-item-title{font-size:13px;font-weight:700;margin-bottom:3px}
+.notif-item-body{font-size:12px;color:var(--mu);line-height:1.45;margin-bottom:6px}
+.notif-item-meta{font-size:10px;color:#94a3b8}
+.notif-link-prev{border:1px solid var(--bo);border-radius:8px;padding:9px 11px;margin-top:7px;display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--tx);background:#f8fafc;font-size:12px;overflow:hidden}
+.notif-link-prev:hover{background:var(--azl);border-color:var(--az)}
+.notif-link-icon{font-size:18px;flex-shrink:0}
+.notif-link-info{flex:1;min-width:0}
+.notif-link-info b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+.notif-link-info span{font-size:10px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.notif-video-embed{margin-top:8px;border-radius:8px;overflow:hidden;aspect-ratio:16/9;background:#000;position:relative}
+.notif-video-embed iframe{width:100%;height:100%;border:none;position:absolute;inset:0}
+.notif-video-thumb{width:100%;aspect-ratio:16/9;object-fit:cover;cursor:pointer;border-radius:8px}
+.notif-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:590;display:none}
+.notif-overlay.open{display:block}
+/* Panel de envío de notificaciones (admin) */
+.notif-send-form{background:var(--bg);border-radius:10px;padding:12px;margin-bottom:12px}
+.notif-send-form select,.notif-send-form input,.notif-send-form textarea{width:100%;margin-bottom:8px;padding:8px 10px;border:1.5px solid var(--bo);border-radius:8px;font-size:12px;outline:none;font-family:inherit}
+.notif-send-form select:focus,.notif-send-form input:focus,.notif-send-form textarea:focus{border-color:var(--az)}
+.notif-tipo-tabs{display:flex;gap:0;border:1px solid var(--bo);border-radius:8px;overflow:hidden;margin-bottom:8px}
+.notif-tipo-tab{flex:1;padding:6px 4px;border:none;background:#fff;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;color:var(--mu)}
+.notif-tipo-tab.active{background:var(--az);color:#fff}
+
+/* ── VIDEO CARDS ── */
+.video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:12px}
+.video-card{background:var(--card);border:1px solid var(--bo);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.video-card-embed{aspect-ratio:16/9;background:#000;position:relative}
+.video-card-embed iframe{width:100%;height:100%;border:none;position:absolute;inset:0}
+.video-card-info{padding:12px}
+.video-card-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.video-card-desc{font-size:11px;color:var(--mu);line-height:1.4}
+.video-card-meta{font-size:10px;color:#94a3b8;margin-top:6px}
+
+/* ── DOCUMENTOS NUEVA LÓGICA ── */
+.doc-search-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.doc-search-bar input{flex:1;min-width:180px;padding:9px 12px;border:1.5px solid var(--bo);border-radius:9px;font-size:13px;outline:none;text-transform:uppercase}
+.doc-search-bar input:focus{border-color:var(--az);box-shadow:0 0 0 3px rgba(26,115,232,.1)}
+.doc-result-header{font-size:12px;font-weight:700;color:var(--mu);margin-bottom:10px;padding:8px 12px;background:var(--azl);border-radius:8px;border:1px solid #93c5fd}
+
 /* ── TOAST ── */
 #toast{position:fixed;bottom:22px;right:22px;background:#1e293b;color:#fff;padding:11px 18px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:320px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
 #toast.show{transform:translateY(0);opacity:1}
@@ -442,7 +496,12 @@ tr:hover td{background:#f8fafc}
   <aside class="sidebar" id="sidebar">
     <div class="sbh">
       <div class="sblogo" id="sblogo">⚖️</div>
-      <div><h1>UML Huaral</h1><p>Sistema Administrativo</p></div>
+      <div style="flex:1"><h1>UML Huaral</h1><p>Sistema Administrativo</p></div>
+      <div class="notif-bell-wrap" id="bell-wrap" style="display:none">
+        <button class="notif-bell-btn" id="bell-btn" onclick="toggleNotifPanel()" title="Notificaciones">🔔
+          <span class="notif-bell-badge" id="bell-badge" style="display:none">0</span>
+        </button>
+      </div>
     </div>
     <nav class="sbnav" id="sbnav"></nav>
     <div class="sbf">
@@ -573,17 +632,7 @@ tr:hover td{background:#f8fafc}
         </div>
         <div class="fi" style="margin-top:10px"><label>Observaciones</label><textarea id="nd-obs"></textarea></div>
       </div>
-      <div class="fs">
-        <div class="fst">📎 Oficio PDF <span style="color:var(--mu);font-weight:400;font-size:10px">(opcional)</span></div>
-        <div class="fd" id="drop-ofc" onclick="document.getElementById('inp-ofc').click()"
-             ondragover="event.preventDefault();this.classList.add('dov')"
-             ondragleave="this.classList.remove('dov')"
-             ondrop="dropOfc(event)">
-          <div class="fdi">📋</div><p>Arrastra o haz clic — solo <strong>PDF</strong></p>
-          <div class="fnm" id="ofc-fn"></div>
-        </div>
-        <input type="file" id="inp-ofc" accept=".pdf" style="display:none" onchange="setPF(this,'ofc-fn','drop-ofc')">
-      </div>
+      <!-- Subida de oficio eliminada del formulario de diligencia — usar sección Documentos -->
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-bottom:28px">
         <button class="btn bg" onclick="backAgenda()">Cancelar</button>
         <button class="btn bs" id="btn-gd" onclick="saveDil()" style="font-size:14px;padding:11px 26px">💾 Guardar diligencia</button>
@@ -687,41 +736,84 @@ tr:hover td{background:#f8fafc}
 
     <!-- DOCUMENTOS -->
     <div class="page" id="page-docs">
-      <div class="ph"><div class="phl"><h2>📁 Documentos</h2><p>Gestión de archivos</p></div></div>
-      <div class="docg">
-        <div class="docc">
+      <div class="ph">
+        <div class="phl"><h2>📁 Documentos</h2><p>Busca por carpeta fiscal y sube archivos</p></div>
+      </div>
+
+      <!-- Buscador por carpeta fiscal -->
+      <div class="card">
+        <div class="ct">🔍 Buscar por Carpeta Fiscal</div>
+        <div class="doc-search-bar">
+          <input type="text" id="doc-cf-input" placeholder="CARPETA FISCAL (ej: CF-2024-001)" onkeydown="if(event.key==='Enter')buscarDocsCF()">
+          <button class="btn bp sm" onclick="buscarDocsCF()">🔍 Buscar</button>
+          <button class="btn bg sm" onclick="limpiarDocsCF()">✕ Limpiar</button>
+        </div>
+        <div id="doc-cf-badge" style="display:none"></div>
+      </div>
+
+      <!-- Oficios -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:10px">
             <div class="docico pdf">📋</div>
-            <div><div style="font-size:14px;font-weight:700">Oficios</div><div style="font-size:11px;color:var(--mu)">Solo PDF</div></div>
+            <div><div style="font-size:14px;font-weight:700">Oficios</div><div style="font-size:11px;color:var(--mu)">Solo PDF · Google Drive</div></div>
           </div>
-          <div class="sbar"><input class="sinp" type="text" id="q-ofc" placeholder="BUSCAR OFICIO..." oninput="filtrarDocs('oficios','q-ofc','lista-ofc')"></div>
-          <div class="fd" onclick="document.getElementById('inp-ofc-doc').click()" style="padding:12px">
-            <div class="fdi">📤</div><p>Subir oficio PDF</p><div class="fnm" id="ofc-doc-fn"></div>
-          </div>
-          <input type="file" id="inp-ofc-doc" accept=".pdf" style="display:none" onchange="setPF(this,'ofc-doc-fn',null)">
-          <button class="btn bp sm" onclick="uploadDoc('oficios','inp-ofc-doc','ofc-doc-fn')">📤 Subir</button>
-          <div class="docl" id="lista-ofc"></div>
         </div>
-        <!-- Solo visible para ADMINISTRADOR -->
-        <div class="docc" id="card-trans" style="display:none">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div class="docico word">📄</div>
-            <div><div style="font-size:14px;font-weight:700">Transcripciones</div><div style="font-size:11px;color:var(--mu)">PDF o Word</div></div>
-          </div>
-          <div class="sbar"><input class="sinp" type="text" id="q-trans" placeholder="BUSCAR TRANSCRIPCIÓN..." oninput="filtrarDocs('transcripciones','q-trans','lista-trans')"></div>
-          <div class="fd" onclick="document.getElementById('inp-trans-doc').click()" style="padding:12px">
-            <div class="fdi">📤</div><p>PDF o Word (.docx)</p><div class="fnm" id="trans-doc-fn"></div>
-          </div>
-          <input type="file" id="inp-trans-doc" accept=".pdf,.docx,.doc" style="display:none" onchange="setPF(this,'trans-doc-fn',null)">
-          <button class="btn bp sm" onclick="uploadDoc('transcripciones','inp-trans-doc','trans-doc-fn')">📤 Subir</button>
-          <div class="docl" id="lista-trans"></div>
+        <div class="fd" id="drop-ofc-doc" onclick="document.getElementById('inp-ofc-doc').click()"
+             ondragover="event.preventDefault();this.classList.add('dov')"
+             ondragleave="this.classList.remove('dov')"
+             ondrop="dropDocArchivo(event,'ofc')">
+          <div class="fdi">📤</div><p>Arrastra o haz clic — solo <strong>PDF</strong></p>
+          <div class="fnm" id="ofc-doc-fn"></div>
         </div>
+        <input type="file" id="inp-ofc-doc" accept=".pdf" style="display:none" onchange="setPF(this,'ofc-doc-fn','drop-ofc-doc')">
+        <button class="btn bp sm" style="margin-top:8px" onclick="uploadDocDrive('oficios','inp-ofc-doc','ofc-doc-fn')">📤 Subir Oficio</button>
+        <div class="ct" style="margin-top:14px">📋 Oficios subidos</div>
+        <div class="docl" id="lista-ofc"></div>
+      </div>
+
+      <!-- Transcripciones (solo admin) -->
+      <div class="card" id="card-trans" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div class="docico word">📄</div>
+          <div><div style="font-size:14px;font-weight:700">Transcripciones</div><div style="font-size:11px;color:var(--mu)">PDF o Word · Solo Administrador</div></div>
+        </div>
+        <div class="fd" id="drop-trans-doc" onclick="document.getElementById('inp-trans-doc').click()"
+             ondragover="event.preventDefault();this.classList.add('dov')"
+             ondragleave="this.classList.remove('dov')"
+             ondrop="dropDocArchivo(event,'trans')">
+          <div class="fdi">📤</div><p>Arrastra o haz clic — <strong>PDF o Word (.docx)</strong></p>
+          <div class="fnm" id="trans-doc-fn"></div>
+        </div>
+        <input type="file" id="inp-trans-doc" accept=".pdf,.docx,.doc" style="display:none" onchange="setPF(this,'trans-doc-fn','drop-trans-doc')">
+        <button class="btn bp sm" style="margin-top:8px" onclick="uploadDocDrive('transcripciones','inp-trans-doc','trans-doc-fn')">📤 Subir Transcripción</button>
+        <div class="ct" style="margin-top:14px">📄 Transcripciones subidas</div>
+        <div class="docl" id="lista-trans"></div>
       </div>
     </div>
 
     <!-- MENSAJES -->
     <div class="page" id="page-notif">
-      <div class="ph"><div class="phl"><h2>💬 Mensajes</h2><p>Centro de comunicaciones</p></div></div>
+      <div class="ph">
+        <div class="phl"><h2>💬 Mensajes</h2><p>Centro de comunicaciones</p></div>
+        <div id="chat-admin-ctrl" style="display:none">
+          <label style="font-size:12px;font-weight:700;color:var(--mu);display:flex;align-items:center;gap:8px;cursor:pointer">
+            <span>Chat para asistentes:</span>
+            <input type="checkbox" id="chat-toggle-chk" onchange="toggleChat(this.checked)" style="width:16px;height:16px;cursor:pointer">
+            <span id="chat-estado-lbl" style="font-size:11px;color:var(--grn);font-weight:700">Habilitado</span>
+          </label>
+        </div>
+      </div>
+      <!-- Aviso chat deshabilitado (asistente) -->
+      <div id="chat-disabled-msg" style="display:none">
+        <div class="card" style="text-align:center;padding:32px;background:#fff8e1;border:1px solid #fcd34d">
+          <div style="font-size:36px;margin-bottom:10px">🔕</div>
+          <div style="font-size:15px;font-weight:700;color:#92400e">Chat no disponible</div>
+          <p style="font-size:13px;color:#b45309;margin-top:6px">El administrador ha deshabilitado el chat temporalmente.</p>
+        </div>
+      </div>
+      <!-- Chat principal -->
+      <div id="chat-section">
       <div class="chatw">
         <div class="chath">
           <div class="chatav">🔔</div>
@@ -739,6 +831,30 @@ tr:hover td{background:#f8fafc}
             <textarea class="chatti" id="chat-txt" placeholder="Primera línea = asunto&#10;Resto = mensaje..." rows="2"></textarea>
             <button class="chats" onclick="sendNotif()">➤</button>
           </div>
+        </div>
+      </div>
+      </div><!-- /.chat-section -->
+
+      <!-- Videos -->
+      <div class="card" id="videos-section" style="margin-top:14px">
+        <div class="ct">🎥 Videos</div>
+        <!-- Formulario envío (solo admin) -->
+        <div id="video-send-form" style="display:none">
+          <div class="fs" style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:14px">
+            <div class="fst">📤 Enviar video</div>
+            <div class="fg2" style="margin-top:10px">
+              <div class="fi"><label>Título <span class="req">*</span></label><input type="text" id="vid-titulo" placeholder="Título del video"></div>
+              <div class="fi"><label>URL <span class="req">*</span></label><input type="url" id="vid-url" placeholder="https://youtube.com/... o Google Drive" style="text-transform:none" oninput="previewVideoSend()"></div>
+              <div class="fi"><label>Destinatario</label><select id="vid-dest"><option value="TODOS">Todos los asistentes</option></select></div>
+            </div>
+            <div class="fi" style="margin-top:8px"><label>Descripción</label><textarea id="vid-desc" rows="2" style="text-transform:none"></textarea></div>
+            <div id="vid-preview" style="margin-top:10px"></div>
+            <button class="btn bp" style="margin-top:10px" onclick="enviarVideoAdmin()">📤 Enviar video</button>
+          </div>
+        </div>
+        <!-- Grid de videos -->
+        <div class="video-grid" id="video-grid">
+          <div style="text-align:center;padding:28px;color:var(--mu)">⏳ Cargando videos...</div>
         </div>
       </div>
     </div>
@@ -820,7 +936,6 @@ tr:hover td{background:#f8fafc}
       <button class="tab active" onclick="meTab(0)">📋 Ejecución</button>
       <button class="tab" onclick="meTab(1)">🔁 Reprogramación</button>
       <button class="tab" onclick="meTab(2)">🧠 Psicológico</button>
-      <button class="tab" onclick="meTab(3)">📎 Archivos</button>
     </div>
     <div class="tabp" id="me-p0">
       <div class="fg2">
@@ -854,25 +969,8 @@ tr:hover td{background:#f8fafc}
       </div>
       <div class="fi" style="margin-top:10px"><label>Observaciones psicológicas</label><textarea id="me-obspsic" style="text-transform:none"></textarea></div>
     </div>
-    <div class="tabp" id="me-p3" style="display:none">
-      <div class="fg2">
-        <div>
-          <p style="font-size:11px;color:var(--mu);margin-bottom:7px">📋 Oficio nuevo (opcional)</p>
-          <div class="fd" onclick="document.getElementById('me-inp-ofc').click()" style="padding:10px">
-            <div class="fdi" style="font-size:20px">📋</div><p>PDF</p><div class="fnm" id="me-ofc-fn"></div>
-          </div>
-          <input type="file" id="me-inp-ofc" accept=".pdf" style="display:none" onchange="setPF(this,'me-ofc-fn',null)">
-        </div>
-        <div>
-          <p style="font-size:11px;color:var(--mu);margin-bottom:7px">📄 Transcripción</p>
-          <div class="fd" onclick="document.getElementById('me-inp-tr').click()" style="padding:10px">
-            <div class="fdi" style="font-size:20px">📄</div><p>PDF / Word</p><div class="fnm" id="me-tr-fn"></div>
-          </div>
-          <input type="file" id="me-inp-tr" accept=".pdf,.docx,.doc" style="display:none" onchange="setPF(this,'me-tr-fn',null)">
-        </div>
-      </div>
-      <div id="me-links" style="margin-top:12px"></div>
-    </div>
+    <!-- Tab archivos eliminado — lógica movida a sección Documentos -->
+    <div id="me-links" style="display:none"></div>
     <input type="hidden" id="me-n">
     <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end;border-top:1px solid var(--bo);padding-top:14px">
       <button class="btn bg" onclick="closeM('mo-edit')">Cancelar</button>
@@ -962,6 +1060,49 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
+<!-- Overlay fondo panel notificaciones -->
+<div class="notif-overlay" id="notif-overlay" onclick="closeNotifPanel()"></div>
+
+<!-- Panel deslizante de notificaciones -->
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-panel-hdr">
+    <h3>🔔 Notificaciones</h3>
+    <button class="notif-panel-close" onclick="closeNotifPanel()">✕</button>
+  </div>
+
+  <!-- Formulario de envío (solo admin) -->
+  <div class="notif-panel-body" id="notif-panel-body">
+    <div id="notif-send-section" style="display:none">
+      <div class="notif-send-form">
+        <div style="font-size:11px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">✉️ Enviar nueva notificación</div>
+        <div class="notif-tipo-tabs">
+          <button class="notif-tipo-tab active" onclick="setNotifTipo('texto')">💬 Texto</button>
+          <button class="notif-tipo-tab" onclick="setNotifTipo('url')">🔗 URL</button>
+          <button class="notif-tipo-tab" onclick="setNotifTipo('video')">🎥 Video</button>
+        </div>
+        <select id="np-dest"><option value="TODOS">Todos los asistentes</option></select>
+        <input type="text" id="np-asunto" placeholder="Asunto / título *">
+        <textarea id="np-mensaje" rows="2" placeholder="Mensaje..." style="resize:vertical"></textarea>
+        <div id="np-url-section" style="display:none">
+          <input type="url" id="np-url" placeholder="https://... (URL del enlace o video)" style="text-transform:none">
+          <div id="np-url-preview" style="margin-top:6px"></div>
+        </div>
+        <button class="btn bp" style="width:100%;font-size:12px;padding:8px" onclick="sendNotifPanel()">📤 Enviar</button>
+      </div>
+      <div style="border-bottom:1px solid var(--bo);margin-bottom:10px"></div>
+    </div>
+
+    <!-- Lista de notificaciones -->
+    <div id="notif-panel-list">
+      <div style="text-align:center;padding:28px;color:var(--mu)">⏳ Cargando...</div>
+    </div>
+  </div>
+
+  <div class="notif-panel-footer" style="font-size:11px;color:var(--mu);text-align:center">
+    <button class="btn bg sm" style="width:100%" onclick="marcarTodasLeidas()">✓ Marcar todas como leídas</button>
+  </div>
+</div>
+
 <!-- Toast de notificaciones -->
 <div id="toast"></div>
 
@@ -1028,6 +1169,16 @@ var _dilActual = null; // Diligencia actualmente abierta en modal
 
 /** Cache de documentos */
 var _docsCache = { oficios: [], transcripciones: [] };
+/** Carpeta fiscal activa en la búsqueda de documentos */
+var _docCarpetaFiscalActiva = '';
+/** Estado del chat */
+var _chatHabilitado = true;
+/** Tipo de notificación seleccionado en el panel */
+var _notifTipo = 'texto';
+/** Timer polling de notificaciones */
+var _notifPollTimer = null;
+/** Última cantidad de no leídas (para badge) */
+var _notifNoLeidas = 0;
 
 /** Estado del formulario de psicología */
 var _psicoBase = null;         // Datos autocompletados desde diligencia
@@ -1488,13 +1639,15 @@ document.getElementById('l-pass').addEventListener('keydown', function(e) {
 
 /** Cierra la sesión del usuario */
 function doLogout() {
+  if (_notifPollTimer) { clearInterval(_notifPollTimer); _notifPollTimer = null; }
   _gsrCall('logout', [S.token], null, null);
   S = { token: null, usuario: null };
   sessionStorage.clear();
-  // Ocultar hamburguesa al cerrar sesión
   document.getElementById('sbtog').classList.remove('visible');
+  document.getElementById('bell-wrap').style.display = 'none';
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
+  closeNotifPanel();
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1532,11 +1685,21 @@ function startApp() {
   // Mostrar elementos exclusivos del administrador
   var esAdmin = u.rol === 'ADMINISTRADOR';
   if (esAdmin) {
-    document.getElementById('card-ag-txt').style.display = 'block';
-    document.getElementById('chat-comp').style.display   = 'block';
-    document.getElementById('nd-sec-adm').style.display  = 'block';
-    document.getElementById('card-trans').style.display  = 'block';
+    document.getElementById('card-ag-txt').style.display  = 'block';
+    document.getElementById('chat-comp').style.display    = 'block';
+    document.getElementById('nd-sec-adm').style.display   = 'block';
+    document.getElementById('card-trans').style.display   = 'block';
+    document.getElementById('chat-admin-ctrl').style.display = 'flex';
+    document.getElementById('notif-send-section').style.display = 'block';
+    document.getElementById('video-send-form').style.display = 'block';
   }
+  // Mostrar campanita para admin y asistente
+  document.getElementById('bell-wrap').style.display = 'flex';
+  // Cargar estado del chat
+  _gsrCall('obtenerEstadoChat', [S.token],
+    function(r) { if (r.ok) _actualizarEstadoChat(r.habilitado); }, function(){});
+  // Iniciar polling de notificaciones (cada 30s)
+  _iniciarPollingNotif();
 
   // Cargar listas para selects y configuración visual
   _gsrCall('obtenerListas', [S.token],
@@ -1795,8 +1958,8 @@ function saveDil() {
       function(e) { btn.disabled = false; btn.textContent = '💾 Guardar diligencia'; toast('Error: ' + e.message, 'error'); });
   }
 
-  if (ofc) { uploadB64(ofc, 'oficios', function(url) { if (!url) { btn.disabled = false; btn.textContent = '💾 Guardar diligencia'; return; } guardarConUrl(url, ofc.name); }); }
-  else guardarConUrl('', '');
+  // Oficio: se sube por separado en sección Documentos
+  guardarConUrl('', '');
 }
 
 /** Carga la lista de diligencias y configura la tabla según el rol */
@@ -1846,7 +2009,7 @@ function renderDil(items) {
     var ofc  = d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎</a>' : '<span class="b bgy" style="font-size:10px">Sin PDF</span>';
     var crep = d.CANTIDAD_REPROGRAMACION && d.CANTIDAD_REPROGRAMACION !== '0' && d.CANTIDAD_REPROGRAMACION !== '' ? '<span class="b bor">🔁 ' + esc(d.CANTIDAD_REPROGRAMACION) + '</span>' : '<span class="b bgy">0</span>';
     var acc  = isAdm
-      ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bp sm" onclick="editDilDir(\'' + esc(d.N) + '\')">✏️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
+      ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
       : '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️ Ver</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>';
     return '<tr>'
       + '<td><b>' + esc(d.N||'—') + '</b></td>'
@@ -1971,23 +2134,14 @@ function saveEdit() {
     FECHA_HORA_REPROGRAMACION: g('me-frep'), CANTIDAD_REPROGRAMACION: g('me-crep'),
     PSICOLOGO: g('me-psic'), FECHA_HORA_PSICOLOGICA: g('me-fps')
   };
-  var iO = document.getElementById('me-inp-ofc'), iT = document.getElementById('me-inp-tr');
-  var aO = iO && iO.files[0] ? iO.files[0] : null;
-  var aT = iT && iT.files[0] ? iT.files[0] : null;
-
-  function fin() {
-    _gsrCall('actualizarDiligencia', [S.token, n, campos],
-      function(r) {
-        btn.disabled = false; btn.textContent = '💾 Guardar cambios';
-        if (r.ok) { toast('✅ Actualizado', 'ok'); closeM('mo-edit'); loadDil(); _dilActual = null; }
-        else toast('Error: ' + r.error, 'error');
-      },
-      function(e) { btn.disabled = false; btn.textContent = '💾 Guardar cambios'; toast('Error: ' + e.message, 'error'); });
-  }
-
-  if (aO) { uploadB64(aO, 'oficios', function(u) { if (u) { campos['S_OFICIO'] = aO.name; campos['S_OFICIO_URL'] = u; } if (aT) { uploadB64(aT, 'transcripciones', function(u2) { if (u2) campos['TRANSCRIPCION_URL'] = u2; fin(); }); } else fin(); }); }
-  else if (aT) { uploadB64(aT, 'transcripciones', function(u2) { if (u2) campos['TRANSCRIPCION_URL'] = u2; fin(); }); }
-  else fin();
+  // Subida de archivos eliminada — usar sección Documentos
+  _gsrCall('actualizarDiligencia', [S.token, n, campos],
+    function(r) {
+      btn.disabled = false; btn.textContent = '💾 Guardar cambios';
+      if (r.ok) { toast('✅ Actualizado', 'ok'); closeM('mo-edit'); loadDil(); _dilActual = null; }
+      else toast('Error: ' + r.error, 'error');
+    },
+    function(e) { btn.disabled = false; btn.textContent = '💾 Guardar cambios'; toast('Error: ' + e.message, 'error'); });
 }
 
 function elimDil(n) {
@@ -2857,6 +3011,127 @@ document.addEventListener('blur', function(e) {
     startApp(); // Restaurar sesión automáticamente
   }
 })();
+
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO 12C: VIDEOS Y EMBED
+// ════════════════════════════════════════════════════════════
+
+/**
+ * Convierte URL de video en iframe embebido.
+ * Soporta YouTube (watch, shorts, youtu.be) y Google Drive.
+ */
+function _buildEmbedIframe(url) {
+  if (!url) return '';
+  var src = '';
+  // YouTube watch?v=
+  var m1 = url.match(/youtube\.com\/watch\?v=([\w-]{11})/);
+  if (m1) src = 'https://www.youtube.com/embed/' + m1[1] + '?rel=0';
+  // youtu.be/
+  var m2 = url.match(/youtu\.be\/([\w-]{11})/);
+  if (!src && m2) src = 'https://www.youtube.com/embed/' + m2[1] + '?rel=0';
+  // YouTube embed directo
+  var m3 = url.match(/youtube\.com\/embed\/([\w-]{11})/);
+  if (!src && m3) src = 'https://www.youtube.com/embed/' + m3[1] + '?rel=0';
+  // YouTube Shorts
+  var m4 = url.match(/youtube\.com\/shorts\/([\w-]{11})/);
+  if (!src && m4) src = 'https://www.youtube.com/embed/' + m4[1] + '?rel=0';
+  // Google Drive file/d/
+  var m5 = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
+  if (!src && m5) src = 'https://drive.google.com/file/d/' + m5[1] + '/preview';
+  // Google Drive open?id=
+  var m6 = url.match(/drive\.google\.com\/open\?id=([\w-]+)/);
+  if (!src && m6) src = 'https://drive.google.com/file/d/' + m6[1] + '/preview';
+
+  if (!src) return '';
+  return '<iframe src="' + src + '" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%"></iframe>';
+}
+
+/** Preview del video al escribir URL */
+function previewVideoSend() {
+  var url = g('vid-url').trim();
+  var prev = document.getElementById('vid-preview');
+  if (!prev) return;
+  if (!url) { prev.innerHTML = ''; return; }
+  var iframe = _buildEmbedIframe(url);
+  if (iframe) {
+    prev.innerHTML = '<div style="position:relative;aspect-ratio:16/9;background:#000;border-radius:8px;overflow:hidden;margin-top:6px">' + iframe + '</div>';
+  } else {
+    prev.innerHTML = '<p style="font-size:11px;color:var(--mu);margin-top:4px">⚠️ URL no reconocida. Compatible con YouTube y Google Drive.</p>';
+  }
+}
+
+/** Envía un video (solo admin) */
+function enviarVideoAdmin() {
+  var url    = g('vid-url').trim();
+  var titulo = g('vid-titulo').trim();
+  var desc   = g('vid-desc').trim();
+  var dest   = g('vid-dest');
+  if (!url)    { toast('La URL del video es obligatoria', 'error'); return; }
+  if (!titulo) { toast('El título es obligatorio', 'error'); return; }
+  var iframe = _buildEmbedIframe(url);
+  if (!iframe) { toast('URL no reconocida. Usa YouTube o Google Drive.', 'error'); return; }
+  _gsrCall('enviarVideo', [S.token, url, titulo, desc, dest],
+    function(r) {
+      if (r.ok) {
+        toast('✅ Video enviado', 'ok');
+        sv('vid-url', ''); sv('vid-titulo', ''); sv('vid-desc', '');
+        var p = document.getElementById('vid-preview'); if (p) p.innerHTML = '';
+        cargarVideos();
+      } else toast(r.error, 'error');
+    }, null);
+}
+
+/** Carga y renderiza los videos en la sección */
+function cargarVideos() {
+  var grid = document.getElementById('video-grid');
+  if (!grid) return;
+  grid.innerHTML = '<div style="text-align:center;padding:28px;color:var(--mu)">⏳ Cargando videos...</div>';
+  _gsrCall('obtenerVideos', [S.token],
+    function(r) {
+      if (!r.ok || !r.datos || !r.datos.length) {
+        grid.innerHTML = '<div style="text-align:center;padding:28px;color:var(--mu)">📭 Sin videos disponibles</div>';
+        return;
+      }
+      grid.innerHTML = r.datos.map(function(v) {
+        var iframe = _buildEmbedIframe(v.url);
+        var embedHtml = iframe
+          ? '<div style="position:relative;aspect-ratio:16/9;background:#000">' + iframe + '</div>'
+          : '<div style="aspect-ratio:16/9;background:#1e293b;display:flex;align-items:center;justify-content:center">'
+            + '<a href="' + esc(v.url) + '" target="_blank" style="color:#93c5fd;font-size:12px">▶ Abrir video externo ↗</a></div>';
+        var fecha = '';
+        try { fecha = fF(v.fecha); } catch(e) {}
+        return '<div class="video-card">'
+          + embedHtml
+          + '<div class="video-card-info">'
+          + '<div class="video-card-title">' + esc(v.titulo) + '</div>'
+          + (v.descripcion ? '<div class="video-card-desc">' + esc(v.descripcion) + '</div>' : '')
+          + '<div class="video-card-meta">📅 ' + fecha
+          + ' · <a href="' + esc(v.url) + '" target="_blank" style="color:var(--az);font-size:10px">Abrir original ↗</a>'
+          + '</div></div></div>';
+      }).join('');
+    },
+    function(e) { grid.innerHTML = '<p style="color:var(--red);padding:14px;font-size:12px">Error: ' + esc(e.message) + '</p>'; });
+}
+
+/** URL preview en el panel de notificaciones */
+document.addEventListener('input', function(e) {
+  if (!e.target || e.target.id !== 'np-url') return;
+  var url = e.target.value.trim();
+  var prev = document.getElementById('np-url-preview');
+  if (!prev || !url) { if (prev) prev.innerHTML = ''; return; }
+  if (_notifTipo === 'video') {
+    var iframe = _buildEmbedIframe(url);
+    prev.innerHTML = iframe
+      ? '<div style="position:relative;aspect-ratio:16/9;background:#000;border-radius:8px;overflow:hidden;margin-top:6px">' + iframe + '</div>'
+      : '<p style="font-size:11px;color:var(--mu)">⚠️ URL de video no reconocida</p>';
+  } else {
+    prev.innerHTML = '<a href="' + esc(url) + '" target="_blank" class="notif-link-prev" style="margin-top:4px">'
+      + '<span class="notif-link-icon">🔗</span>'
+      + '<span class="notif-link-info"><b>' + esc(url.length > 55 ? url.substring(0,55)+'…' : url) + '</b>'
+      + '<span>Clic para abrir</span></span></a>';
+  }
+});
 
 </script>
 </body>
