@@ -249,12 +249,12 @@ tr:hover td{background:#f8fafc}
 .chatdest label{font-size:11px;font-weight:700;color:var(--mu)}
 .chatdest select{border:1.5px solid var(--bo);border-radius:7px;padding:5px 9px;font-size:12px;outline:none;flex:1}
 
-/* ── DOCUMENTOS v2 — búsqueda por carpeta fiscal ── */
-.docg{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+/* ── DOCUMENTOS ── */
+.docg{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
 .docc{background:var(--card);border:1px solid var(--bo);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:10px}
 .docico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 .docico.pdf{background:#fee2e2}.docico.word{background:#dbeafe}
-.docl{display:flex;flex-direction:column;gap:7px;max-height:280px;overflow-y:auto}
+.docl{display:flex;flex-direction:column;gap:7px;max-height:220px;overflow-y:auto}
 .doci{display:flex;align-items:center;gap:8px;padding:9px 10px;background:var(--bg);border-radius:8px;font-size:12px}
 .doci:hover{background:#e2e8f0}
 .docin{flex:1;min-width:0}
@@ -263,24 +263,6 @@ tr:hover td{background:#f8fafc}
 .docib{background:none;border:none;cursor:pointer;color:var(--az);font-size:13px;padding:3px;border-radius:5px}
 .docib.del{color:var(--red)}
 .docib:hover{background:var(--bo)}
-/* Buscador de carpeta fiscal */
-.doc-search-card{background:var(--card);border:1px solid var(--bo);border-radius:var(--r);padding:18px;margin-bottom:14px}
-.doc-search-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.doc-search-row input{flex:1;min-width:160px;padding:10px 14px;border:2px solid var(--bo);border-radius:9px;font-size:14px;font-weight:700;text-transform:uppercase;outline:none;transition:border .2s,box-shadow .2s}
-.doc-search-row input:focus{border-color:var(--az);box-shadow:0 0 0 3px rgba(26,115,232,.12)}
-.doc-cf-res{margin-top:12px;display:none}
-.doc-cf-res.show{display:block}
-.doc-cf-item{cursor:pointer;padding:10px 13px;background:var(--azl);border:2px solid var(--bo);border-radius:10px;margin-bottom:6px;transition:all .15s}
-.doc-cf-item:hover{border-color:var(--az);background:#dbeafe;transform:translateY(-1px);box-shadow:0 3px 10px rgba(26,115,232,.15)}
-.doc-cf-badge{background:var(--az);color:#fff;border-radius:6px;padding:2px 9px;font-size:11px;font-weight:800;display:inline-block;margin-bottom:4px}
-.doc-cf-activa-bar{display:none;background:linear-gradient(90deg,var(--az),#1557b0);color:#fff;border-radius:10px;padding:10px 16px;margin-bottom:10px;font-size:13px;font-weight:700;align-items:center;gap:10px}
-.doc-cf-activa-bar.show{display:flex}
-.doc-bloqueado{opacity:.42;pointer-events:none;filter:grayscale(.3)}
-.doc-lock-msg{background:#fef9c3;border:1px solid #fde047;border-radius:9px;padding:10px 14px;font-size:12px;color:#78350f;text-align:center;margin-bottom:10px}
-.doc-lock-msg.hidden{display:none}
-.doc-status-asist{border-radius:9px;padding:9px 13px;font-size:12px;font-weight:600;display:none}
-.doc-status-asist.subido{background:#dcfce7;border:1px solid #86efac;color:#15803d;display:block}
-.doc-status-asist.pendiente{background:#fef9c3;border:1px solid #fde047;color:#92400e;display:block}
 
 /* ── PESTAÑAS ── */
 .tabs{display:flex;gap:0;border-bottom:2px solid var(--bo);margin-bottom:16px}
@@ -722,82 +704,34 @@ tr:hover td{background:#f8fafc}
 
     <!-- DOCUMENTOS -->
     <div class="page" id="page-docs">
-      <div class="ph"><div class="phl"><h2>📁 Documentos</h2><p>Busca la Carpeta Fiscal para subir o consultar archivos</p></div></div>
-
-      <!-- ① BUSCADOR DE CARPETA FISCAL -->
-      <div class="doc-search-card">
-        <div class="ct" style="margin-bottom:12px">🔍 Buscar por Carpeta Fiscal</div>
-        <div class="doc-search-row">
-          <input type="text" id="doc-cf-input" placeholder="Ingresa N° de Carpeta Fiscal y presiona ENTER..."
-            onkeydown="if(event.key==='Enter')buscarCFDocs()" autocomplete="off">
-          <button class="btn bp" onclick="buscarCFDocs()">🔍 Buscar</button>
-          <button class="btn" onclick="limpiarDocsBuscador()" style="background:var(--bg);border:1px solid var(--bo);color:var(--mu)">✖ Limpiar</button>
+      <div class="ph"><div class="phl"><h2>📁 Documentos</h2><p>Gestión de archivos</p></div></div>
+      <div class="docg">
+        <div class="docc">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="docico pdf">📋</div>
+            <div><div style="font-size:14px;font-weight:700">Oficios</div><div style="font-size:11px;color:var(--mu)">Solo PDF</div></div>
+          </div>
+          <div class="sbar"><input class="sinp" type="text" id="q-ofc" placeholder="BUSCAR OFICIO..." oninput="filtrarDocs('oficios','q-ofc','lista-ofc')"></div>
+          <div class="fd" onclick="document.getElementById('inp-ofc-doc').click()" style="padding:12px">
+            <div class="fdi">📤</div><p>Subir oficio PDF</p><div class="fnm" id="ofc-doc-fn"></div>
+          </div>
+          <input type="file" id="inp-ofc-doc" accept=".pdf" style="display:none" onchange="setPF(this,'ofc-doc-fn',null)">
+          <button class="btn bp sm" onclick="uploadDoc('oficios','inp-ofc-doc','ofc-doc-fn')">📤 Subir</button>
+          <div class="docl" id="lista-ofc"></div>
         </div>
-        <div id="doc-cf-resultados" class="doc-cf-res"></div>
-      </div>
-
-      <!-- ② BARRA DE CF ACTIVA -->
-      <div id="doc-cf-activa-bar" class="doc-cf-activa-bar">
-        <span style="font-size:18px">📁</span>
-        <span>Carpeta Fiscal activa:</span>
-        <span id="doc-cf-activa-txt" style="background:rgba(255,255,255,.2);padding:2px 10px;border-radius:6px;letter-spacing:.5px"></span>
-        <button onclick="limpiarDocsBuscador()" style="margin-left:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:7px;padding:4px 10px;cursor:pointer;font-size:12px">✖ Cambiar</button>
-      </div>
-
-      <!-- ③ MENSAJE BLOQUEADO (visible cuando no hay CF) -->
-      <div id="doc-lock-msg" class="doc-lock-msg">
-        ⚠️ Busca y selecciona una <b>Carpeta Fiscal</b> arriba para poder ver o subir documentos
-      </div>
-
-      <!-- ④ ZONA DE DOCUMENTOS (bloqueada hasta seleccionar CF) -->
-      <div id="doc-zona" class="doc-bloqueado">
-        <div class="docg">
-          <!-- OFICIOS -->
-          <div class="docc">
-            <div style="display:flex;align-items:center;gap:10px">
-              <div class="docico pdf">📋</div>
-              <div>
-                <div style="font-size:14px;font-weight:700">Oficios</div>
-                <div style="font-size:11px;color:var(--mu)">Solo PDF · ADMINISTRADOR y ASISTENTE</div>
-              </div>
-            </div>
-            <!-- Estado asistente: auto-detectado -->
-            <div id="doc-asist-status" class="doc-status-asist"></div>
-            <!-- Zona de subida -->
-            <div id="doc-ofc-upload">
-              <div class="fd" onclick="document.getElementById('inp-doc-ofc').click()" style="padding:11px">
-                <div class="fdi">📤</div><p>Seleccionar oficio PDF</p>
-                <div class="fnm" id="doc-ofc-fn"></div>
-              </div>
-              <input type="file" id="inp-doc-ofc" accept=".pdf" style="display:none"
-                onchange="setPF(this,'doc-ofc-fn',null)">
-              <button class="btn bp sm" onclick="subirDocCF('oficios','inp-doc-ofc','doc-ofc-fn','lista-doc-ofc')">📤 Subir oficio</button>
-            </div>
-            <div class="sbar"><input class="sinp" type="text" id="q-doc-ofc" placeholder="FILTRAR OFICIOS..."
-              oninput="filtrarDocs2('oficios','q-doc-ofc','lista-doc-ofc')"></div>
-            <div class="docl" id="lista-doc-ofc"></div>
+        <!-- Solo visible para ADMINISTRADOR -->
+        <div class="docc" id="card-trans" style="display:none">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="docico word">📄</div>
+            <div><div style="font-size:14px;font-weight:700">Transcripciones</div><div style="font-size:11px;color:var(--mu)">PDF o Word</div></div>
           </div>
-
-          <!-- TRANSCRIPCIONES (solo admin) -->
-          <div class="docc" id="card-trans" style="display:none">
-            <div style="display:flex;align-items:center;gap:10px">
-              <div class="docico word">📄</div>
-              <div>
-                <div style="font-size:14px;font-weight:700">Transcripciones</div>
-                <div style="font-size:11px;color:var(--mu)">PDF o Word · Solo ADMINISTRADOR</div>
-              </div>
-            </div>
-            <div class="fd" onclick="document.getElementById('inp-doc-trans').click()" style="padding:11px">
-              <div class="fdi">📤</div><p>PDF o Word (.docx)</p>
-              <div class="fnm" id="doc-trans-fn"></div>
-            </div>
-            <input type="file" id="inp-doc-trans" accept=".pdf,.docx,.doc" style="display:none"
-              onchange="setPF(this,'doc-trans-fn',null)">
-            <button class="btn bp sm" onclick="subirDocCF('transcripciones','inp-doc-trans','doc-trans-fn','lista-doc-trans')">📤 Subir transcripción</button>
-            <div class="sbar"><input class="sinp" type="text" id="q-doc-trans" placeholder="FILTRAR TRANSCRIPCIONES..."
-              oninput="filtrarDocs2('transcripciones','q-doc-trans','lista-doc-trans')"></div>
-            <div class="docl" id="lista-doc-trans"></div>
+          <div class="sbar"><input class="sinp" type="text" id="q-trans" placeholder="BUSCAR TRANSCRIPCIÓN..." oninput="filtrarDocs('transcripciones','q-trans','lista-trans')"></div>
+          <div class="fd" onclick="document.getElementById('inp-trans-doc').click()" style="padding:12px">
+            <div class="fdi">📤</div><p>PDF o Word (.docx)</p><div class="fnm" id="trans-doc-fn"></div>
           </div>
+          <input type="file" id="inp-trans-doc" accept=".pdf,.docx,.doc" style="display:none" onchange="setPF(this,'trans-doc-fn',null)">
+          <button class="btn bp sm" onclick="uploadDoc('transcripciones','inp-trans-doc','trans-doc-fn')">📤 Subir</button>
+          <div class="docl" id="lista-trans"></div>
         </div>
       </div>
     </div>
@@ -1109,10 +1043,7 @@ var _dilAll = [];
 var _dilFilt = [];
 var _dilActual = null; // Diligencia actualmente abierta en modal
 
-/** Cache de oficios subidos por el asistente, indexado por CARPETA_FISCAL */
-var _asistOficiosCache = {};
-
-/** Cache de documentos — declarado en Módulo 11, inicializado aquí para evitar referencia prematura */
+/** Cache de documentos */
 var _docsCache = { oficios: [], transcripciones: [] };
 
 /** Estado del formulario de psicología */
@@ -1633,7 +1564,7 @@ function startApp() {
     document.getElementById('card-ag-txt').style.display = 'block';
     document.getElementById('chat-comp').style.display   = 'block';
     document.getElementById('nd-sec-adm').style.display  = 'block';
-    // card-trans se gestiona dinámicamente en loadDocs() según el rol
+    document.getElementById('card-trans').style.display  = 'block';
   }
 
   // Cargar listas para selects y configuración visual
@@ -1897,9 +1828,6 @@ function saveDil() {
   else guardarConUrl('', '');
 }
 
-/** Cache de oficios del asistente: { 'CARPETA_FISCAL': true } */
-var _asistOficiosCache = {};
-
 /** Carga la lista de diligencias y configura la tabla según el rol */
 function loadDil() {
   var tb = document.getElementById('tbody-dil');
@@ -1914,30 +1842,6 @@ function loadDil() {
     ? '<button class="btn bs sm" onclick="exportarXLS()">📥 Excel</button><button class="btn bp sm" onclick="nav2(\'agenda\')">➕ Nueva</button>'
     : '<button class="btn bp sm" onclick="nav2(\'agenda\')">➕ Nueva diligencia</button>';
 
-  // Si es ASISTENTE, primero cargar sus oficios subidos para mostrar estado en tabla
-  if (!isAdm) {
-    _gsrCall('obtenerDocumentos', [S.token, 'oficios'],
-      function(r) {
-        _asistOficiosCache = {};
-        if (r.ok && r.datos) {
-          r.datos.forEach(function(d) {
-            if (d.carpetaFiscal) _asistOficiosCache[d.carpetaFiscal.toUpperCase()] = true;
-          });
-        }
-        // Una vez cargado el cache de oficios, cargar diligencias
-        _fetchDiligencias();
-      },
-      function() { _fetchDiligencias(); } // Si falla, cargar igualmente sin cache
-    );
-  } else {
-    _asistOficiosCache = {};
-    _fetchDiligencias();
-  }
-}
-
-/** Fetch real de diligencias (separado para poder llamarse con o sin cache de oficios) */
-function _fetchDiligencias() {
-  var tb = document.getElementById('tbody-dil');
   _gsrCall('obtenerDiligencias', [S.token],
     function(r) {
       if (r.ok) { _dilAll = r.datos; _dilFilt = r.datos; renderDil(r.datos); }
@@ -1968,30 +1872,8 @@ function renderDil(items) {
   tb.innerHTML = items.map(function(d) {
     var real = d.SE_REALIZO || '';
     var bdg  = real === 'SÍ' ? '<span class="b bgr">✅ Sí</span>' : real === 'NO' ? '<span class="b bre">❌ No</span>' : '<span class="b bgy">⏳</span>';
+    var ofc  = d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎</a>' : '<span class="b bgy" style="font-size:10px">Sin PDF</span>';
     var crep = d.CANTIDAD_REPROGRAMACION && d.CANTIDAD_REPROGRAMACION !== '0' && d.CANTIDAD_REPROGRAMACION !== '' ? '<span class="b bor">🔁 ' + esc(d.CANTIDAD_REPROGRAMACION) + '</span>' : '<span class="b bgy">0</span>';
-
-    // ── COLUMNA OFICIO ──
-    // Administrador: usa S_OFICIO_URL de la diligencia
-    // Asistente: combina S_OFICIO_URL + cache de documentos subidos por él
-    var ofc;
-    if (isAdm) {
-      ofc = d.S_OFICIO_URL && d.S_OFICIO_URL !== ''
-        ? '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎 Ver</a>'
-        : '<span class="b bgy" style="font-size:10px">Sin PDF</span>';
-    } else {
-      var cfKey = (d.CARPETA_FISCAL || '').toUpperCase();
-      var tieneEnDocs = _asistOficiosCache[cfKey] === true;
-      if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') {
-        // Tiene URL en la diligencia
-        ofc = '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎 Ver</a>';
-      } else if (tieneEnDocs) {
-        // Subido en módulo Documentos para esta CF
-        ofc = '<span class="b bgr" style="font-size:10px;cursor:pointer" onclick="verDocsAsist(\'' + esc(cfKey) + '\')" title="Ver en Documentos">📋 Subido</span>';
-      } else {
-        ofc = '<span class="b bgy" style="font-size:10px">Sin PDF</span>';
-      }
-    }
-
     var acc  = isAdm
       ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
       : '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️ Ver</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>';
@@ -2010,17 +1892,6 @@ function renderDil(items) {
       + '</tr>';
   }).join('');
   asignarDataLabels('#tbody-dil', '#thead-dil');
-}
-
-/**
- * Asistente: navega a Documentos y pre-busca la CF para ver su oficio subido.
- */
-function verDocsAsist(cf) {
-  nav2('docs');
-  setTimeout(function() {
-    document.getElementById('doc-cf-input').value = cf;
-    buscarCFDocs();
-  }, 300);
 }
 
 /** Abre el modal de detalle de una diligencia */
@@ -2524,214 +2395,23 @@ function generarPdfPsicologia(id) {
 }
 
 // ════════════════════════════════════════════════════════════
-// MÓDULO 11: DOCUMENTOS v2 — Búsqueda por Carpeta Fiscal
+// MÓDULO 11: DOCUMENTOS
 // ════════════════════════════════════════════════════════════
 
-/** Carpeta fiscal actualmente seleccionada */
-var _docCFActiva = '';
-
-/**
- * Inicializa la sección Documentos.
- * Bloquea la zona de subida/visualización hasta que se busque una CF.
- */
 function loadDocs() {
-  _docCFActiva = '';
-  _docsCache   = { oficios: [], transcripciones: [] };
-
-  // Bloquear zona, mostrar mensaje, limpiar resultados previos
-  document.getElementById('doc-zona').classList.add('doc-bloqueado');
-  document.getElementById('doc-lock-msg').classList.remove('hidden');
-  document.getElementById('doc-cf-activa-bar').classList.remove('show');
-  document.getElementById('doc-cf-resultados').classList.remove('show');
-  document.getElementById('doc-cf-resultados').innerHTML = '';
-  document.getElementById('doc-cf-input').value = '';
-  document.getElementById('lista-doc-ofc').innerHTML   = '';
-  document.getElementById('lista-doc-trans').innerHTML = '';
-
-  // Mostrar card de transcripciones solo para ADMINISTRADOR
-  document.getElementById('card-trans').style.display =
-    S.usuario.rol === 'ADMINISTRADOR' ? '' : 'none';
-
-  // Asistente: auto-detectar si ya tiene oficios subidos (sin CF específica)
-  if (S.usuario.rol === 'ASISTENTE') {
-    _detectarOficiosAsistente();
-  }
+  cargarListaDocs('oficios', 'lista-ofc');
+  if (S.usuario.rol === 'ADMINISTRADOR') cargarListaDocs('transcripciones', 'lista-trans');
 }
-
-/**
- * ASISTENTE: detecta automáticamente si ya subió algún oficio,
- * mostrando un aviso incluso antes de buscar una CF.
- */
-function _detectarOficiosAsistente() {
-  _gsrCall('obtenerDocumentos', [S.token, 'oficios'],
-    function(r) {
-      if (!r.ok || !r.datos || !r.datos.length) return;
-      var el = document.getElementById('doc-asist-status');
-      if (!el) return;
-      el.className = 'doc-status-asist subido';
-      el.innerHTML = '✅ Tienes <b>' + r.datos.length + '</b> oficio(s) subido(s). '
-        + 'Busca tu Carpeta Fiscal para verlos o subir más.';
-    },
-    function() {});
+function cargarListaDocs(carpeta, elId) {
+  _gsrCall('obtenerDocumentos', [S.token, carpeta.toLowerCase()],
+    function(r) { _docsCache[carpeta] = r.ok ? r.datos : []; renderListaDocs(carpeta, elId, ''); },
+    function() { document.getElementById(elId).innerHTML = '<p style="font-size:12px;color:var(--red);text-align:center;padding:12px">Error al cargar</p>'; });
 }
-
-/**
- * Busca la Carpeta Fiscal en DILIGENCIAS (backend).
- * Muestra resultados clicables para seleccionar.
- */
-function buscarCFDocs() {
-  var cf = (document.getElementById('doc-cf-input').value || '').trim().toUpperCase();
-  if (!cf) { toast('Escribe una Carpeta Fiscal para buscar', 'error'); return; }
-
-  var resEl = document.getElementById('doc-cf-resultados');
-  resEl.innerHTML = '<p style="font-size:12px;color:var(--mu);padding:8px">⏳ Buscando...</p>';
-  resEl.classList.add('show');
-
-  _gsrCall('buscarCarpetaFiscalDocs', [S.token, cf],
-    function(r) {
-      if (!r.ok) { toast(r.error || 'Error de búsqueda', 'error'); resEl.classList.remove('show'); return; }
-      if (!r.encontrada || !r.resultados || !r.resultados.length) {
-        resEl.innerHTML = '<div style="padding:10px;background:#fee2e2;border-radius:8px;font-size:12px;color:var(--red)">❌ No se encontró la Carpeta Fiscal <b>' + esc(cf) + '</b> en el sistema. Verifica el número exacto.</div>';
-        // Bloquear zona por si había algo desbloqueado antes
-        document.getElementById('doc-zona').classList.add('doc-bloqueado');
-        document.getElementById('doc-lock-msg').classList.remove('hidden');
-        document.getElementById('doc-cf-activa-bar').classList.remove('show');
-        return;
-      }
-      _renderResultadosCF(r.resultados);
-    },
-    function(e) { toast('Error: ' + e.message, 'error'); resEl.classList.remove('show'); });
-}
-
-/**
- * Renderiza la lista de resultados de búsqueda de CF.
- * Al hacer clic en un resultado se selecciona esa CF.
- */
-function _renderResultadosCF(resultados) {
-  var resEl = document.getElementById('doc-cf-resultados');
-  var html = '<div style="font-size:11px;font-weight:700;color:var(--az);margin-bottom:8px;padding:0 2px">'
-    + '✅ ' + resultados.length + ' resultado(s) — haz clic para seleccionar:</div>';
-
-  resultados.forEach(function(d) {
-    html += '<div class="doc-cf-item" onclick="seleccionarCFDocs(\'' + esc(d.CARPETA_FISCAL) + '\')">'
-      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">'
-      + '<span class="doc-cf-badge">' + esc(d.CARPETA_FISCAL) + '</span>'
-      + '<span style="font-size:11px;color:var(--mu)">' + esc(d.DESPACHO_FISCAL) + '</span>'
-      + '</div>'
-      + '<div style="font-size:11px;color:var(--tx);line-height:1.5">'
-      + '👤 <b>Agraviado:</b> ' + esc(d.AGRAVIADOS || '—') + ' &nbsp;'
-      + '⚖️ <b>Delito:</b> ' + esc(d.DELITO_GENERICO || '—') + ' &nbsp;'
-      + '🧑‍⚖️ <b>Fiscal:</b> ' + esc(d.FISCAL || '—')
-      + '</div>'
-      + '</div>';
-  });
-  resEl.innerHTML = html;
-  resEl.classList.add('show');
-}
-
-/**
- * Selecciona una Carpeta Fiscal y desbloquea la zona de documentos.
- * Carga los documentos existentes para esa CF.
- */
-function seleccionarCFDocs(cf) {
-  _docCFActiva = cf;
-
-  // Ocultar resultados y mostrar barra de CF activa
-  document.getElementById('doc-cf-resultados').classList.remove('show');
-  document.getElementById('doc-cf-activa-txt').textContent = cf;
-  document.getElementById('doc-cf-activa-bar').classList.add('show');
-
-  // Desbloquear zona y ocultar mensaje de bloqueo
-  document.getElementById('doc-zona').classList.remove('doc-bloqueado');
-  document.getElementById('doc-lock-msg').classList.add('hidden');
-
-  toast('📁 CF seleccionada: ' + cf, 'ok');
-
-  // Cargar documentos de esta CF
-  _cargarDocsParaCF('oficios', 'lista-doc-ofc');
-  if (S.usuario.rol === 'ADMINISTRADOR') _cargarDocsParaCF('transcripciones', 'lista-doc-trans');
-
-  // Asistente: verificar estado específico para esta CF
-  if (S.usuario.rol === 'ASISTENTE') _checkEstadoAsistenteCF(cf);
-}
-
-/**
- * ASISTENTE: verifica si ya subió su oficio para la CF activa.
- * Muestra estado visual dentro de la card de oficios.
- */
-function _checkEstadoAsistenteCF(cf) {
-  var el = document.getElementById('doc-asist-status');
-  if (!el) return;
-  _gsrCall('obtenerDocumentos', [S.token, 'oficios', cf],
-    function(r) {
-      if (r.ok && r.datos && r.datos.length > 0) {
-        el.className = 'doc-status-asist subido';
-        el.innerHTML = '✅ Ya subiste tu oficio para esta Carpeta Fiscal. Puedes verlo abajo o reemplazarlo.';
-      } else {
-        el.className = 'doc-status-asist pendiente';
-        el.innerHTML = '⚠️ Aún no has subido el oficio para <b>' + esc(cf) + '</b>.';
-      }
-    },
-    function() {});
-}
-
-/**
- * Limpia el buscador y bloquea nuevamente la zona de documentos.
- */
-function limpiarDocsBuscador() {
-  _docCFActiva = '';
-  _docsCache   = { oficios: [], transcripciones: [] };
-  document.getElementById('doc-cf-input').value = '';
-  document.getElementById('doc-cf-resultados').classList.remove('show');
-  document.getElementById('doc-cf-resultados').innerHTML = '';
-  document.getElementById('doc-cf-activa-bar').classList.remove('show');
-  document.getElementById('doc-zona').classList.add('doc-bloqueado');
-  document.getElementById('doc-lock-msg').classList.remove('hidden');
-  document.getElementById('lista-doc-ofc').innerHTML   = '';
-  document.getElementById('lista-doc-trans').innerHTML = '';
-  // Limpiar estado asistente
-  var el = document.getElementById('doc-asist-status');
-  if (el) { el.className = 'doc-status-asist'; el.innerHTML = ''; }
-}
-
-/**
- * Carga los documentos de una carpeta filtrando por la CF activa.
- */
-function _cargarDocsParaCF(carpeta, elId) {
+function filtrarDocs(carpeta, qId, elId) { renderListaDocs(carpeta, elId, g(qId).toUpperCase().trim()); }
+function renderListaDocs(carpeta, elId, q) {
   var c = document.getElementById(elId);
-  if (!c) return;
-  c.innerHTML = '<p style="font-size:12px;color:var(--mu);text-align:center;padding:10px">⏳ Cargando...</p>';
-  _gsrCall('obtenerDocumentos', [S.token, carpeta, _docCFActiva],
-    function(r) {
-      _docsCache[carpeta] = r.ok ? r.datos : [];
-      renderListaDocs2(carpeta, elId, '');
-    },
-    function() {
-      if (c) c.innerHTML = '<p style="font-size:12px;color:var(--red);text-align:center;padding:10px">Error al cargar</p>';
-    });
-}
-
-/**
- * Filtra la lista de documentos por nombre.
- */
-function filtrarDocs2(carpeta, qId, elId) {
-  renderListaDocs2(carpeta, elId, g(qId).toUpperCase().trim());
-}
-
-/**
- * Renderiza la lista de documentos de una carpeta.
- * Cada item tiene botón Ver y Eliminar (según permisos).
- */
-function renderListaDocs2(carpeta, elId, q) {
-  var c = document.getElementById(elId);
-  if (!c) return;
-  var items = (_docsCache[carpeta] || []).filter(function(d) {
-    return !q || d.nombre.toUpperCase().indexOf(q) >= 0;
-  });
-  if (!items.length) {
-    c.innerHTML = '<p style="font-size:12px;color:var(--mu);text-align:center;padding:12px">Sin documentos para esta Carpeta Fiscal</p>';
-    return;
-  }
+  var items = (_docsCache[carpeta] || []).filter(function(d){ return !q || d.nombre.toUpperCase().indexOf(q) >= 0; });
+  if (!items.length) { c.innerHTML = '<p style="font-size:12px;color:var(--mu);text-align:center;padding:12px">Sin documentos</p>'; return; }
   var isAdm = S.usuario.rol === 'ADMINISTRADOR';
   c.innerHTML = items.map(function(d) {
     var ico = d.tipo === 'application/pdf' ? '📋' : '📄';
@@ -2739,68 +2419,24 @@ function renderListaDocs2(carpeta, elId, q) {
     var puedeElim = isAdm || esMio;
     return '<div class="doci">'
       + '<span style="font-size:16px">' + ico + '</span>'
-      + '<div class="docin">'
-      +   '<b>' + esc(d.nombre) + '</b>'
-      +   '<small>' + esc(d.fecha || '') + (isAdm ? ' · ' + esc(d.subidoPor || '') : '') + '</small>'
-      + '</div>'
-      + '<a href="' + esc(d.url) + '" target="_blank" class="docib" title="Ver archivo">↗️</a>'
-      + (puedeElim
-          ? '<button class="docib del" onclick="elimDocCF(\'' + d.id + '\',\'' + carpeta + '\',\'' + elId + '\')" title="Eliminar del sistema y Drive">🗑️</button>'
-          : '')
+      + '<div class="docin"><b>' + esc(d.nombre) + '</b><small>' + esc(d.fecha||'') + (isAdm ? ' · ' + esc(d.subidoPor||'') : '') + '</small></div>'
+      + '<a href="' + esc(d.url) + '" target="_blank" class="docib" title="Abrir">↗️</a>'
+      + (puedeElim ? '<button class="docib del" onclick="elimDoc(\'' + d.id + '\',\'' + carpeta + '\',\'' + elId + '\')" title="Eliminar">🗑️</button>' : '')
       + '</div>';
   }).join('');
 }
-
-/**
- * Sube un archivo asociado a la CF activa.
- * ADMINISTRADOR: oficios + transcripciones.
- * ASISTENTE: solo oficios PDF.
- */
-function subirDocCF(carpeta, inputId, nmId, listaId) {
-  if (!_docCFActiva) { toast('Primero selecciona una Carpeta Fiscal', 'error'); return; }
+function uploadDoc(carpeta, inputId, nmId) {
   var inp = document.getElementById(inputId);
-  if (!inp || !inp.files[0]) { toast('Selecciona un archivo primero', 'error'); return; }
-
-  var file = inp.files[0];
-  toast('⏳ Subiendo archivo...', 'ok');
-
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var b64 = e.target.result.split(',')[1];
-    _gsrCall('subirArchivo', [S.token, b64, file.name, file.type, carpeta, _docCFActiva],
-      function(r) {
-        if (r.ok) {
-          toast('✅ Archivo subido correctamente', 'ok');
-          document.getElementById(nmId).textContent = '';
-          inp.value = '';
-          _cargarDocsParaCF(carpeta, listaId);
-          // Actualizar estado del asistente
-          if (S.usuario.rol === 'ASISTENTE') _checkEstadoAsistenteCF(_docCFActiva);
-        } else {
-          toast('Error: ' + (r.error || 'Error al subir'), 'error');
-        }
-      },
-      function(err) { toast('Error: ' + err.message, 'error'); });
-  };
-  reader.readAsDataURL(file);
+  if (!inp.files[0]) { toast('Selecciona un archivo', 'error'); return; }
+  toast('Subiendo...', 'ok');
+  uploadB64(inp.files[0], carpeta, function(url) {
+    if (url) { toast('✅ Subido', 'ok'); document.getElementById(nmId).textContent = ''; inp.value = ''; cargarListaDocs(carpeta, carpeta === 'oficios' ? 'lista-ofc' : 'lista-trans'); }
+  });
 }
-
-/**
- * Elimina un documento del sistema Y de Google Drive.
- * ASISTENTE solo puede eliminar los suyos.
- */
-function elimDocCF(id, carpeta, elId) {
-  if (!confirm('¿Eliminar este documento?\n\nSe eliminará del sistema y de Google Drive.')) return;
+function elimDoc(id, carpeta, elId) {
+  if (!confirm('¿Eliminar este documento?')) return;
   _gsrCall('eliminarDocumento', [S.token, id],
-    function(r) {
-      if (r.ok) {
-        toast('✅ Eliminado del sistema y Drive', 'ok');
-        _cargarDocsParaCF(carpeta, elId);
-        if (S.usuario.rol === 'ASISTENTE') _checkEstadoAsistenteCF(_docCFActiva);
-      } else {
-        toast(r.error || 'Error al eliminar', 'error');
-      }
-    },
+    function(r) { if (r.ok) { toast('✅ Eliminado', 'ok'); cargarListaDocs(carpeta, elId); } else toast(r.error, 'error'); },
     null);
 }
 
