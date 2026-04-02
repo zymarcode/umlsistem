@@ -76,6 +76,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .urole{font-size:10px;color:#94a3b8}
 .btnlo{margin-top:10px;width:100%;padding:8px;background:transparent;border:1px solid #475569;color:#94a3b8;border-radius:8px;font-size:12px;cursor:pointer;transition:all .2s}
 .btnlo:hover{background:rgba(239,68,68,.15);border-color:var(--red);color:var(--red)}
+/* ── CAMPANITA ── */
+.bell-btn{position:relative;background:transparent;border:none;cursor:pointer;padding:6px 8px;border-radius:8px;color:#94a3b8;font-size:20px;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.bell-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.bell-badge{position:absolute;top:2px;right:2px;background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;display:none;animation:bellPulse 1s ease infinite}
+@keyframes bellPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+@keyframes bellRing{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-15deg)}40%,80%{transform:rotate(15deg)}}
+.bell-btn.ringing .bell-ico{display:inline-block;animation:bellRing .5s ease}
+.bell-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 /* Hamburguesa: oculta por defecto en todos los tamaños.
    En mobile (≤768px) el media query la activa con display:flex,
    pero SOLO cuando tiene la clase 'visible' agregada por JS al hacer login. */
@@ -453,7 +461,13 @@ tr:hover td{background:#f8fafc}
           <div class="urole" id="urole">—</div>
         </div>
       </div>
-      <button class="btnlo" onclick="doLogout()">🚪 Cerrar sesión</button>
+      <div class="bell-row">
+        <button class="bell-btn" id="bell-btn" onclick="nav2('notif')" title="Notificaciones">
+          <span class="bell-ico">🔔</span>
+          <span class="bell-badge" id="bell-badge"></span>
+        </button>
+        <button class="btnlo" style="margin-top:0;flex:1;margin-left:8px" onclick="doLogout()">🚪 Cerrar sesión</button>
+      </div>
     </div>
   </aside>
 
@@ -820,7 +834,6 @@ tr:hover td{background:#f8fafc}
       <button class="tab active" onclick="meTab(0)">📋 Ejecución</button>
       <button class="tab" onclick="meTab(1)">🔁 Reprogramación</button>
       <button class="tab" onclick="meTab(2)">🧠 Psicológico</button>
-      <button class="tab" onclick="meTab(3)">📎 Archivos</button>
     </div>
     <div class="tabp" id="me-p0">
       <div class="fg2">
@@ -1107,6 +1120,20 @@ function fF(s) {
 
 /** Alias de horaCorta para contexto de tabla */
 function fH(s) { return horaCorta(s); }
+
+/** Normaliza URL de Drive para visualización correcta (corrige URLs antiguas) */
+function fixDriveUrl(url) {
+  if (!url || url === '') return url;
+  // Si ya es URL de visualización pública, está bien
+  if (url.indexOf('/view') >= 0) return url;
+  // Convertir URL de descarga directa a visualización
+  var m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (m) return 'https://drive.google.com/file/d/' + m[1] + '/view?usp=sharing';
+  // Convertir ?id= style
+  var m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (m2) return 'https://drive.google.com/file/d/' + m2[1] + '/view?usp=sharing';
+  return url;
+}
 
 /** Normaliza fecha a formato YYYY-MM-DD (para lógica interna y CalWidget) */
 function nF(f) {
@@ -1488,6 +1515,7 @@ document.getElementById('l-pass').addEventListener('keydown', function(e) {
 
 /** Cierra la sesión del usuario */
 function doLogout() {
+  detenerPollNotif();
   _gsrCall('logout', [S.token], null, null);
   S = { token: null, usuario: null };
   sessionStorage.clear();
@@ -1544,6 +1572,56 @@ function startApp() {
     function(){});
   loadCfgVisual();
   nav2('dashboard');
+  // Iniciar polling de notificaciones (campanita)
+  iniciarPollNotif();
+}
+
+// ════════════════════════════════════════════════════════════
+// MÓDULO: CAMPANITA DE NOTIFICACIONES
+// Polling cada 30s para actualizar el badge en el sidebar
+// ════════════════════════════════════════════════════════════
+
+var _bellTimer = null;
+
+/** Actualiza el badge de la campanita con las notificaciones no leídas */
+function actualizarBell() {
+  if (!S.token) return;
+  _gsrCall('obtenerNotificaciones', [S.token],
+    function(r) {
+      if (!r.ok) return;
+      var noLeidos = 0;
+      (r.datos || []).forEach(function(m) {
+        var sent = S.usuario.rol === 'ADMINISTRADOR' && m.remitente === S.usuario.id;
+        if (!m.leida && !sent) noLeidos++;
+      });
+      var badge = document.getElementById('bell-badge');
+      var btn   = document.getElementById('bell-btn');
+      if (!badge || !btn) return;
+      if (noLeidos > 0) {
+        badge.textContent = noLeidos > 9 ? '9+' : noLeidos;
+        badge.style.display = 'flex';
+        btn.classList.add('ringing');
+        setTimeout(function(){ btn.classList.remove('ringing'); }, 600);
+      } else {
+        badge.style.display = 'none';
+        btn.classList.remove('ringing');
+      }
+    },
+    function(){});
+}
+
+/** Inicia el polling de notificaciones */
+function iniciarPollNotif() {
+  actualizarBell(); // Primera vez inmediata
+  if (_bellTimer) clearInterval(_bellTimer);
+  _bellTimer = setInterval(actualizarBell, 30000); // Cada 30 segundos
+}
+
+/** Detiene el polling al cerrar sesión */
+function detenerPollNotif() {
+  if (_bellTimer) { clearInterval(_bellTimer); _bellTimer = null; }
+  var badge = document.getElementById('bell-badge');
+  if (badge) badge.style.display = 'none';
 }
 
 /** Puebla todos los <select> del sistema con las listas dinámicas del backend */
@@ -1843,11 +1921,11 @@ function renderDil(items) {
   tb.innerHTML = items.map(function(d) {
     var real = d.SE_REALIZO || '';
     var bdg  = real === 'SÍ' ? '<span class="b bgr">✅ Sí</span>' : real === 'NO' ? '<span class="b bre">❌ No</span>' : '<span class="b bgy">⏳</span>';
-    var ofc  = d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎</a>' : '<span class="b bgy" style="font-size:10px">Sin PDF</span>';
+    var ofc  = d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + fixDriveUrl(d.S_OFICIO_URL) + '" target="_blank" class="btn bp sm" style="text-decoration:none">📎 Ver</a>' : '<span class="b bgy" style="font-size:10px">Sin PDF</span>';
     var crep = d.CANTIDAD_REPROGRAMACION && d.CANTIDAD_REPROGRAMACION !== '0' && d.CANTIDAD_REPROGRAMACION !== '' ? '<span class="b bor">🔁 ' + esc(d.CANTIDAD_REPROGRAMACION) + '</span>' : '<span class="b bgy">0</span>';
     var acc  = isAdm
       ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bp sm" onclick="editDilDir(\'' + esc(d.N) + '\')">✏️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
-      : '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️ Ver</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>';
+      : '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️ Ver</button></div>';
     return '<tr>'
       + '<td><b>' + esc(d.N||'—') + '</b></td>'
       + '<td><b>' + esc(d.CARPETA_FISCAL||'—') + '</b></td>'
@@ -1895,7 +1973,7 @@ function verDil(n) {
 
       var html = renderGrp('📋 Solicitud',g1) + renderGrp('👤 Caso',g2) + renderGrp('⚡ Ejecución',g3) + renderGrp('🔁 Reprogramación',g4) + renderGrp('🧠 Psicológico',g5);
       html += '<div style="display:flex;gap:7px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--bo)">';
-      if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') html += '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bp sm">📎 Oficio</a>';
+      if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') html += '<a href="' + fixDriveUrl(d.S_OFICIO_URL) + '" target="_blank" class="btn bp sm">📎 Oficio</a>';
       if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') html += '<a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">📄 Transcripción</a>';
       if (d.CELULAR && d.CELULAR !== '') html += '<a href="https://wa.me/' + d.CELULAR.replace(/\D/g,'') + '" target="_blank" class="btn bs sm">💬 WhatsApp</a>';
       html += '</div>';
@@ -1938,7 +2016,7 @@ function openEdit() {
   document.getElementById('me-tr-fn').textContent = '';
 
   var lh = '';
-  if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px;margin-bottom:5px"><span>📋</span><span style="flex:1">Oficio actual</span><a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">Ver</a></div>';
+  if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px;margin-bottom:5px"><span>📋</span><span style="flex:1">Oficio actual</span><a href="' + fixDriveUrl(d.S_OFICIO_URL) + '" target="_blank" class="btn bg sm">Ver</a></div>';
   if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px"><span>📄</span><span style="flex:1">Transcripción actual</span><a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">Ver</a></div>';
   document.getElementById('me-links').innerHTML = lh || '<p style="font-size:12px;color:var(--mu)">Sin archivos actualmente</p>';
 
@@ -1948,8 +2026,12 @@ function openEdit() {
   document.getElementById('mo-edit').classList.add('open');
 }
 
+/** Pestaña activa del modal de edición */
+var _meTabActual = 0;
+
 /** Cambia la pestaña activa del modal de edición */
 function meTab(i) {
+  _meTabActual = i;
   document.querySelectorAll('.tabs .tab').forEach(function(t, j){ t.classList.toggle('active', j === i); });
   document.querySelectorAll('#mo-edit .tabp').forEach(function(p, j){ p.style.display = j === i ? 'block' : 'none'; });
 }
@@ -1979,7 +2061,23 @@ function saveEdit() {
     _gsrCall('actualizarDiligencia', [S.token, n, campos],
       function(r) {
         btn.disabled = false; btn.textContent = '💾 Guardar cambios';
-        if (r.ok) { toast('✅ Actualizado', 'ok'); closeM('mo-edit'); loadDil(); _dilActual = null; }
+        if (r.ok) {
+          toast('✅ Actualizado', 'ok'); closeM('mo-edit'); _dilActual = null;
+          // Si se guardó desde la pestaña Psicológico → ir a Documentos
+          var cf = _dilActual ? (_dilActual.CARPETA_FISCAL || '') : '';
+          if (_meTabActual === 2) {
+            _dilActual = null;
+            nav2('docs');
+            // Filtrar búsqueda en documentos con la carpeta fiscal
+            setTimeout(function() {
+              var qOfc = document.getElementById('q-ofc');
+              if (qOfc && cf) { qOfc.value = cf; filtrarDocs('oficios','q-ofc','lista-ofc'); }
+            }, 500);
+          } else {
+            _dilActual = null;
+            loadDil();
+          }
+        }
         else toast('Error: ' + r.error, 'error');
       },
       function(e) { btn.disabled = false; btn.textContent = '💾 Guardar cambios'; toast('Error: ' + e.message, 'error'); });
@@ -2417,7 +2515,7 @@ function elimDoc(id, carpeta, elId) {
 
 function loadNotif() {
   _gsrCall('obtenerNotificaciones', [S.token],
-    function(r) { if (r.ok) renderChat(r.datos); },
+    function(r) { if (r.ok) { renderChat(r.datos); actualizarBell(); } },
     function(){});
   if (S.usuario.rol === 'ADMINISTRADOR') cargarDest();
 }
@@ -2467,7 +2565,7 @@ function sendNotif() {
 
 function leerN(id, el) {
   el.querySelector('.mhora').textContent = el.querySelector('.mhora').textContent.replace(' ✓', ' ✓✓');
-  _gsrCall('marcarNotificacionLeida', [S.token, id], null, null);
+  _gsrCall('marcarNotificacionLeida', [S.token, id], function(){ actualizarBell(); }, null);
   var b = document.getElementById('cbadge');
   var n = parseInt(b.textContent || 0) - 1;
   if (n <= 0) b.style.display = 'none'; else b.textContent = n;
