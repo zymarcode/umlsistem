@@ -975,6 +975,22 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
+
+<!-- Modal: Visor PDF (Drive embed) -->
+<div class="mo" id="mo-pdf-visor">
+  <div class="modal" style="max-width:860px;width:96vw;padding:0;overflow:hidden;border-radius:16px">
+    <div class="mhdr" style="padding:14px 18px;border-radius:16px 16px 0 0">
+      <div class="mtit" id="mo-pdf-titulo">Documento</div>
+      <button class="mcls" onclick="cerrarVisorPdf()">✕</button>
+    </div>
+    <iframe id="mo-pdf-frame" src="" style="width:100%;height:75vh;border:none;display:block" allowfullscreen></iframe>
+    <div style="padding:10px 16px;background:#f8fafc;border-top:1px solid var(--bo);display:flex;justify-content:flex-end;gap:8px;border-radius:0 0 16px 16px">
+      <button class="btn bg sm" onclick="cerrarVisorPdf()">Cerrar</button>
+      <button class="btn bp sm" id="mo-pdf-abrir-ext" onclick="window.open(document.getElementById('mo-pdf-frame').src.replace('/preview',''), '_blank')">↗️ Abrir en Drive</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast de notificaciones -->
 <div id="toast"></div>
 
@@ -1921,10 +1937,10 @@ function renderDil(items) {
   tb.innerHTML = items.map(function(d) {
     var real = d.SE_REALIZO || '';
     var bdg  = real === 'SÍ' ? '<span class="b bgr">✅ Sí</span>' : real === 'NO' ? '<span class="b bre">❌ No</span>' : '<span class="b bgy">⏳</span>';
-    var ofc  = d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + fixDriveUrl(d.S_OFICIO_URL) + '" target="_blank" class="btn bp sm" style="text-decoration:none">📎 Ver</a>' : '<span class="b bgy" style="font-size:10px">Sin PDF</span>';
+    var ofc  = d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + fixDriveUrl(d.S_OFICIO_URL) + '" target="_blank" title="Ver oficio PDF" style="text-decoration:none;font-size:20px;line-height:1;display:inline-block">📎</a>' : '<span style="color:#94a3b8;font-size:11px">—</span>';
     var crep = d.CANTIDAD_REPROGRAMACION && d.CANTIDAD_REPROGRAMACION !== '0' && d.CANTIDAD_REPROGRAMACION !== '' ? '<span class="b bor">🔁 ' + esc(d.CANTIDAD_REPROGRAMACION) + '</span>' : '<span class="b bgy">0</span>';
     var acc  = isAdm
-      ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bp sm" onclick="editDilDir(\'' + esc(d.N) + '\')">✏️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
+      ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
       : '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️ Ver</button></div>';
     return '<tr>'
       + '<td><b>' + esc(d.N||'—') + '</b></td>'
@@ -1973,8 +1989,8 @@ function verDil(n) {
 
       var html = renderGrp('📋 Solicitud',g1) + renderGrp('👤 Caso',g2) + renderGrp('⚡ Ejecución',g3) + renderGrp('🔁 Reprogramación',g4) + renderGrp('🧠 Psicológico',g5);
       html += '<div style="display:flex;gap:7px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--bo)">';
-      if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') html += '<a href="' + fixDriveUrl(d.S_OFICIO_URL) + '" target="_blank" class="btn bp sm">📎 Oficio</a>';
-      if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') html += '<a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">📄 Transcripción</a>';
+      if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') html += '<button class="btn bp sm" onclick="abrirDocumento(\'' + fixDriveUrl(d.S_OFICIO_URL).replace(/\'/g,\'%27\') + '\',\'Oficio\')">📎 Oficio</button>';
+      if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') html += '<button class="btn bg sm" onclick="abrirDocumento(\'' + fixDriveUrl(d.TRANSCRIPCION_URL).replace(/\'/g,\'%27\') + '\',\'Transcripción\')">📄 Transcripción</button>';
       if (d.CELULAR && d.CELULAR !== '') html += '<a href="https://wa.me/' + d.CELULAR.replace(/\D/g,'') + '" target="_blank" class="btn bs sm">💬 WhatsApp</a>';
       html += '</div>';
 
@@ -2016,8 +2032,8 @@ function openEdit() {
   document.getElementById('me-tr-fn').textContent = '';
 
   var lh = '';
-  if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px;margin-bottom:5px"><span>📋</span><span style="flex:1">Oficio actual</span><a href="' + fixDriveUrl(d.S_OFICIO_URL) + '" target="_blank" class="btn bg sm">Ver</a></div>';
-  if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px"><span>📄</span><span style="flex:1">Transcripción actual</span><a href="' + d.TRANSCRIPCION_URL + '" target="_blank" class="btn bg sm">Ver</a></div>';
+  if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px;margin-bottom:5px"><span>📋</span><span style="flex:1">Oficio actual</span><button class="btn bg sm" onclick="abrirDocumento(\'' + fixDriveUrl(d.S_OFICIO_URL).replace(/\'/g,\'%27\') + '\',\'Oficio\')">Ver</button></div>';
+  if (d.TRANSCRIPCION_URL && d.TRANSCRIPCION_URL !== '') lh += '<div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--bg);border-radius:7px;font-size:12px"><span>📄</span><span style="flex:1">Transcripción actual</span><button class="btn bg sm" onclick="abrirDocumento(\'' + fixDriveUrl(d.TRANSCRIPCION_URL).replace(/\'/g,\'%27\') + '\',\'Transcripción\')">Ver</button></div>';
   document.getElementById('me-links').innerHTML = lh || '<p style="font-size:12px;color:var(--mu)">Sin archivos actualmente</p>';
 
   toggleNR();
@@ -2057,24 +2073,28 @@ function saveEdit() {
   var aO = iO && iO.files[0] ? iO.files[0] : null;
   var aT = iT && iT.files[0] ? iT.files[0] : null;
 
+  // Capturar carpeta fiscal ANTES de llamar al backend (por si _dilActual se limpia)
+  var _cfParaDocs = _dilActual ? (_dilActual.CARPETA_FISCAL || '') : '';
+  var _tabAlGuardar = _meTabActual; // Capturar pestaña activa en este momento
+
   function fin() {
     _gsrCall('actualizarDiligencia', [S.token, n, campos],
       function(r) {
         btn.disabled = false; btn.textContent = '💾 Guardar cambios';
         if (r.ok) {
-          toast('✅ Actualizado', 'ok'); closeM('mo-edit'); _dilActual = null;
-          // Si se guardó desde la pestaña Psicológico → ir a Documentos
-          var cf = _dilActual ? (_dilActual.CARPETA_FISCAL || '') : '';
-          if (_meTabActual === 2) {
-            _dilActual = null;
+          toast('✅ Actualizado', 'ok');
+          closeM('mo-edit');
+          _dilActual = null;
+          // Si estaba en pestaña Psicológico (tab 2) → ir a Documentos amarrado a la carpeta fiscal
+          if (_tabAlGuardar === 2) {
             nav2('docs');
-            // Filtrar búsqueda en documentos con la carpeta fiscal
             setTimeout(function() {
-              var qOfc = document.getElementById('q-ofc');
-              if (qOfc && cf) { qOfc.value = cf; filtrarDocs('oficios','q-ofc','lista-ofc'); }
-            }, 500);
+              if (_cfParaDocs) {
+                var qOfc = document.getElementById('q-ofc');
+                if (qOfc) { qOfc.value = _cfParaDocs; filtrarDocs('oficios','q-ofc','lista-ofc'); }
+              }
+            }, 600);
           } else {
-            _dilActual = null;
             loadDil();
           }
         }
@@ -2483,16 +2503,45 @@ function renderListaDocs(carpeta, elId, q) {
   if (!items.length) { c.innerHTML = '<p style="font-size:12px;color:var(--mu);text-align:center;padding:12px">Sin documentos</p>'; return; }
   var isAdm = S.usuario.rol === 'ADMINISTRADOR';
   c.innerHTML = items.map(function(d) {
-    var ico = d.tipo === 'application/pdf' ? '📋' : '📄';
+    var esPdf = d.tipo === 'application/pdf' || (d.nombre||'').toLowerCase().endsWith('.pdf');
+    var ico = esPdf ? '📋' : '📄';
+    var urlFix = fixDriveUrl(d.url || '');
     var esMio = String(d.subidoPor) === String(S.usuario.id);
     var puedeElim = isAdm || esMio;
     return '<div class="doci">'
       + '<span style="font-size:16px">' + ico + '</span>'
       + '<div class="docin"><b>' + esc(d.nombre) + '</b><small>' + esc(d.fecha||'') + (isAdm ? ' · ' + esc(d.subidoPor||'') : '') + '</small></div>'
-      + '<a href="' + esc(d.url) + '" target="_blank" class="docib" title="Abrir">↗️</a>'
+      + '<button class="docib" onclick="abrirDocumento(\'' + urlFix.replace(/\'/g, '%27') + '\',\'' + esc(d.nombre) + '\')" title="Ver">↗️</button>'
       + (puedeElim ? '<button class="docib del" onclick="elimDoc(\'' + d.id + '\',\'' + carpeta + '\',\'' + elId + '\')" title="Eliminar">🗑️</button>' : '')
       + '</div>';
   }).join('');
+}
+
+/** Abre documento Drive en visor modal embed */
+function abrirDocumento(url, nombre) {
+  if (!url) { toast('URL no disponible', 'error'); return; }
+  var urlFix = fixDriveUrl(url);
+  var m = urlFix.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (m) { _abrirVisorPdf('https://drive.google.com/file/d/' + m[1] + '/preview', nombre); return; }
+  window.open(urlFix, '_blank');
+}
+
+function cerrarVisorPdf() {
+  var mo = document.getElementById('mo-pdf-visor');
+  var fr = document.getElementById('mo-pdf-frame');
+  if (mo) mo.classList.remove('open');
+  if (fr) fr.src = ''; // detener descarga
+}
+
+/** Modal visor iframe Drive */
+function _abrirVisorPdf(embedUrl, nombre) {
+  var mo = document.getElementById('mo-pdf-visor');
+  var ti = document.getElementById('mo-pdf-titulo');
+  var fr = document.getElementById('mo-pdf-frame');
+  if (!mo || !fr) { window.open(embedUrl, '_blank'); return; }
+  ti.textContent = nombre || 'Documento';
+  fr.src = ''; fr.src = embedUrl;
+  mo.classList.add('open');
 }
 function uploadDoc(carpeta, inputId, nmId) {
   var inp = document.getElementById(inputId);
