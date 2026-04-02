@@ -69,6 +69,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .ni:hover{background:var(--sbh);color:#fff}
 .ni.active{background:rgba(26,115,232,.2);color:#fff;border-left-color:var(--az)}
 .ni .ico{width:20px;text-align:center;font-size:16px;flex-shrink:0}
+/* ── BADGE DE NOTIFICACIONES EN MENÚ ── */
+.ni-badge{display:none;background:var(--red);color:#fff;border-radius:20px;font-size:10px;font-weight:800;padding:1px 6px;min-width:16px;text-align:center;margin-left:auto;animation:badgePulse 2s infinite}
+@keyframes badgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.ni-badge.show{display:inline-block}
 .sbf{padding:12px;border-top:1px solid #334155}
 .uinfo{display:flex;align-items:center;gap:8px}
 .uav{width:34px;height:34px;background:var(--az);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
@@ -1054,7 +1058,7 @@ var MENU_ADM = [
   { id:'agenda',    ico:'📅', lbl:'Agenda' },
   { id:'psico',     ico:'🧠', lbl:'Psicología' },
   { id:'docs',      ico:'📁', lbl:'Documentos' },
-  { id:'notif',     ico:'💬', lbl:'Mensajes' },
+  { id:'notif',     ico:'💬', lbl:'Mensajes', badge:true },
   { id:'usr',       ico:'👥', lbl:'Usuarios' },
   { id:'cfg',       ico:'⚙️', lbl:'Configuración' }
 ];
@@ -1063,8 +1067,12 @@ var MENU_AST = [
   { id:'dil',       ico:'📋', lbl:'Mis Diligencias' },
   { id:'agenda',    ico:'📅', lbl:'Agenda' },
   { id:'docs',      ico:'📁', lbl:'Documentos' },
-  { id:'notif',     ico:'💬', lbl:'Mensajes' }
+  { id:'notif',     ico:'💬', lbl:'Mensajes', badge:true }
 ];
+
+/** Estado del polling de notificaciones */
+var _notifPollTimer = null;
+var _notifNoLeidas = 0;
 
 // ════════════════════════════════════════════════════════════
 // MÓDULO 2: UTILIDADES — Formateo y helpers DOM
@@ -1488,6 +1496,8 @@ document.getElementById('l-pass').addEventListener('keydown', function(e) {
 
 /** Cierra la sesión del usuario */
 function doLogout() {
+  // Detener polling de notificaciones
+  if (_notifPollTimer) { clearInterval(_notifPollTimer); _notifPollTimer = null; }
   _gsrCall('logout', [S.token], null, null);
   S = { token: null, usuario: null };
   sessionStorage.clear();
@@ -1524,10 +1534,14 @@ function startApp() {
     var el = document.createElement('div');
     el.className   = 'ni';
     el.dataset.id  = m.id;
-    el.innerHTML   = '<span class="ico">' + m.ico + '</span><span>' + m.lbl + '</span>';
+    var badgeHtml = m.badge ? '<span class="ni-badge" id="badge-' + m.id + '"></span>' : '';
+    el.innerHTML   = '<span class="ico">' + m.ico + '</span><span>' + m.lbl + '</span>' + badgeHtml;
     el.onclick = function(){ nav2(m.id); closeSB(); };
     nav.appendChild(el);
   });
+
+  // Iniciar polling de notificaciones (cada 30 segundos)
+  _iniciarPollingNotif();
 
   // Mostrar elementos exclusivos del administrador
   var esAdmin = u.rol === 'ADMINISTRADOR';
@@ -1846,7 +1860,7 @@ function renderDil(items) {
     var ofc  = d.S_OFICIO_URL && d.S_OFICIO_URL !== '' ? '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎</a>' : '<span class="b bgy" style="font-size:10px">Sin PDF</span>';
     var crep = d.CANTIDAD_REPROGRAMACION && d.CANTIDAD_REPROGRAMACION !== '0' && d.CANTIDAD_REPROGRAMACION !== '' ? '<span class="b bor">🔁 ' + esc(d.CANTIDAD_REPROGRAMACION) + '</span>' : '<span class="b bgy">0</span>';
     var acc  = isAdm
-      ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bp sm" onclick="editDilDir(\'' + esc(d.N) + '\')">✏️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
+      ? '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>'
       : '<div style="display:flex;gap:3px"><button class="btn bg sm" onclick="verDil(\'' + esc(d.N) + '\')">👁️ Ver</button><button class="btn bd sm" onclick="elimDil(\'' + esc(d.N) + '\')">🗑️</button></div>';
     return '<tr>'
       + '<td><b>' + esc(d.N||'—') + '</b></td>'
@@ -2374,7 +2388,7 @@ function loadDocs() {
   if (S.usuario.rol === 'ADMINISTRADOR') cargarListaDocs('transcripciones', 'lista-trans');
 }
 function cargarListaDocs(carpeta, elId) {
-  _gsrCall('obtenerDocumentos', [S.token, carpeta],
+  _gsrCall('obtenerDocumentos', [S.token, carpeta.toLowerCase()],
     function(r) { _docsCache[carpeta] = r.ok ? r.datos : []; renderListaDocs(carpeta, elId, ''); },
     function() { document.getElementById(elId).innerHTML = '<p style="font-size:12px;color:var(--red);text-align:center;padding:12px">Error al cargar</p>'; });
 }
@@ -2415,9 +2429,59 @@ function elimDoc(id, carpeta, elId) {
 // MÓDULO 12: MENSAJES / NOTIFICACIONES
 // ════════════════════════════════════════════════════════════
 
+/**
+ * Inicia el polling automático de notificaciones (cada 30 segundos).
+ * Funciona tanto para Administrador como para Asistente.
+ */
+function _iniciarPollingNotif() {
+  _actualizarBadgeNotif();
+  if (_notifPollTimer) clearInterval(_notifPollTimer);
+  _notifPollTimer = setInterval(_actualizarBadgeNotif, 30000);
+}
+
+/**
+ * Obtiene notificaciones no leídas y actualiza el badge del menú lateral.
+ */
+function _actualizarBadgeNotif() {
+  if (!S.token) return;
+  _gsrCall('obtenerNotificaciones', [S.token],
+    function(r) {
+      if (!r.ok || !r.datos) return;
+      var noLeidas = 0;
+      r.datos.forEach(function(m) {
+        var esMio = S.usuario.rol === 'ADMINISTRADOR' && m.remitente === S.usuario.id;
+        if (!m.leida && !esMio) noLeidas++;
+      });
+      _notifNoLeidas = noLeidas;
+      _renderBadgeNotif(noLeidas);
+    },
+    function(){});
+}
+
+/**
+ * Actualiza visualmente el badge de notificaciones en el menú.
+ * @param {number} count - Número de notificaciones no leídas
+ */
+function _renderBadgeNotif(count) {
+  var badge = document.getElementById('badge-notif');
+  if (!badge) return;
+  if (count > 0) {
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.classList.add('show');
+  } else {
+    badge.classList.remove('show');
+  }
+  // Actualizar también el badge dentro del chat
+  var cbadge = document.getElementById('cbadge');
+  if (cbadge) {
+    if (count > 0) { cbadge.textContent = count; cbadge.style.display = 'block'; }
+    else cbadge.style.display = 'none';
+  }
+}
+
 function loadNotif() {
   _gsrCall('obtenerNotificaciones', [S.token],
-    function(r) { if (r.ok) renderChat(r.datos); },
+    function(r) { if (r.ok) { renderChat(r.datos); _actualizarBadgeNotif(); } },
     function(){});
   if (S.usuario.rol === 'ADMINISTRADOR') cargarDest();
 }
@@ -2439,6 +2503,8 @@ function renderChat(msgs) {
   c.innerHTML = html; c.scrollTop = c.scrollHeight;
   var badge = document.getElementById('cbadge');
   if (noLeidos > 0) { badge.textContent = noLeidos; badge.style.display = 'block'; } else badge.style.display = 'none';
+  // Actualizar badge del menú
+  _renderBadgeNotif(noLeidos);
 }
 
 function cargarDest() {
@@ -2471,6 +2537,9 @@ function leerN(id, el) {
   var b = document.getElementById('cbadge');
   var n = parseInt(b.textContent || 0) - 1;
   if (n <= 0) b.style.display = 'none'; else b.textContent = n;
+  // Actualizar badge del menú
+  _notifNoLeidas = Math.max(0, _notifNoLeidas - 1);
+  _renderBadgeNotif(_notifNoLeidas);
 }
 
 // ════════════════════════════════════════════════════════════
