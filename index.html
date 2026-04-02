@@ -712,7 +712,7 @@ tr:hover td{background:#f8fafc}
             <div><div style="font-size:14px;font-weight:700">Oficios</div><div style="font-size:11px;color:var(--mu)">Solo PDF</div></div>
           </div>
           <div class="sbar"><input class="sinp" type="text" id="q-ofc" placeholder="BUSCAR OFICIO..." oninput="filtrarDocs('oficios','q-ofc','lista-ofc')"></div>
-          <div id="zona-upload-ofc">
+          <div id="zona-upload-ofc" style="display:none">
           <div class="fd" onclick="document.getElementById('inp-ofc-doc').click()" style="padding:12px">
             <div class="fdi">📤</div><p>Subir oficio PDF</p><div class="fnm" id="ofc-doc-fn"></div>
           </div>
@@ -2410,13 +2410,8 @@ function generarPdfPsicologia(id) {
 // ════════════════════════════════════════════════════════════
 
 function loadDocs() {
-  var isAdm = S.usuario.rol === 'ADMINISTRADOR';
-  // Ocultar zona de subida directa de oficios para el asistente
-  // (el asistente sube PDFs desde la tabla de Mis Diligencias)
-  var zonaOfc = document.getElementById('zona-upload-ofc');
-  if (zonaOfc) zonaOfc.style.display = isAdm ? '' : 'none';
   cargarListaDocs('oficios', 'lista-ofc');
-  if (isAdm) cargarListaDocs('transcripciones', 'lista-trans');
+  if (S.usuario.rol === 'ADMINISTRADOR') cargarListaDocs('transcripciones', 'lista-trans');
 }
 function cargarListaDocs(carpeta, elId) {
   _gsrCall('obtenerDocumentos', [S.token, carpeta.toLowerCase()],
@@ -2456,11 +2451,6 @@ function elimDoc(id, carpeta, elId) {
     null);
 }
 
-/**
- * Sube el oficio PDF de una diligencia desde la tabla del asistente.
- * Usa la función subirOficioDiligencia del backend (no requiere ser admin).
- * Al terminar reemplaza el botón 📤 por el enlace 📎.
- */
 function _subirOficioDil(inputEl, n) {
   var file = inputEl.files[0];
   if (!file) return;
