@@ -296,12 +296,12 @@ tr:hover td{background:#f8fafc}
 .psiv{font-size:12px;font-weight:600}
 
 /* ── MODAL ── */
-.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center}
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:10px}
 .mo.open{display:flex}
-.modal{background:var(--card);border-radius:16px;padding:24px;width:90%;max-width:580px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal{background:var(--card);border-radius:16px;padding:24px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .mhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--bo)}
 .mtit{font-size:16px;font-weight:800}
-.mcls{background:none;border:none;font-size:22px;cursor:pointer;color:var(--mu)}
+.mcls{background:none;border:none;font-size:22px;cursor:pointer;color:var(--mu);flex-shrink:0;line-height:1}
 
 /* ── TOAST ── */
 #toast{position:fixed;bottom:22px;right:22px;background:#1e293b;color:#fff;padding:11px 18px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:320px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
@@ -348,7 +348,9 @@ tr:hover td{background:#f8fafc}
   .dsn{font-size:24px!important}
 
   /* Modal */
-  .modal{padding:14px;max-height:95vh;width:95%}
+  .mo{padding:0;align-items:flex-end}
+  .modal{padding:16px;max-height:92vh;width:100%;border-radius:20px 20px 0 0;margin:0}
+  .mhdr{position:sticky;top:0;background:var(--card);z-index:1;padding-bottom:10px;margin-bottom:12px}
   .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .tab{white-space:nowrap;min-width:max-content}
 
@@ -754,21 +756,54 @@ tr:hover td{background:#f8fafc}
     <!-- CONFIGURACIÓN VISUAL (solo admin) -->
     <div class="page" id="page-cfg">
       <div class="ph"><div class="phl"><h2>⚙️ Configuración</h2><p>Personalización del sistema</p></div></div>
+
+      <!-- Título y subtítulo del sistema -->
+      <div class="card">
+        <div class="ct">✏️ Título y subtítulo del sistema</div>
+        <div class="fg2">
+          <div class="fi"><label>Título (sidebar y login)</label><input type="text" id="cfg-titulo" placeholder="UML Huaral" style="text-transform:none"></div>
+          <div class="fi"><label>Subtítulo (sidebar)</label><input type="text" id="cfg-subtitulo" placeholder="Sistema Administrativo" style="text-transform:none"></div>
+          <div class="fi"><label>Texto login (debajo del logo)</label><input type="text" id="cfg-login-sub" placeholder="Sistema de Diligencias Psicológicas" style="text-transform:none"></div>
+        </div>
+        <button class="btn bp sm" style="margin-top:12px" onclick="saveCfgTextos()">💾 Guardar textos</button>
+      </div>
+
+      <!-- Fondo del login -->
       <div class="card">
         <div class="ct">🌄 Fondo del login</div>
+        <div class="fg2" style="margin-bottom:10px">
+          <div class="fi"><label>URL de imagen (JPG, PNG, WEBP)</label>
+            <input type="url" id="cfg-bg-url" placeholder="https://...imagen.jpg" style="text-transform:none">
+          </div>
+        </div>
+        <p style="font-size:11px;color:var(--mu);margin-bottom:8px;text-align:center">— o sube un archivo —</p>
         <div class="fd" onclick="document.getElementById('inp-bg').click()" style="padding:12px">
           <div class="fdi">🌄</div><p>JPG, PNG o WEBP — máx 2MB</p><div class="fnm" id="bg-fn"></div>
         </div>
         <input type="file" id="inp-bg" accept="image/*" style="display:none" onchange="prevImg(this,'bg-fn','bg')">
-        <button class="btn bp sm" style="margin-top:8px" onclick="saveImg('bg','inp-bg','bg-fn')">💾 Guardar fondo</button>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn bg sm" onclick="saveCfgUrl('bg','cfg-bg-url')">🔗 Guardar URL</button>
+          <button class="btn bp sm" onclick="saveImg('bg','inp-bg','bg-fn')">💾 Guardar archivo</button>
+        </div>
       </div>
+
+      <!-- Logo del sistema -->
       <div class="card">
         <div class="ct">🏷️ Logo del sistema</div>
+        <div class="fg2" style="margin-bottom:10px">
+          <div class="fi"><label>URL de imagen (PNG, SVG, JPG)</label>
+            <input type="url" id="cfg-logo-url" placeholder="https://...logo.png" style="text-transform:none">
+          </div>
+        </div>
+        <p style="font-size:11px;color:var(--mu);margin-bottom:8px;text-align:center">— o sube un archivo —</p>
         <div class="fd" onclick="document.getElementById('inp-logo').click()" style="padding:12px">
           <div class="fdi">🏷️</div><p>JPG, PNG o SVG — máx 2MB</p><div class="fnm" id="logo-fn"></div>
         </div>
         <input type="file" id="inp-logo" accept="image/*" style="display:none" onchange="prevImg(this,'logo-fn','logo')">
-        <button class="btn bp sm" style="margin-top:8px" onclick="saveImg('logo','inp-logo','logo-fn')">💾 Guardar logo</button>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn bg sm" onclick="saveCfgUrl('logo','cfg-logo-url')">🔗 Guardar URL</button>
+          <button class="btn bp sm" onclick="saveImg('logo','inp-logo','logo-fn')">💾 Guardar archivo</button>
+        </div>
       </div>
     </div>
 
@@ -1319,6 +1354,12 @@ CalWidget.prototype.render = function() {
   var hoy = new Date(), a = self.mes.getFullYear(), me = self.mes.getMonth();
   var pd = new Date(a, me, 1).getDay(), dm = new Date(a, me+1, 0).getDate();
 
+  // Calcular total disponible e importado
+  var totalDisp = 0;
+  Object.keys(self.mapa).forEach(function(fecha) {
+    self.mapa[fecha].forEach(function(s){ if (s.estado === 'DISPONIBLE') totalDisp++; });
+  });
+
   // Grid del mini-calendario
   var grid = document.createElement('div'); grid.className = 'cmgrid';
   DIAS.forEach(function(d) { var c = document.createElement('div'); c.className = 'cwd'; c.textContent = d; grid.appendChild(c); });
@@ -1326,21 +1367,33 @@ CalWidget.prototype.render = function() {
   for (var dd = 1; dd <= dm; dd++) {
     (function(day) {
       var fs = a + '-' + pad2(me+1) + '-' + pad2(day);
-      var tieneSlots = self.mapa[fs] && self.mapa[fs].some(function(s){ return s.estado === 'DISPONIBLE'; });
+      var slots = self.mapa[fs] || [];
+      var tieneSlots = slots.some(function(s){ return s.estado === 'DISPONIBLE'; });
+      var tieneTodo = slots.length > 0;
       var esHoy = day === hoy.getDate() && me === hoy.getMonth() && a === hoy.getFullYear();
       var esSel = self.sel && self.sel.fecha === fs;
       var dc = document.createElement('div');
-      dc.className = 'cday' + (tieneSlots ? ' ts' : '') + (esHoy ? ' hoy' : '') + (esSel ? ' sel' : '');
+      dc.className = 'cday' + (tieneSlots ? ' ts' : (tieneTodo ? ' ocu' : '')) + (esHoy ? ' hoy' : '') + (esSel ? ' sel' : '');
       dc.textContent = day;
+      if (tieneSlots || (slots.length && !esSel)) {
+        dc.title = slots.length + ' horario' + (slots.length!==1?'s':'') + ' — ' + slots.filter(function(s){return s.estado==='DISPONIBLE';}).length + ' disponible' + (slots.filter(function(s){return s.estado==='DISPONIBLE';}).length!==1?'s':'');
+      }
       self._addEv(dc, 'click', function(){ self._selDia(fs); });
       grid.appendChild(dc);
     })(dd);
   }
 
+  // Badge de stats de agenda
+  var statsBadge = totalDisp > 0
+    ? '<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:linear-gradient(135deg,rgba(26,115,232,.1),rgba(26,115,232,.05));border-radius:8px;margin:8px 12px 0;border:1px solid rgba(26,115,232,.2)">'
+      + '<span style="font-size:10px;font-weight:700;color:' + self.accent + '">' + totalDisp + ' hora' + (totalDisp!==1?'s':'') + ' disponible' + (totalDisp!==1?'s':'') + ' este mes</span>'
+      + '</div>'
+    : '<div style="padding:6px 10px;margin:8px 12px 0;font-size:10px;color:var(--mu);text-align:center">Sin horarios importados</div>';
+
   var lgHtml = '<div class="clg">'
-    + '<div class="cli"><div class="cld" style="background:' + self.accent + '"></div><span>Con horarios</span></div>'
+    + '<div class="cli"><div class="cld" style="background:' + self.accent + '"></div><span>Disponible</span></div>'
     + '<div class="cli"><div class="cld" style="background:#86efac;border:1px solid var(--grn)"></div><span>Tu reserva</span></div>'
-    + '<div class="cli"><div class="cld" style="background:#f1f5f9;border:1px solid #adb5bd"></div><span>Ocupado</span></div>'
+    + '<div class="cli"><div class="cld" style="background:#fecaca;border:1px solid #f87171"></div><span>Ocupado</span></div>'
     + '</div>';
 
   // Panel de slots del día seleccionado
@@ -1349,11 +1402,15 @@ CalWidget.prototype.render = function() {
   sh.sort(function(a, b){ return a.hora > b.hora ? 1 : -1; });
   var slotsDiv = document.createElement('div');
   if (!fd) {
-    slotsDiv.innerHTML = '<div class="cep"><div style="font-size:32px;margin-bottom:8px">👈</div><p>Selecciona un día</p></div>';
+    slotsDiv.innerHTML = '<div class="cep"><div style="font-size:40px;margin-bottom:10px;opacity:.4">📅</div><p style="font-weight:600;color:var(--tx);margin-bottom:4px">Selecciona una fecha</p><p style="font-size:11px">Elige un día con horarios disponibles en el calendario</p></div>';
   } else if (!sh.length) {
-    slotsDiv.innerHTML = '<div class="cep"><div style="font-size:32px;margin-bottom:8px">📭</div><p>Sin horarios este día</p></div>';
+    slotsDiv.innerHTML = '<div class="cep"><div style="font-size:40px;margin-bottom:10px;opacity:.4">📭</div><p style="font-weight:600;color:var(--tx);margin-bottom:4px">Sin horarios</p><p style="font-size:11px">No hay horarios importados para este día</p></div>';
   } else {
-    var title = document.createElement('div'); title.className = 'cst'; title.textContent = 'Horarios disponibles'; slotsDiv.appendChild(title);
+    var dispCount = sh.filter(function(s){ return s.estado === 'DISPONIBLE'; }).length;
+    var titleEl = document.createElement('div');
+    titleEl.className = 'cst';
+    titleEl.innerHTML = 'Horarios importados <span style="background:' + self.accent + ';color:#fff;border-radius:20px;font-size:10px;padding:1px 8px;margin-left:6px;font-weight:700">' + dispCount + ' libre' + (dispCount!==1?'s':'') + '</span>';
+    slotsDiv.appendChild(titleEl);
     var sg = document.createElement('div'); sg.className = 'sg';
     sh.forEach(function(s) {
       var ocu = s.estado !== 'DISPONIBLE';
@@ -1362,11 +1419,11 @@ CalWidget.prototype.render = function() {
       var horaDisplay = horaCorta(s.hora);
       if (ocu) {
         btn.className = 'sbtn ' + (mio ? 'mio' : 'ocu');
-        btn.innerHTML = '<span>' + (mio ? '✅' : '🔒') + '</span>' + esc(horaDisplay) + '<small>' + (mio ? 'Tu reserva' : 'Ocupado') + '</small>';
+        btn.innerHTML = '<span style="font-size:18px">' + (mio ? '✅' : '🔒') + '</span><span style="font-size:13px;font-weight:700">' + esc(horaDisplay) + '</span><small>' + (mio ? 'Tu reserva' : 'Ocupado') + '</small>';
       } else {
         var isSel = self.sel && self.sel.slotId === s.id;
         btn.className = 'sbtn' + (isSel ? ' sel' : '');
-        btn.innerHTML = '<span>🕐</span>' + esc(horaDisplay) + '<small>Disponible</small>';
+        btn.innerHTML = '<span style="font-size:18px">🕐</span><span style="font-size:13px;font-weight:700">' + esc(horaDisplay) + '</span><small>Disponible</small>';
         self._addEv(btn, 'click', (function(slot){ return function(){ self._selSlot(slot); }; })(s));
       }
       sg.appendChild(btn);
@@ -1382,7 +1439,7 @@ CalWidget.prototype.render = function() {
     panelDiv.className = 'csp';
     var inner = document.createElement('div'); inner.className = 'cspi';
     inner.innerHTML = '<div class="cspil">'
-      + '<div class="cspl">Reservando para</div>'
+      + '<div class="cspl">📋 Reservando para</div>'
       + '<div class="cspf">' + DIAS_L[dobj.getDay()] + ', ' + parseInt(pp[2]) + ' de ' + MESES[parseInt(pp[1])-1] + ' ' + pp[0] + '</div>'
       + '<div class="csph" style="color:' + self.accent + '">' + horaCorta(self.sel.hora) + '</div>'
       + '</div>';
@@ -1400,7 +1457,7 @@ CalWidget.prototype.render = function() {
     dhdr.textContent = DIAS_L[dobj2.getDay()] + ', ' + parseInt(pp2[2]) + ' de ' + MESES[parseInt(pp2[1])-1] + ' ' + pp2[0];
   } else {
     dhdr.style.cssText = 'color:var(--mu);font-size:13px';
-    dhdr.textContent = 'Selecciona un día';
+    dhdr.textContent = 'Selecciona un día en el calendario';
   }
 
   // Navegación de meses
@@ -1415,9 +1472,10 @@ CalWidget.prototype.render = function() {
   cmhdr.appendChild(prevBtn); cmhdr.appendChild(mesSpan); cmhdr.appendChild(nextBtn);
   var cmini = document.createElement('div'); cmini.className = 'cmini';
   cmini.appendChild(cmhdr); cmini.appendChild(grid);
+  var statsEl = document.createElement('div'); statsEl.innerHTML = statsBadge;
   var lgDiv = document.createElement('div'); lgDiv.innerHTML = lgHtml;
   var calsb = document.createElement('div'); calsb.className = 'calsb';
-  calsb.appendChild(cmini); calsb.appendChild(lgDiv.firstChild);
+  calsb.appendChild(cmini); calsb.appendChild(statsEl.firstChild); calsb.appendChild(lgDiv.firstChild);
   var csw = document.createElement('div'); csw.className = 'csw'; csw.appendChild(slotsDiv);
   var camhdr = document.createElement('div'); camhdr.className = 'camhdr'; camhdr.appendChild(dhdr);
   var calm = document.createElement('div'); calm.className = 'calm';
@@ -1862,7 +1920,7 @@ function renderDil(items) {
     var bdg  = real === 'SÍ' ? '<span class="b bgr">✅ Sí</span>' : real === 'NO' ? '<span class="b bre">❌ No</span>' : '<span class="b bgy">⏳</span>';
     var ofc;
     if (d.S_OFICIO_URL && d.S_OFICIO_URL !== '') {
-      ofc = '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm">📎</a>';
+      ofc = '<a href="' + d.S_OFICIO_URL + '" target="_blank" class="btn bg sm" style="display:inline-flex;align-items:center;gap:4px;line-height:1">📎 Ver</a>';
     } else if (!isAdm) {
       var uid = 'upd-' + esc(d.N);
       ofc = '<input type="file" id="' + uid + '" accept="application/pdf" style="display:none" onchange="_subirOficioDil(this,\'' + esc(d.N) + '\')">'
@@ -2629,7 +2687,7 @@ function loadOnline() {
             var online = idsEnLinea[keyId] || idsEnLinea[keyEm];
             /* Buscar datos adicionales del usuario en línea si existe */
             var uOnline = enLinea.filter(function(x){ return String(x.id||x.email) === keyId || String(x.email) === keyEm; })[0];
-            return { nombre: u.nombre, email: u.email, rol: u.rol, estado: u.estado, online: !!online, ultimaVez: uOnline ? uOnline.ultimaVez : null };
+            return { nombre: u.nombre, email: u.email, rol: u.rol, estado: u.estado, online: !!online, ultimoAcceso: u.ultimoAcceso || '', ultimaVez: uOnline ? uOnline.ultimaVez : null };
           });
 
           /* Ordenar: en línea primero */
@@ -2660,15 +2718,36 @@ function loadOnline() {
             var estadoLabel = u.online
               ? '<span class="b bgr" style="font-size:10px;padding:3px 9px">● En línea</span>'
               : '<span class="b bgy" style="font-size:10px;padding:3px 9px">○ Desconectado</span>';
+
+            // Mostrar hora de desconexión basado en ultimoAcceso del usuario
             var tiempoInfo = '';
-            if (!u.online && u.ultimaVez) {
+            if (!u.online && u.ultimoAcceso && u.ultimoAcceso !== '') {
               try {
-                var d = new Date(u.ultimaVez);
-                if (!isNaN(d.getTime())) {
-                  tiempoInfo = '<div style="font-size:9px;color:var(--mu);margin-top:2px">Última vez: ' + pad2(d.getDate()) + '/' + pad2(d.getMonth()+1) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + '</div>';
+                var dAcc = new Date(u.ultimoAcceso);
+                if (!isNaN(dAcc.getTime()) && dAcc.getFullYear() > 1970) {
+                  var ahora = new Date();
+                  var diffMs = ahora - dAcc;
+                  var diffMin = Math.floor(diffMs / 60000);
+                  var diffHrs = Math.floor(diffMin / 60);
+                  var diffDias = Math.floor(diffHrs / 24);
+                  var tiempoTexto;
+                  if (diffMin < 1) tiempoTexto = 'hace un momento';
+                  else if (diffMin < 60) tiempoTexto = 'hace ' + diffMin + ' min';
+                  else if (diffHrs < 24) tiempoTexto = 'hace ' + diffHrs + 'h ' + (diffMin % 60) + 'min';
+                  else tiempoTexto = pad2(dAcc.getDate()) + '/' + pad2(dAcc.getMonth()+1) + ' ' + pad2(dAcc.getHours()) + ':' + pad2(dAcc.getMinutes());
+                  tiempoInfo = '<div style="font-size:9px;color:var(--mu);margin-top:3px;display:flex;align-items:center;gap:3px">'
+                    + '<span style="width:6px;height:6px;border-radius:50%;background:#94a3b8;display:inline-block;flex-shrink:0"></span>'
+                    + 'Desconectado ' + tiempoTexto
+                    + '</div>';
                 }
               } catch(e){}
+            } else if (u.online) {
+              tiempoInfo = '<div style="font-size:9px;color:var(--grn);margin-top:3px;display:flex;align-items:center;gap:3px">'
+                + '<span style="width:6px;height:6px;border-radius:50%;background:var(--grn);display:inline-block;flex-shrink:0;animation:pulseGrn 2s infinite"></span>'
+                + 'Sesión activa ahora'
+                + '</div>';
             }
+
             var userActivoLabel = u.estado === 'ACTIVO' ? '' : '<span style="font-size:9px;color:var(--ora);margin-left:4px">(inactivo)</span>';
             return '<div class="ocard' + (u.online ? '' : ' offline') + '">'
               + '<div class="oav' + (u.online ? '' : ' offline') + '">' + esc(inicial) + '</div>'
@@ -2693,7 +2772,7 @@ function loadOnline() {
         },
         function() {
           /* Si falla obtenerUsuariosEnLinea, mostrar todos como offline */
-          var conEstado = todosLosUsers.map(function(u){ return Object.assign({}, u, {online:false, ultimaVez:null}); });
+          var conEstado = todosLosUsers.map(function(u){ return Object.assign({}, u, {online:false, ultimoAcceso: u.ultimoAcceso || null}); });
           var ts = document.getElementById('online-timestamp');
           if (ts) ts.textContent = 'Sin datos de sesión';
           var statsBar = document.getElementById('online-stats-bar');
@@ -2701,9 +2780,18 @@ function loadOnline() {
           var cntOn  = document.getElementById('cnt-online');  if (cntOn) cntOn.textContent = '0';
           var cntOff = document.getElementById('cnt-offline'); if (cntOff) cntOff.textContent = conEstado.length;
           c.innerHTML = '<div class="online-grid">' + conEstado.map(function(u){
+            var tiempoInfo = '';
+            if (u.ultimoAcceso && u.ultimoAcceso !== '') {
+              try {
+                var dAcc2 = new Date(u.ultimoAcceso);
+                if (!isNaN(dAcc2.getTime()) && dAcc2.getFullYear() > 1970) {
+                  tiempoInfo = '<div style="font-size:9px;color:var(--mu);margin-top:3px">Último acceso: ' + pad2(dAcc2.getDate()) + '/' + pad2(dAcc2.getMonth()+1) + ' ' + pad2(dAcc2.getHours()) + ':' + pad2(dAcc2.getMinutes()) + '</div>';
+                }
+              } catch(e){}
+            }
             return '<div class="ocard offline"><div class="oav offline">' + esc((u.nombre||'?').charAt(0).toUpperCase()) + '</div>'
               + '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700"><span class="odot offline"></span>' + esc(u.nombre) + '</div>'
-              + '<div style="font-size:10px;color:var(--mu)">' + esc(u.email) + '</div></div>'
+              + '<div style="font-size:10px;color:var(--mu)">' + esc(u.email) + '</div>' + tiempoInfo + '</div>'
               + '<span class="b bgy" style="font-size:10px">○ Desconectado</span></div>';
           }).join('') + '</div>';
         });
@@ -2917,8 +3005,101 @@ function renderNotifDash(ns) {
 }
 
 // ════════════════════════════════════════════════════════════
-// MÓDULO 15: CONFIGURACIÓN VISUAL (logo y fondo)
+// MÓDULO 15: CONFIGURACIÓN VISUAL (logo, fondo, textos)
 // ════════════════════════════════════════════════════════════
+
+/** Guarda una imagen mediante URL pública (sin base64) */
+function saveCfgUrl(tipo, urlInputId) {
+  var url = (document.getElementById(urlInputId) || {}).value || '';
+  if (!url) { toast('Ingresa una URL de imagen', 'error'); return; }
+  if (!/^https?:\/\//i.test(url)) { toast('La URL debe empezar con http:// o https://', 'error'); return; }
+  // Guardar la URL como dataUrl (en realidad es una URL externa)
+  // Usamos la misma función pero pasamos la URL directamente
+  toast('⏳ Guardando URL...', 'ok');
+  // Convertimos la URL pública a base64 para cumplir con el formato esperado
+  // O mejor: guardamos como texto plano en CONFIG con una clave especial
+  _saveUrlConfig(tipo, url);
+}
+
+/** Guarda una URL de imagen externa en sessionStorage y la aplica */
+function _saveUrlConfig(tipo, url) {
+  sessionStorage.setItem('cfg_' + tipo + '_url', url);
+  if (tipo === 'logo') apLogo(url);
+  if (tipo === 'bg') apBG(url);
+  // Intentar guardarla en el backend como dataUrl de URL (para persistencia)
+  var payload = 'url:' + url; // marcador especial
+  // Como el backend espera base64, guardamos la URL en una clave especial
+  _gsrCall('guardarConfigUrl', [S.token, tipo, url],
+    function(r) {
+      if (r && r.ok) toast('✅ URL de ' + tipo + ' guardada', 'ok');
+      else {
+        // Si la función no existe en el backend, aplicar solo localmente
+        toast('✅ ' + tipo + ' aplicado (sesión actual)', 'ok');
+      }
+    },
+    function() { toast('✅ ' + tipo + ' aplicado (sesión actual)', 'ok'); });
+}
+
+/** Guarda el título, subtítulo y texto del login */
+function saveCfgTextos() {
+  var titulo = (document.getElementById('cfg-titulo') || {}).value || '';
+  var subtit = (document.getElementById('cfg-subtitulo') || {}).value || '';
+  var loginSub = (document.getElementById('cfg-login-sub') || {}).value || '';
+  if (!titulo && !subtit && !loginSub) { toast('Ingresa al menos un texto', 'error'); return; }
+  // Aplicar inmediatamente
+  if (titulo) {
+    var h1 = document.querySelector('.sbh h1');
+    var h2login = document.querySelector('.llogo h2');
+    if (h1) h1.textContent = titulo;
+    if (h2login) h2login.textContent = titulo;
+  }
+  if (subtit) {
+    var p = document.querySelector('.sbh p');
+    if (p) p.textContent = subtit;
+  }
+  if (loginSub) {
+    var pLogin = document.querySelector('.llogo p');
+    if (pLogin) pLogin.textContent = loginSub;
+  }
+  // Guardar en sessionStorage para persistir durante la sesión
+  if (titulo) sessionStorage.setItem('cfg_titulo', titulo);
+  if (subtit) sessionStorage.setItem('cfg_subtitulo', subtit);
+  if (loginSub) sessionStorage.setItem('cfg_login_sub', loginSub);
+  toast('✅ Textos actualizados', 'ok');
+  // Intentar guardar en backend
+  _gsrCall('guardarConfigTexto', [S.token, titulo, subtit, loginSub], null, null);
+}
+
+/** Aplica textos guardados desde sessionStorage */
+function _aplicarCfgTextos() {
+  var titulo = sessionStorage.getItem('cfg_titulo');
+  var subtit = sessionStorage.getItem('cfg_subtitulo');
+  var loginSub = sessionStorage.getItem('cfg_login_sub');
+  if (titulo) {
+    var h1 = document.querySelector('.sbh h1');
+    var h2login = document.querySelector('.llogo h2');
+    if (h1) h1.textContent = titulo;
+    if (h2login) h2login.textContent = titulo;
+    var pgTit = document.getElementById('page-title-tag');
+    if (pgTit) pgTit.textContent = titulo;
+  }
+  if (subtit) { var p = document.querySelector('.sbh p'); if (p) p.textContent = subtit; }
+  if (loginSub) { var pL = document.querySelector('.llogo p'); if (pL) pL.textContent = loginSub; }
+}
+
+/** Rellena los inputs de configuración con los valores actuales */
+function _fillCfgInputs() {
+  var titulo = sessionStorage.getItem('cfg_titulo');
+  var subtit = sessionStorage.getItem('cfg_subtitulo');
+  var loginSub = sessionStorage.getItem('cfg_login_sub');
+  var bgUrl = sessionStorage.getItem('cfg_bg_url');
+  var logoUrl = sessionStorage.getItem('cfg_logo_url');
+  if (titulo) { var el = document.getElementById('cfg-titulo'); if (el) el.value = titulo; }
+  if (subtit) { var el2 = document.getElementById('cfg-subtitulo'); if (el2) el2.value = subtit; }
+  if (loginSub) { var el3 = document.getElementById('cfg-login-sub'); if (el3) el3.value = loginSub; }
+  if (bgUrl) { var el4 = document.getElementById('cfg-bg-url'); if (el4) el4.value = bgUrl; }
+  if (logoUrl) { var el5 = document.getElementById('cfg-logo-url'); if (el5) el5.value = logoUrl; }
+}
 
 /** Previsualiza una imagen seleccionada antes de guardar */
 function prevImg(inp, nmId, tipo) {
@@ -2966,8 +3147,16 @@ function apBG(src) {
 
 /** Carga la configuración visual después del login */
 function loadCfgVisual() {
+  // Aplicar URLs guardadas primero (más rápido)
+  var logoUrl = sessionStorage.getItem('cfg_logo_url');
+  var bgUrl = sessionStorage.getItem('cfg_bg_url');
+  if (logoUrl) apLogo(logoUrl);
+  if (bgUrl) apBG(bgUrl);
+  // Luego base64
   var logo = sessionStorage.getItem('cfg_logo'), bg = sessionStorage.getItem('cfg_bg');
   if (logo) apLogo(logo); if (bg) apBG(bg);
+  // Aplicar textos guardados
+  _aplicarCfgTextos();
   _gsrCall('obtenerConfigImagenes', [S.token],
     function(r) {
       if (!r || !r.ok) return;
@@ -2975,12 +3164,21 @@ function loadCfgVisual() {
       if (r.bg)   { apBG(r.bg);    sessionStorage.setItem('cfg_bg', r.bg); }
     },
     function(){});
+  // Rellenar inputs si estamos en página de config
+  setTimeout(_fillCfgInputs, 300);
 }
 
 /** Carga la configuración visual en la pantalla de login (sin sesión) */
 function loadCfgLogin() {
+  // Aplicar URLs guardadas
+  var logoUrl = sessionStorage.getItem('cfg_logo_url');
+  var bgUrl = sessionStorage.getItem('cfg_bg_url');
+  if (logoUrl) apLogo(logoUrl);
+  if (bgUrl) apBG(bgUrl);
   var logo = sessionStorage.getItem('cfg_logo'), bg = sessionStorage.getItem('cfg_bg');
   if (logo) apLogo(logo); if (bg) apBG(bg);
+  // Aplicar textos guardados
+  _aplicarCfgTextos();
   _gsrCall('obtenerConfigImagenesPublico', [],
     function(r) {
       if (!r || !r.ok) return;
