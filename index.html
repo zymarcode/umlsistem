@@ -1384,21 +1384,18 @@ function renderTutorialesAdmin(lista) {
 /** Agrega un nuevo tutorial (solo admin) */
 function agregarTutorial() {
   var titulo = (document.getElementById('tut-titulo-new')||{}).value || '';
-  var url    = ((document.getElementById('tut-url-new')||{}).value || '').toLowerCase().trim();
+  var url    = ((document.getElementById('tut-url-new')||{}).value || '').trim(); // SIN toLowerCase al guardar
   if (!titulo.trim()) { toast('Ingresa un título para el tutorial', 'error'); return; }
   if (!url || !/^https?:\/\//i.test(url)) { toast('Ingresa una URL válida (http:// o https://)', 'error'); return; }
 
   var lista = _getTutorialesLocal();
-  lista.push({ titulo: titulo.trim(), url: url });
+  lista.push({ titulo: titulo.trim(), url: url }); // guardamos la URL original con su capitalización
   sessionStorage.setItem('cfg_tutoriales', JSON.stringify(lista));
   renderTutorialesAdmin(lista);
-  // Limpiar campos
   document.getElementById('tut-titulo-new').value = '';
   document.getElementById('tut-url-new').value = '';
   toast('✅ Tutorial agregado', 'ok');
-  // Guardar en backend (clave especial para tutoriales)
   _gsrCall('guardarConfigUrl', [S.token, 'TUTORIALES', JSON.stringify(lista)], null, null);
-  // Actualizar la vista de asistentes si está cargada
   renderTutorialesViewer(lista);
 }
 
@@ -1431,23 +1428,31 @@ function loadTutorialesViewer() {
 /** Convierte URL de YouTube/Vimeo/Drive a URL embebible */
 function _toEmbedUrl(url) {
   if (!url) return null;
-  var u = url.trim().toLowerCase();
-  // YouTube watch?v=
-  var yt = u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-z0-9_-]{11})/i);
-  if (yt) return 'https://www.youtube.com/embed/' + yt[1] + '?rel=0&modestbranding=1';
-  // YouTube embed ya
-  if (u.indexOf('youtube.com/embed/') >= 0) return url;
-  // Google Drive /view -> /preview
-  if (u.indexOf('drive.google.com') >= 0) {
-    var fileId = u.match(/\/d\/([a-z0-9_-]+)/i);
-    if (fileId) return 'https://drive.google.com/file/d/' + fileId[1] + '/preview';
-    return url.replace('/view', '/preview');
+  var orig = url.trim();
+  var low  = orig.toLowerCase();
+
+  // YouTube: watch?v= | youtu.be/ | shorts/
+  var ytMatch = orig.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  if (ytMatch) return 'https://www.youtube.com/embed/' + ytMatch[1] + '?rel=0&modestbranding=1&enablejsapi=0';
+  if (low.indexOf('youtube.com/embed/') >= 0) return orig;
+
+  // Google Drive: /file/d/FILE_ID/  o  ?id=FILE_ID
+  if (low.indexOf('drive.google.com') >= 0) {
+    var driveMatch = orig.match(/\/file\/d\/([A-Za-z0-9_-]+)/);
+    if (driveMatch) return 'https://drive.google.com/file/d/' + driveMatch[1] + '/preview';
+    var idMatch = orig.match(/[?&]id=([A-Za-z0-9_-]+)/);
+    if (idMatch) return 'https://drive.google.com/file/d/' + idMatch[1] + '/preview';
   }
+
   // Vimeo
-  var vim = u.match(/vimeo\.com\/(\d+)/);
-  if (vim) return 'https://player.vimeo.com/video/' + vim[1];
-  // Retornar la URL original si no es reconocida (puede que sea embebible directamente)
-  return url;
+  var vimMatch = orig.match(/vimeo\.com\/(\d+)/);
+  if (vimMatch) return 'https://player.vimeo.com/video/' + vimMatch[1] + '?badge=0';
+
+  // Video directo mp4/webm
+  if (low.match(/\.(mp4|webm|ogg)(\?|$)/)) return orig;
+
+  // No reconocida: mostrar botón abrir
+  return null;
 }
 
 /** Renderiza la vista de tutoriales para asistentes */
@@ -1463,18 +1468,29 @@ function renderTutorialesViewer(lista) {
   }
   cont.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">'
     + lista.map(function(t, i) {
-      var embed = _toEmbedUrl(t.url);
-      return '<div class="card" style="padding:0;overflow:hidden">'
-        + (embed
-          ? '<div style="position:relative;padding-bottom:56.25%;background:#000;border-radius:var(--r) var(--r) 0 0;overflow:hidden">'
-            + '<iframe src="' + esc(embed) + '" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy" title="' + esc(t.titulo) + '"></iframe>'
-            + '</div>'
-          : '<div style="height:160px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;border-radius:var(--r) var(--r) 0 0">'
-            + '<span style="font-size:36px">🎬</span>'
-            + '<a href="' + esc(t.url) + '" target="_blank" class="btn bp sm">▶ Abrir video</a></div>'
-          )
-        + '<div style="padding:12px 14px"><div style="font-size:13px;font-weight:700;margin-bottom:4px">' + esc(t.titulo) + '</div>'
-        + '<a href="' + esc(t.url) + '" target="_blank" style="font-size:10px;color:var(--az);word-break:break-all;text-decoration:none">' + esc((t.url||'').toLowerCase()) + '</a></div>'
+      var embedUrl = _toEmbedUrl(t.url);
+      var displayUrl = (t.url || '').toLowerCase();
+      var iframeHtml = embedUrl
+        ? '<div style="position:relative;padding-bottom:56.25%;background:#111;border-radius:var(--r) var(--r) 0 0;overflow:hidden">'
+          + '<iframe src="' + esc(embedUrl) + '" '
+          + 'style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" '
+          + 'allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share" '
+          + 'allowfullscreen referrerpolicy="strict-origin-when-cross-origin" '
+          + 'loading="lazy" title="' + esc(t.titulo) + '"></iframe>'
+          + '</div>'
+        : '<div style="height:140px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border-radius:var(--r) var(--r) 0 0;border-bottom:1px solid var(--bo)">'
+          + '<span style="font-size:40px">🎬</span>'
+          + '<a href="' + esc(t.url) + '" target="_blank" rel="noopener" class="btn bp sm">▶ Abrir video</a>'
+          + '</div>';
+      return '<div class="card" style="padding:0;overflow:hidden;border-radius:var(--r)">'
+        + iframeHtml
+        + '<div style="padding:12px 14px">'
+        + '<div style="font-size:13px;font-weight:700;margin-bottom:5px">' + esc(t.titulo) + '</div>'
+        + '<a href="' + esc(t.url) + '" target="_blank" rel="noopener" '
+        + 'style="font-size:10px;color:var(--az);word-break:break-all;text-decoration:none;display:block">'
+        + esc(displayUrl) + '</a>'
+        + (embedUrl ? '<a href="' + esc(t.url) + '" target="_blank" rel="noopener" class="btn bg sm" style="margin-top:8px;font-size:11px">↗ Abrir en nueva pestaña</a>' : '')
+        + '</div>'
         + '</div>';
     }).join('')
     + '</div>';
