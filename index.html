@@ -730,23 +730,60 @@ tr:hover td{background:#f8fafc}
     <div class="page" id="page-notif">
       <div class="ph"><div class="phl"><h2>💬 Mensajes</h2><p>Centro de comunicaciones</p></div></div>
       <div class="chatw">
+
+        <!-- Header del chat -->
         <div class="chath">
-          <div class="chatav">🔔</div>
-          <div><div class="chathn">UML Huaral — Mensajes</div><div class="chaths">Sistema de notificaciones</div></div>
+          <div class="chatav">💬</div>
+          <div style="flex:1;min-width:0">
+            <div class="chathn" id="chat-titulo">UML Huaral — Chat</div>
+            <div class="chaths" id="chat-subtit">Sistema de comunicaciones</div>
+          </div>
+          <!-- Badge no leídos -->
           <div class="chatbadge" id="cbadge" style="display:none">0</div>
+          <!-- Toggle ON/OFF solo para ADMINISTRADOR -->
+          <div id="chat-toggle-wrap" style="display:none;align-items:center;gap:8px;margin-left:8px">
+            <span style="font-size:11px;color:var(--mu);font-weight:700" id="chat-toggle-lbl">Chat</span>
+            <button id="btn-chat-toggle" onclick="toggleChat()"
+              style="width:44px;height:24px;border-radius:12px;border:none;cursor:pointer;position:relative;transition:background .25s;outline:none;flex-shrink:0;background:var(--grn)">
+              <span id="chat-toggle-dot"
+                style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .25s;box-shadow:0 1px 4px rgba(0,0,0,.25)"></span>
+            </button>
+          </div>
+          <!-- Botón refrescar -->
+          <button class="btn bg sm" onclick="loadNotif()" style="margin-left:6px;padding:4px 8px;font-size:12px" title="Actualizar">🔄</button>
         </div>
+
+        <!-- Banner chat deshabilitado (asistentes) -->
+        <div id="chat-disabled-banner" style="display:none;background:#fef3c7;border-bottom:1px solid #fcd34d;padding:8px 14px;font-size:12px;color:#92400e;text-align:center">
+          ⚠️ El chat está deshabilitado temporalmente por el administrador.
+        </div>
+
+        <!-- Cuerpo de mensajes -->
         <div class="chatm" id="chatm"></div>
-        <!-- Solo visible para ADMINISTRADOR -->
-        <div id="chat-comp" style="display:none">
+
+        <!-- Compositor: ADMINISTRADOR (envía a todos o individual) -->
+        <div id="chat-comp-adm" style="display:none">
           <div class="chatdest">
             <label>Para:</label>
-            <select id="notif-dest"><option value="TODOS">Todos los asistentes</option></select>
+            <select id="notif-dest"><option value="TODOS">📢 Todos los asistentes</option></select>
           </div>
           <div class="chati">
-            <textarea class="chatti" id="chat-txt" placeholder="Primera línea = asunto&#10;Resto = mensaje..." rows="2"></textarea>
-            <button class="chats" onclick="sendNotif()">➤</button>
+            <textarea class="chatti" id="chat-txt" placeholder="Escribe un mensaje..." rows="2" onkeydown="chatEnter(event,'adm')"></textarea>
+            <button class="chats" onclick="sendNotif()" title="Enviar">➤</button>
           </div>
         </div>
+
+        <!-- Compositor: ASISTENTE (solo puede responder al admin) -->
+        <div id="chat-comp-ast" style="display:none">
+          <div style="padding:4px 12px 0;font-size:10px;color:var(--mu);background:#f8fafc;border-top:1px solid var(--bo)">
+            ↩ Respondiendo al Administrador
+          </div>
+          <div class="chati">
+            <textarea class="chatti" id="chat-txt-ast" placeholder="Escribe tu respuesta..." rows="2" onkeydown="chatEnter(event,'ast')"></textarea>
+            <button class="chats" onclick="sendReply()" title="Enviar">➤</button>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -1816,9 +1853,9 @@ function startApp() {
   var esAdmin = u.rol === 'ADMINISTRADOR';
   if (esAdmin) {
     document.getElementById('card-ag-txt').style.display = 'block';
-    document.getElementById('chat-comp').style.display   = 'block';
     document.getElementById('nd-sec-adm').style.display  = 'block';
     document.getElementById('card-trans').style.display  = 'block';
+    document.getElementById('chat-toggle-wrap').style.display = 'flex';
   }
 
   // Cargar listas para selects y configuración visual
@@ -2740,12 +2777,18 @@ function _subirOficioDil(inputEl, n) {
 }
 
 // ════════════════════════════════════════════════════════════
-// MÓDULO 12: MENSAJES / NOTIFICACIONES
+// ════════════════════════════════════════════════════════════
+// MÓDULO 12: CHAT INTERNO
+// - Admin: envía a todos o individual, toggle ON/OFF
+// - Asistente: responde solo al admin si chat habilitado
 // ════════════════════════════════════════════════════════════
 
+/** Estado del chat */
+var _chatHabilitado = true;
+var _chatPollTimer  = null; // refresh automático mientras el chat está abierto
+
 /**
- * Inicia el polling automático de notificaciones (cada 30 segundos).
- * Funciona tanto para Administrador como para Asistente.
+ * Inicia polling automático de notificaciones (badge en menú).
  */
 function _iniciarPollingNotif() {
   _actualizarBadgeNotif();
@@ -2763,8 +2806,8 @@ function _actualizarBadgeNotif() {
       if (!r.ok || !r.datos) return;
       var noLeidas = 0;
       r.datos.forEach(function(m) {
-        var esMio = S.usuario.rol === 'ADMINISTRADOR' && m.remitente === S.usuario.id;
-        if (!m.leida && !esMio) noLeidas++;
+        var esMioEnviado = m.remitente === S.usuario.id;
+        if (!m.leida && !esMioEnviado) noLeidas++;
       });
       _notifNoLeidas = noLeidas;
       _renderBadgeNotif(noLeidas);
@@ -2772,18 +2815,12 @@ function _actualizarBadgeNotif() {
     function(){});
 }
 
-/**
- * Actualiza visualmente el badge de notificaciones en el menú.
- * @param {number} count - Número de notificaciones no leídas
- */
 function _renderBadgeNotif(count) {
-  // Badge en el menú lateral (item Mensajes)
   var badge = document.getElementById('badge-notif');
   if (badge) {
     if (count > 0) { badge.textContent = count > 99 ? '99+' : count; badge.classList.add('show'); }
     else badge.classList.remove('show');
   }
-  // Badge dentro del chat (cbadge)
   var cbadge = document.getElementById('cbadge');
   if (cbadge) {
     if (count > 0) { cbadge.textContent = count; cbadge.style.display = 'block'; }
@@ -2791,65 +2828,189 @@ function _renderBadgeNotif(count) {
   }
 }
 
+/** Carga el chat y arranca el auto-refresh mientras la página está activa */
 function loadNotif() {
   _gsrCall('obtenerNotificaciones', [S.token],
-    function(r) { if (r.ok) { renderChat(r.datos); _actualizarBadgeNotif(); } },
+    function(r) {
+      if (r.ok) {
+        _chatHabilitado = r.chatHabilitado !== false; // por defecto true
+        _aplicarEstadoChat();
+        renderChat(r.datos);
+        _actualizarBadgeNotif();
+      }
+    },
     function(){});
   if (S.usuario.rol === 'ADMINISTRADOR') cargarDest();
+  // Auto-refresh cada 15 seg mientras el chat está abierto
+  if (_chatPollTimer) clearInterval(_chatPollTimer);
+  _chatPollTimer = setInterval(function() {
+    if (document.getElementById('page-notif').classList.contains('active')) loadNotif();
+    else { clearInterval(_chatPollTimer); _chatPollTimer = null; }
+  }, 15000);
 }
 
+/** Aplica el estado habilitado/deshabilitado del chat a la UI */
+function _aplicarEstadoChat() {
+  var esAdmin = S.usuario.rol === 'ADMINISTRADOR';
+  var banner  = document.getElementById('chat-disabled-banner');
+  var compAdm = document.getElementById('chat-comp-adm');
+  var compAst = document.getElementById('chat-comp-ast');
+  var dot     = document.getElementById('chat-toggle-dot');
+  var btn     = document.getElementById('btn-chat-toggle');
+  var lbl     = document.getElementById('chat-toggle-lbl');
+
+  if (esAdmin) {
+    // Admin siempre puede escribir
+    if (compAdm) compAdm.style.display = 'block';
+    if (compAst) compAst.style.display = 'none';
+    if (banner)  banner.style.display  = 'none';
+    // Actualizar visual del toggle
+    if (btn) btn.style.background = _chatHabilitado ? 'var(--grn)' : '#94a3b8';
+    if (dot) dot.style.left = _chatHabilitado ? '23px' : '3px';
+    if (lbl) lbl.textContent = _chatHabilitado ? 'Chat ON' : 'Chat OFF';
+  } else {
+    // Asistente
+    if (compAdm) compAdm.style.display = 'none';
+    if (banner)  banner.style.display  = _chatHabilitado ? 'none'  : 'flex';
+    if (compAst) compAst.style.display = _chatHabilitado ? 'block' : 'none';
+  }
+}
+
+/** Alterna el estado del chat (solo admin) */
+function toggleChat() {
+  _chatHabilitado = !_chatHabilitado;
+  _aplicarEstadoChat();
+  _gsrCall('guardarConfigChat', [S.token, _chatHabilitado],
+    function(r) {
+      toast(_chatHabilitado ? '✅ Chat habilitado para asistentes' : '🔕 Chat deshabilitado para asistentes', 'ok');
+    },
+    function() { toast('Error al guardar configuración', 'error'); });
+}
+
+/** Renderiza los mensajes del chat */
 function renderChat(msgs) {
-  var c = document.getElementById('chatm'), noLeidos = 0;
-  if (!msgs || !msgs.length) { c.innerHTML = '<div style="text-align:center;padding:28px;color:#888;font-size:13px">Sin mensajes</div>'; return; }
+  var c = document.getElementById('chatm');
+  if (!msgs || !msgs.length) {
+    c.innerHTML = '<div style="text-align:center;padding:32px 20px;color:#888;font-size:13px">'
+      + '<div style="font-size:32px;margin-bottom:8px">💬</div>Sin mensajes aún</div>';
+    return;
+  }
+  var noLeidos = 0;
   var html = '';
+  var esAdmin = S.usuario.rol === 'ADMINISTRADOR';
+
   msgs.forEach(function(m) {
-    var sent = S.usuario.rol === 'ADMINISTRADOR' && m.remitente === S.usuario.id;
-    if (!m.leida && !sent) noLeidos++;
+    var esMioEnviado = m.remitente === S.usuario.id;
+    if (!m.leida && !esMioEnviado) noLeidos++;
+
+    // Determinar si es mensaje enviado o recibido desde la perspectiva del usuario actual
+    var sent = esMioEnviado;
     var horaMsg = '';
-    if (m.fecha) { try { var d = new Date(m.fecha); horaMsg = horaCorta(pad2(d.getHours()) + ':' + pad2(d.getMinutes())); } catch(e) {} }
-    html += '<div class="mr ' + (sent ? 'sent' : 'recv') + '" onclick="leerN(\'' + m.id + '\',this)">'
-      + '<div class="mb"><div class="mas">' + esc(m.asunto) + '</div>' + esc(m.mensaje) + '</div>'
-      + '<div class="mhora">' + horaMsg + (m.leida ? ' ✓✓' : ' ✓') + '</div>'
+    if (m.fecha) {
+      try { var d = new Date(m.fecha); horaMsg = horaCorta(pad2(d.getHours()) + ':' + pad2(d.getMinutes())); } catch(e) {}
+    }
+
+    // Etiqueta del remitente
+    var remLabel = '';
+    if (esAdmin && !sent) {
+      // Admin ve quién le escribió
+      remLabel = '<div class="mas">👤 ' + esc(m.nombreRem || m.remitente) + '</div>';
+    } else if (!esAdmin && !sent) {
+      // Asistente ve que es del admin
+      remLabel = '<div class="mas">🔔 Administrador</div>';
+    } else if (sent) {
+      remLabel = '<div class="mas" style="opacity:.7">Tú</div>';
+    }
+
+    // Destinatario (solo admin ve esto en mensajes enviados)
+    var destLabel = '';
+    if (esAdmin && sent) {
+      if (m.destinatario === 'TODOS') destLabel = '<div style="font-size:10px;color:rgba(255,255,255,.6);margin-bottom:3px">📢 Para todos</div>';
+      else destLabel = '<div style="font-size:10px;color:rgba(255,255,255,.6);margin-bottom:3px">→ ' + esc(m.destinatario) + '</div>';
+    }
+
+    html += '<div class="mr ' + (sent ? 'sent' : 'recv') + '" onclick="leerN(\'' + esc(m.id) + '\',this)">'
+      + '<div class="mb">'
+      + remLabel
+      + destLabel
+      + '<div style="font-weight:700;margin-bottom:2px;font-size:12px">' + esc(m.asunto) + '</div>'
+      + '<div style="font-size:13px">' + esc(m.mensaje) + '</div>'
+      + '</div>'
+      + '<div class="mhora">' + horaMsg + (m.leida || sent ? ' ✓✓' : ' ✓') + '</div>'
       + '</div>';
   });
-  c.innerHTML = html; c.scrollTop = c.scrollHeight;
+
+  c.innerHTML = html;
+  c.scrollTop = c.scrollHeight;
   var badge = document.getElementById('cbadge');
-  if (noLeidos > 0) { badge.textContent = noLeidos; badge.style.display = 'block'; } else badge.style.display = 'none';
-  // Actualizar badge del menú
+  if (noLeidos > 0) { badge.textContent = noLeidos; badge.style.display = 'block'; }
+  else badge.style.display = 'none';
   _renderBadgeNotif(noLeidos);
 }
 
+/** Carga la lista de asistentes en el select de destinatarios (admin) */
 function cargarDest() {
   _gsrCall('obtenerUsuarios', [S.token],
     function(r) {
       if (!r.ok) return;
       var sel = document.getElementById('notif-dest');
-      sel.innerHTML = '<option value="TODOS">Todos los asistentes</option>';
-      r.datos.filter(function(u){ return u.rol === 'ASISTENTE'; }).forEach(function(u) {
-        sel.innerHTML += '<option value="' + u.id + '">' + esc(u.nombre) + '</option>';
-      });
-    },
-    null);
+      if (!sel) return;
+      sel.innerHTML = '<option value="TODOS">📢 Todos los asistentes</option>';
+      r.datos.filter(function(u){ return u.rol === 'ASISTENTE' && u.estado === 'ACTIVO'; })
+        .forEach(function(u) {
+          sel.innerHTML += '<option value="' + esc(u.id) + '">👤 ' + esc(u.nombre) + '</option>';
+        });
+    }, null);
 }
 
+/** Envía mensaje del ADMINISTRADOR */
 function sendNotif() {
-  var dest = document.getElementById('notif-dest').value;
-  var txt = g('chat-txt').trim(); if (!txt) { toast('Escribe un mensaje', 'error'); return; }
-  var ls = txt.split('\n');
-  var asunto  = ls[0].trim() || 'Notificación';
-  var mensaje = ls.slice(1).join('\n').trim() || txt;
+  var dest = (document.getElementById('notif-dest') || {}).value || 'TODOS';
+  var txt  = g('chat-txt').trim();
+  if (!txt) { toast('Escribe un mensaje', 'error'); return; }
+  var ls      = txt.split('\n');
+  var asunto  = ls[0].trim() || 'Mensaje';
+  var mensaje = ls.length > 1 ? ls.slice(1).join('\n').trim() : txt;
   _gsrCall('enviarNotificacion', [S.token, dest, asunto, mensaje],
-    function(r) { if (r.ok) { toast('✅ Enviado', 'ok'); sv('chat-txt', ''); loadNotif(); } else toast(r.error, 'error'); },
-    null);
+    function(r) {
+      if (r.ok) { toast('✅ Enviado', 'ok'); sv('chat-txt', ''); loadNotif(); }
+      else toast(r.error || 'Error al enviar', 'error');
+    }, null);
 }
 
+/** Envía respuesta del ASISTENTE al admin */
+function sendReply() {
+  if (!_chatHabilitado) { toast('El chat está deshabilitado', 'error'); return; }
+  var txt = g('chat-txt-ast').trim();
+  if (!txt) { toast('Escribe un mensaje', 'error'); return; }
+  var ls      = txt.split('\n');
+  var asunto  = ls[0].trim() || 'Respuesta';
+  var mensaje = ls.length > 1 ? ls.slice(1).join('\n').trim() : txt;
+  _gsrCall('enviarNotificacion', [S.token, 'ADMIN', asunto, mensaje],
+    function(r) {
+      if (r.ok) { toast('✅ Mensaje enviado', 'ok'); sv('chat-txt-ast', ''); loadNotif(); }
+      else toast(r.error || 'Error al enviar', 'error');
+    }, null);
+}
+
+/** Enviar con Enter (Shift+Enter = salto de línea) */
+function chatEnter(e, who) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    if (who === 'adm') sendNotif(); else sendReply();
+  }
+}
+
+/** Marca un mensaje como leído al hacer clic */
 function leerN(id, el) {
-  el.querySelector('.mhora').textContent = el.querySelector('.mhora').textContent.replace(' ✓', ' ✓✓');
+  var horaEl = el.querySelector('.mhora');
+  if (horaEl && horaEl.textContent.indexOf('✓✓') < 0) {
+    horaEl.textContent = horaEl.textContent.replace(' ✓', ' ✓✓');
+  }
   _gsrCall('marcarNotificacionLeida', [S.token, id], null, null);
   var b = document.getElementById('cbadge');
-  var n = parseInt(b.textContent || 0) - 1;
+  var n = parseInt(b.textContent || '0') - 1;
   if (n <= 0) b.style.display = 'none'; else b.textContent = n;
-  // Actualizar badge del menú
   _notifNoLeidas = Math.max(0, _notifNoLeidas - 1);
   _renderBadgeNotif(_notifNoLeidas);
 }
