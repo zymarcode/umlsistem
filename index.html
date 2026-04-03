@@ -2938,7 +2938,7 @@ function renderDashAdm(d) {
     + '<div class="ds dspu" style="cursor:pointer;border:2px solid #c4b5fd" onclick="nav2(\'psico\')">'
       + '<div class="dsn" id="psico-stat-num" style="font-size:28px">⏳</div>'
       + '<div class="dsl">🧠 Psicología</div>'
-      + '<div style="font-size:10px;color:var(--pur);margin-top:2px;font-weight:600">Atenciones</div>'
+      + '<div style="font-size:10px;color:var(--pur);margin-top:2px;font-weight:600">Citas forenses</div>'
     + '</div>'
     + '</div>';
   // Card destacada de Psicología
@@ -2946,7 +2946,7 @@ function renderDashAdm(d) {
     + '<div style="width:54px;height:54px;border-radius:14px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">🧠</div>'
     + '<div style="flex:1;color:#fff">'
       + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.8;margin-bottom:4px">Módulo de Psicología</div>'
-      + '<div style="font-size:22px;font-weight:900;line-height:1.1">Atenciones registradas: <span id="psico-stat-num2" style="background:rgba(255,255,255,.2);padding:2px 12px;border-radius:20px">⏳</span></div>'
+      + '<div style="font-size:22px;font-weight:900;line-height:1.1">Citas forenses: <span id="psico-stat-num2" style="background:rgba(255,255,255,.2);padding:2px 12px;border-radius:20px">⏳</span></div>'
       + '<div style="font-size:11px;opacity:.75;margin-top:4px">Gestión de citas psicológicas forenses · Solo administrador</div>'
     + '</div>'
     + '<button class="btn sm" style="background:#fff;color:#7c3aed;font-weight:800;white-space:nowrap;flex-shrink:0" onclick="nav2(\'psico\')">Ver registros →</button>'
@@ -3149,41 +3149,59 @@ function apBG(src) {
 function loadCfgVisual() {
   // Aplicar URLs guardadas primero (más rápido)
   var logoUrl = sessionStorage.getItem('cfg_logo_url');
-  var bgUrl = sessionStorage.getItem('cfg_bg_url');
+  var bgUrl   = sessionStorage.getItem('cfg_bg_url');
   if (logoUrl) apLogo(logoUrl);
-  if (bgUrl) apBG(bgUrl);
+  if (bgUrl)   apBG(bgUrl);
   // Luego base64
   var logo = sessionStorage.getItem('cfg_logo'), bg = sessionStorage.getItem('cfg_bg');
   if (logo) apLogo(logo); if (bg) apBG(bg);
-  // Aplicar textos guardados
+  // Aplicar textos guardados localmente
   _aplicarCfgTextos();
+  // Obtener valores del backend (fuente de verdad para persistencia)
   _gsrCall('obtenerConfigImagenes', [S.token],
     function(r) {
       if (!r || !r.ok) return;
-      if (r.logo) { apLogo(r.logo); sessionStorage.setItem('cfg_logo', r.logo); }
-      if (r.bg)   { apBG(r.bg);    sessionStorage.setItem('cfg_bg', r.bg); }
+      // Imágenes base64
+      if (r.logo)      { apLogo(r.logo);       sessionStorage.setItem('cfg_logo', r.logo); }
+      if (r.bg)        { apBG(r.bg);           sessionStorage.setItem('cfg_bg', r.bg); }
+      // URLs externas (prioridad sobre base64 si ambas existen)
+      if (r.urlLogo)   { apLogo(r.urlLogo);    sessionStorage.setItem('cfg_logo_url', r.urlLogo); }
+      if (r.urlBg)     { apBG(r.urlBg);        sessionStorage.setItem('cfg_bg_url', r.urlBg); }
+      // Textos personalizados
+      if (r.titulo)    { sessionStorage.setItem('cfg_titulo', r.titulo); }
+      if (r.subtitulo) { sessionStorage.setItem('cfg_subtitulo', r.subtitulo); }
+      if (r.loginSub)  { sessionStorage.setItem('cfg_login_sub', r.loginSub); }
+      // Aplicar textos recién obtenidos
+      if (r.titulo || r.subtitulo || r.loginSub) _aplicarCfgTextos();
     },
     function(){});
   // Rellenar inputs si estamos en página de config
-  setTimeout(_fillCfgInputs, 300);
+  setTimeout(_fillCfgInputs, 400);
 }
 
 /** Carga la configuración visual en la pantalla de login (sin sesión) */
 function loadCfgLogin() {
   // Aplicar URLs guardadas
   var logoUrl = sessionStorage.getItem('cfg_logo_url');
-  var bgUrl = sessionStorage.getItem('cfg_bg_url');
+  var bgUrl   = sessionStorage.getItem('cfg_bg_url');
   if (logoUrl) apLogo(logoUrl);
-  if (bgUrl) apBG(bgUrl);
+  if (bgUrl)   apBG(bgUrl);
   var logo = sessionStorage.getItem('cfg_logo'), bg = sessionStorage.getItem('cfg_bg');
   if (logo) apLogo(logo); if (bg) apBG(bg);
-  // Aplicar textos guardados
+  // Aplicar textos guardados localmente
   _aplicarCfgTextos();
+  // Obtener del backend (persiste entre sesiones)
   _gsrCall('obtenerConfigImagenesPublico', [],
     function(r) {
       if (!r || !r.ok) return;
-      if (r.logo) { apLogo(r.logo); sessionStorage.setItem('cfg_logo', r.logo); }
-      if (r.bg)   { apBG(r.bg);    sessionStorage.setItem('cfg_bg', r.bg); }
+      if (r.logo)      { apLogo(r.logo);       sessionStorage.setItem('cfg_logo', r.logo); }
+      if (r.bg)        { apBG(r.bg);           sessionStorage.setItem('cfg_bg', r.bg); }
+      if (r.urlLogo)   { apLogo(r.urlLogo);    sessionStorage.setItem('cfg_logo_url', r.urlLogo); }
+      if (r.urlBg)     { apBG(r.urlBg);        sessionStorage.setItem('cfg_bg_url', r.urlBg); }
+      if (r.titulo)    { sessionStorage.setItem('cfg_titulo', r.titulo); }
+      if (r.subtitulo) { sessionStorage.setItem('cfg_subtitulo', r.subtitulo); }
+      if (r.loginSub)  { sessionStorage.setItem('cfg_login_sub', r.loginSub); }
+      if (r.titulo || r.subtitulo || r.loginSub) _aplicarCfgTextos();
     },
     function(){});
 }
@@ -3247,7 +3265,7 @@ document.addEventListener('blur', function(e) {
   var tag = el.tagName.toLowerCase();
   if (tag !== 'input' && tag !== 'textarea') return;
   var tipo = el.type || 'text';
-  var excluidos = ['email','password','number','date','time','datetime-local','tel','hidden','file'];
+  var excluidos = ['email','password','number','date','time','datetime-local','tel','hidden','file','url'];
   if (excluidos.indexOf(tipo) >= 0) return;
   if (el.value) el.value = el.value.toUpperCase();
 }, true);
