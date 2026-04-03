@@ -310,8 +310,8 @@ tr:hover td{background:#f8fafc}
 #toast.error{border-left:4px solid var(--red)}
 
 /* ── BOTÓN FLOTANTE ── */
-#floating-txt-btn{position:fixed;bottom:24px;right:24px;z-index:400;display:none;width:52px;height:52px;border-radius:50%;background:var(--pur);color:#fff;border:none;font-size:22px;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(124,58,237,.4);transition:transform .2s}
-#floating-txt-btn:hover{transform:scale(1.1)}
+#floating-txt-btn{position:fixed;bottom:24px;right:24px;z-index:400;display:none;width:52px;height:52px;border-radius:50%;background:var(--pur);color:#fff;border:none;font-size:22px;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(124,58,237,.4);transition:transform .2s;will-change:transform;transform:translateZ(0);-webkit-transform:translateZ(0)}
+#floating-txt-btn:hover{transform:translateZ(0) scale(1.1)}
 
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
@@ -328,8 +328,25 @@ tr:hover td{background:#f8fafc}
   .ph > div:last-child .btn{flex:1;justify-content:center;min-width:0}
   .phl h2{font-size:17px}
 
-  /* ─ TABLAS: scroll horizontal en mobile (más confiable) ─ */
-  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);max-height:none}
+  /* ─ TABLAS MODO TARJETA en mobile ─ */
+  table.card-table thead{display:none}
+  table.card-table tr{display:block;background:var(--card);border:1px solid var(--bo);border-radius:10px;margin-bottom:10px;padding:10px 12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  table.card-table td{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid var(--bg);font-size:12px;min-height:28px}
+  table.card-table td:last-child{border-bottom:none;padding-top:8px;justify-content:flex-end}
+  table.card-table td::before{content:attr(data-label);font-weight:700;font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.3px;flex-shrink:0;padding-top:1px;min-width:90px}
+  table.card-table td:last-child::before{display:none}
+  table.card-table .acc-btns{justify-content:flex-end;flex-wrap:wrap}
+  /* Aplicar a TODAS las tablas de datos en mobile */
+  .tw table{display:block}
+  .tw table thead{display:none}
+  .tw table tbody{display:block}
+  .tw table tr{display:block;background:var(--card);border:1px solid var(--bo);border-radius:10px;margin-bottom:10px;padding:10px 12px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+  .tw table td{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:12px;flex-wrap:wrap}
+  .tw table td:last-child{border-bottom:none;padding-top:8px;justify-content:flex-end}
+  .tw table td::before{content:attr(data-label);font-weight:700;font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.3px;flex-shrink:0;padding-top:2px;min-width:80px;max-width:120px}
+  .tw table td:last-child::before{display:none}
+  .tw table td .acc-btns{justify-content:flex-end}
+  .tw table td .b{font-size:10px;padding:2px 7px}
 
   /* Botones compactos */
   .btn.sm{padding:5px 8px;font-size:11px}
@@ -347,12 +364,22 @@ tr:hover td{background:#f8fafc}
   .ds{padding:12px 8px}
   .dsn{font-size:24px!important}
 
-  /* Modal */
+  /* Modal — compacto en móvil */
   .mo{padding:0;align-items:flex-end}
-  .modal{padding:16px;max-height:92vh;width:100%;border-radius:20px 20px 0 0;margin:0}
-  .mhdr{position:sticky;top:0;background:var(--card);z-index:1;padding-bottom:10px;margin-bottom:12px}
+  .modal{padding:12px 12px 16px;max-height:82vh;width:100%;border-radius:16px 16px 0 0;margin:0;font-size:13px}
+  .mhdr{position:sticky;top:0;background:var(--card);z-index:1;padding-bottom:8px;margin-bottom:8px}
+  .mtit{font-size:14px}
+  .mcls{font-size:20px}
   .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .tab{white-space:nowrap;min-width:max-content}
+  .tab{white-space:nowrap;min-width:max-content;padding:7px 10px;font-size:11px}
+  /* Inputs más compactos dentro de modal en móvil */
+  .modal .fi input,.modal .fi select,.modal .fi textarea{padding:7px 9px;font-size:13px}
+  .modal .fg2{gap:8px}
+  .modal .fi{gap:3px}
+  .modal .fi label{font-size:9px}
+  .modal .fs{padding:12px;margin-bottom:10px}
+  /* Botones del footer del modal */
+  .modal > div[style*="justify-content:flex-end"]{padding-top:10px;margin-top:12px}
 
   /* Calendario */
   .sg{grid-template-columns:repeat(3,1fr)}
@@ -805,6 +832,31 @@ tr:hover td{background:#f8fafc}
           <button class="btn bp sm" onclick="saveImg('logo','inp-logo','logo-fn')">💾 Guardar archivo</button>
         </div>
       </div>
+
+      <!-- ══ TUTORIALES ══ -->
+      <div class="card" id="card-tutoriales-admin">
+        <div class="ct">🎬 Tutoriales de capacitación</div>
+        <p style="font-size:12px;color:var(--mu);margin-bottom:14px">Agrega URLs de videos de YouTube, Drive o Vimeo. Los asistentes podrán visualizarlos desde su menú.</p>
+        <div id="lista-tutoriales-admin" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+        <div class="fs">
+          <div class="fst">➕ Nuevo tutorial</div>
+          <div class="fg2" style="margin-bottom:10px">
+            <div class="fi" style="grid-column:1/-1"><label>Título del video</label><input type="text" id="tut-titulo-new" placeholder="Ej: Cómo registrar una diligencia" style="text-transform:none"></div>
+            <div class="fi" style="grid-column:1/-1"><label>URL del video (YouTube, Drive, Vimeo…)</label>
+              <input type="url" id="tut-url-new" placeholder="https://www.youtube.com/watch?v=..." style="text-transform:none;text-transform:lowercase">
+            </div>
+          </div>
+          <button class="btn bp sm" onclick="agregarTutorial()">➕ Agregar tutorial</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TUTORIALES (todos los roles) -->
+    <div class="page" id="page-tutoriales">
+      <div class="ph"><div class="phl"><h2>🎬 Tutoriales</h2><p>Videos de capacitación del sistema</p></div></div>
+      <div id="tut-viewer-body">
+        <div style="text-align:center;padding:40px;color:var(--mu)">⏳ Cargando tutoriales...</div>
+      </div>
     </div>
 
   </main>
@@ -1090,14 +1142,16 @@ var MENU_ADM = [
   { id:'docs',      ico:'📁', lbl:'Documentos' },
   { id:'notif',     ico:'💬', lbl:'Mensajes', badge:true },
   { id:'usr',       ico:'👥', lbl:'Usuarios' },
+  { id:'tutoriales',ico:'🎬', lbl:'Tutoriales' },
   { id:'cfg',       ico:'⚙️', lbl:'Configuración' }
 ];
 var MENU_AST = [
-  { id:'dashboard', ico:'📊', lbl:'Dashboard' },
-  { id:'dil',       ico:'📋', lbl:'Mis Diligencias' },
-  { id:'agenda',    ico:'📅', lbl:'Agenda' },
-  { id:'docs',      ico:'📁', lbl:'Documentos' },
-  { id:'notif',     ico:'💬', lbl:'Mensajes', badge:true }
+  { id:'dashboard',  ico:'📊', lbl:'Dashboard' },
+  { id:'dil',        ico:'📋', lbl:'Mis Diligencias' },
+  { id:'agenda',     ico:'📅', lbl:'Agenda' },
+  { id:'docs',       ico:'📁', lbl:'Documentos' },
+  { id:'notif',      ico:'💬', lbl:'Mensajes', badge:true },
+  { id:'tutoriales', ico:'🎬', lbl:'Tutoriales' }
 ];
 
 /** Estado del polling de notificaciones */
@@ -1283,7 +1337,149 @@ document.querySelectorAll('.mo').forEach(function(m) {
   }
 })();
 
-// Efecto ripple al hacer clic en el botón login
+// ════════════════════════════════════════════════════════════
+// MÓDULO 18: TUTORIALES
+// Admin: agrega/elimina URLs de video. Asistentes: las visualizan.
+// Se almacena en sessionStorage con clave 'cfg_tutoriales' (JSON array).
+// Persistencia real: guardarConfigUrl con clave 'TUTORIAL_x' en backend.
+// ════════════════════════════════════════════════════════════
+
+/** Carga y renderiza los tutoriales en el panel de administración */
+function loadTutorialesAdmin() {
+  var lista = _getTutorialesLocal();
+  renderTutorialesAdmin(lista);
+  // Sincronizar desde backend en background
+  _gsrCall('obtenerConfigImagenes', [S.token],
+    function(r) {
+      if (r && r.ok && r.tutoriales) {
+        sessionStorage.setItem('cfg_tutoriales', JSON.stringify(r.tutoriales));
+        renderTutorialesAdmin(r.tutoriales);
+      }
+    }, function(){});
+}
+
+/** Obtiene los tutoriales guardados localmente */
+function _getTutorialesLocal() {
+  try { return JSON.parse(sessionStorage.getItem('cfg_tutoriales') || '[]'); } catch(e) { return []; }
+}
+
+/** Renderiza la lista de tutoriales en el panel admin */
+function renderTutorialesAdmin(lista) {
+  var cont = document.getElementById('lista-tutoriales-admin');
+  if (!cont) return;
+  if (!lista || !lista.length) {
+    cont.innerHTML = '<p style="font-size:12px;color:var(--mu);text-align:center;padding:12px 0">Sin tutoriales agregados aún.</p>';
+    return;
+  }
+  cont.innerHTML = lista.map(function(t, i) {
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border-radius:9px;border:1px solid var(--bo)">'
+      + '<span style="font-size:18px">🎬</span>'
+      + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;margin-bottom:2px">' + esc(t.titulo) + '</div>'
+      + '<div style="font-size:11px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc((t.url||'').toLowerCase()) + '</div></div>'
+      + '<button class="btn bd sm" onclick="eliminarTutorial(' + i + ')">🗑️</button>'
+      + '</div>';
+  }).join('');
+}
+
+/** Agrega un nuevo tutorial (solo admin) */
+function agregarTutorial() {
+  var titulo = (document.getElementById('tut-titulo-new')||{}).value || '';
+  var url    = ((document.getElementById('tut-url-new')||{}).value || '').toLowerCase().trim();
+  if (!titulo.trim()) { toast('Ingresa un título para el tutorial', 'error'); return; }
+  if (!url || !/^https?:\/\//i.test(url)) { toast('Ingresa una URL válida (http:// o https://)', 'error'); return; }
+
+  var lista = _getTutorialesLocal();
+  lista.push({ titulo: titulo.trim(), url: url });
+  sessionStorage.setItem('cfg_tutoriales', JSON.stringify(lista));
+  renderTutorialesAdmin(lista);
+  // Limpiar campos
+  document.getElementById('tut-titulo-new').value = '';
+  document.getElementById('tut-url-new').value = '';
+  toast('✅ Tutorial agregado', 'ok');
+  // Guardar en backend (clave especial para tutoriales)
+  _gsrCall('guardarConfigUrl', [S.token, 'TUTORIALES', JSON.stringify(lista)], null, null);
+  // Actualizar la vista de asistentes si está cargada
+  renderTutorialesViewer(lista);
+}
+
+/** Elimina un tutorial por índice */
+function eliminarTutorial(idx) {
+  if (!confirm('¿Eliminar este tutorial?')) return;
+  var lista = _getTutorialesLocal();
+  lista.splice(idx, 1);
+  sessionStorage.setItem('cfg_tutoriales', JSON.stringify(lista));
+  renderTutorialesAdmin(lista);
+  _gsrCall('guardarConfigUrl', [S.token, 'TUTORIALES', JSON.stringify(lista)], null, null);
+  renderTutorialesViewer(lista);
+  toast('✅ Tutorial eliminado', 'ok');
+}
+
+/** Carga la vista de tutoriales para asistentes */
+function loadTutorialesViewer() {
+  var lista = _getTutorialesLocal();
+  renderTutorialesViewer(lista);
+  // Intentar obtener del backend en background
+  _gsrCall('obtenerConfigImagenes', [S.token],
+    function(r) {
+      if (r && r.ok && r.tutoriales) {
+        sessionStorage.setItem('cfg_tutoriales', JSON.stringify(r.tutoriales));
+        renderTutorialesViewer(r.tutoriales);
+      }
+    }, function(){});
+}
+
+/** Convierte URL de YouTube/Vimeo/Drive a URL embebible */
+function _toEmbedUrl(url) {
+  if (!url) return null;
+  var u = url.trim().toLowerCase();
+  // YouTube watch?v=
+  var yt = u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-z0-9_-]{11})/i);
+  if (yt) return 'https://www.youtube.com/embed/' + yt[1] + '?rel=0&modestbranding=1';
+  // YouTube embed ya
+  if (u.indexOf('youtube.com/embed/') >= 0) return url;
+  // Google Drive /view -> /preview
+  if (u.indexOf('drive.google.com') >= 0) {
+    var fileId = u.match(/\/d\/([a-z0-9_-]+)/i);
+    if (fileId) return 'https://drive.google.com/file/d/' + fileId[1] + '/preview';
+    return url.replace('/view', '/preview');
+  }
+  // Vimeo
+  var vim = u.match(/vimeo\.com\/(\d+)/);
+  if (vim) return 'https://player.vimeo.com/video/' + vim[1];
+  // Retornar la URL original si no es reconocida (puede que sea embebible directamente)
+  return url;
+}
+
+/** Renderiza la vista de tutoriales para asistentes */
+function renderTutorialesViewer(lista) {
+  var cont = document.getElementById('tut-viewer-body');
+  if (!cont) return;
+  if (!lista || !lista.length) {
+    cont.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--mu)">'
+      + '<div style="font-size:48px;margin-bottom:12px">🎬</div>'
+      + '<p style="font-size:15px;font-weight:700;margin-bottom:6px">Sin tutoriales disponibles</p>'
+      + '<p style="font-size:12px">El administrador aún no ha agregado videos de capacitación.</p></div>';
+    return;
+  }
+  cont.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px">'
+    + lista.map(function(t, i) {
+      var embed = _toEmbedUrl(t.url);
+      return '<div class="card" style="padding:0;overflow:hidden">'
+        + (embed
+          ? '<div style="position:relative;padding-bottom:56.25%;background:#000;border-radius:var(--r) var(--r) 0 0;overflow:hidden">'
+            + '<iframe src="' + esc(embed) + '" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy" title="' + esc(t.titulo) + '"></iframe>'
+            + '</div>'
+          : '<div style="height:160px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;border-radius:var(--r) var(--r) 0 0">'
+            + '<span style="font-size:36px">🎬</span>'
+            + '<a href="' + esc(t.url) + '" target="_blank" class="btn bp sm">▶ Abrir video</a></div>'
+          )
+        + '<div style="padding:12px 14px"><div style="font-size:13px;font-weight:700;margin-bottom:4px">' + esc(t.titulo) + '</div>'
+        + '<a href="' + esc(t.url) + '" target="_blank" style="font-size:10px;color:var(--az);word-break:break-all;text-decoration:none">' + esc((t.url||'').toLowerCase()) + '</a></div>'
+        + '</div>';
+    }).join('')
+    + '</div>';
+}
+
 document.getElementById('btn-login').addEventListener('click', function(e) {
   var btn = this;
   var rect = btn.getBoundingClientRect();
@@ -1656,14 +1852,20 @@ function nav2(id) {
 
   // Disparar carga de datos según la página
   var cargadores = {
-    agenda:    loadAgenda,
-    dil:       loadDil,
-    notif:     loadNotif,
-    docs:      loadDocs,
-    dashboard: loadDash,
-    psico:     loadCitasPsico
+    agenda:      loadAgenda,
+    dil:         loadDil,
+    notif:       loadNotif,
+    docs:        loadDocs,
+    dashboard:   loadDash,
+    psico:       loadCitasPsico,
+    tutoriales:  loadTutorialesViewer
   };
   if (id === 'usr') { loadUsr(); loadOnline(); }
+  else if (id === 'cfg') {
+    if (_onlineTimer) { clearTimeout(_onlineTimer); _onlineTimer = null; }
+    // Al entrar a config, también cargar el panel de tutoriales del admin
+    if (S.usuario && S.usuario.rol === 'ADMINISTRADOR') loadTutorialesAdmin();
+  }
   else {
     /* Al salir de usuarios, cancelar auto-refresh online */
     if (_onlineTimer) { clearTimeout(_onlineTimer); _onlineTimer = null; }
@@ -3267,6 +3469,9 @@ document.addEventListener('blur', function(e) {
   var tipo = el.type || 'text';
   var excluidos = ['email','password','number','date','time','datetime-local','tel','hidden','file','url'];
   if (excluidos.indexOf(tipo) >= 0) return;
+  // Respetar campos con style text-transform:none o clase no-upper
+  if (el.classList.contains('no-upper')) return;
+  if (el.style.textTransform === 'none' || el.style.textTransform === 'lowercase') return;
   if (el.value) el.value = el.value.toUpperCase();
 }, true);
 
